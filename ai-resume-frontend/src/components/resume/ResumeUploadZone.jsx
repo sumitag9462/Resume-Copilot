@@ -68,11 +68,10 @@ const ResumeUploadZone = ({ onUpload, uploading = false }) => {
           onDrop={onDrop}
           onClick={() => inputRef.current?.click()}
           className={`
-            relative border-2 border-dashed rounded-3xl p-10 text-center cursor-pointer
-            transition-all duration-300 group overflow-hidden
+            bg-bg-elevated rounded-2xl border transition-all duration-300 p-6 text-center cursor-pointer group
             ${dragOver
-              ? 'border-brand-500 bg-gradient-to-br from-brand-50 via-white to-purple-50 scale-[1.01] shadow-glow'
-              : 'border-slate-200 hover:border-brand-400 hover:bg-gradient-to-br hover:from-brand-50 hover:via-white hover:to-purple-50 hover:shadow-card-hover'
+              ? 'border-accent-violet bg-bg-muted/70 shadow-[0_0_20px_rgba(124,111,247,0.2)]'
+              : 'border-border-normal hover:border-accent-violet/60 hover:bg-bg-muted'
             }
           `}
         >
@@ -83,42 +82,48 @@ const ResumeUploadZone = ({ onUpload, uploading = false }) => {
             onChange={onInputChange}
             className="hidden"
           />
-          <div className="flex flex-col items-center gap-4">
-            <div className={`w-16 h-16 rounded-2xl flex items-center justify-center transition-all duration-300
-              ${dragOver ? 'bg-brand-100 scale-110' : 'bg-slate-100 group-hover:bg-brand-100 group-hover:scale-105'}`}>
-              <Upload className={`w-7 h-7 transition-colors ${dragOver ? 'text-brand-600' : 'text-slate-400 group-hover:text-brand-600'}`} />
+          <div 
+            className="p-8 flex flex-col items-center gap-4 transition-all duration-300"
+            style={{
+              background: 'linear-gradient(#181C24, #181C24) padding-box, linear-gradient(135deg, rgba(124,111,247,0.4), rgba(46,203,173,0.4)) border-box',
+              border: '2px dashed transparent',
+              borderRadius: '16px',
+            }}
+          >
+            <div className="w-16 h-16 rounded-2xl flex items-center justify-center border border-border-normal bg-bg-surface transition-all duration-300 hover:scale-105 flex-shrink-0">
+              <Upload className="w-7 h-7 text-accent-violet" />
             </div>
             <div>
-              <p className="text-slate-800 font-semibold font-heading text-lg">
+              <p className="text-text-secondary text-base font-semibold font-display">
                 {dragOver ? 'Drop it here!' : 'Drag & drop your resume'}
               </p>
-              <p className="text-slate-400 text-sm mt-1">
-                or <span className="text-brand-600 font-medium">click to browse</span>
+              <p className="text-text-muted text-sm mt-1">
+                or <span className="text-accent-violet hover:text-accent-violet-light underline font-medium">click to browse</span>
               </p>
             </div>
             <div className="flex items-center gap-3">
-              <span className="px-3 py-1 bg-white border border-slate-200 rounded-full text-xs text-slate-500 font-medium">PDF</span>
-              <span className="px-3 py-1 bg-white border border-slate-200 rounded-full text-xs text-slate-500 font-medium">DOCX</span>
-              <span className="px-3 py-1 bg-white border border-slate-200 rounded-full text-xs text-slate-500 font-medium">Max 5MB</span>
+              <span className="px-3 py-1 bg-bg-muted border border-border-subtle rounded-full text-xs text-text-muted font-medium font-display">PDF</span>
+              <span className="px-3 py-1 bg-bg-muted border border-border-subtle rounded-full text-xs text-text-muted font-medium font-display">DOCX</span>
+              <span className="px-3 py-1 bg-bg-muted border border-border-subtle rounded-full text-xs text-text-muted font-medium font-display">Max 5MB</span>
             </div>
           </div>
         </div>
       ) : (
-        <div className="border border-brand-200 bg-brand-50/40 rounded-2xl p-5 flex items-center justify-between">
+        <div className="border border-border-normal bg-bg-surface rounded-2xl p-5 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-brand-100 rounded-xl flex items-center justify-center flex-shrink-0">
-              <FileText className="w-6 h-6 text-brand-600" />
+            <div className="w-12 h-12 bg-bg-muted rounded-xl flex items-center justify-center flex-shrink-0 border border-border-subtle">
+              <FileText className="w-6 h-6 text-accent-violet" />
             </div>
             <div>
-              <p className="font-semibold text-slate-800 text-sm truncate max-w-[220px]">{file.name}</p>
-              <p className="text-xs text-slate-500 mt-0.5">
+              <p className="font-semibold text-text-primary text-sm truncate max-w-[220px]">{file.name}</p>
+              <p className="text-xs text-text-secondary mt-0.5">
                 {file.type.includes('pdf') ? 'PDF Document' : 'Word Document'} · {formatSize(file.size)}
               </p>
             </div>
           </div>
           <button
             onClick={clearFile}
-            className="p-2 hover:bg-red-50 rounded-lg text-slate-400 hover:text-red-500 transition-colors"
+            className="p-2 hover:bg-red-500/10 rounded-lg text-text-secondary hover:text-red-400 transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
@@ -126,7 +131,7 @@ const ResumeUploadZone = ({ onUpload, uploading = false }) => {
       )}
 
       {error && (
-        <div className="flex items-center gap-2 text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+        <div className="flex items-center gap-2 text-red-400 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3">
           <AlertCircle className="w-4 h-4 flex-shrink-0" />
           <p className="text-sm">{error}</p>
         </div>
@@ -136,7 +141,7 @@ const ResumeUploadZone = ({ onUpload, uploading = false }) => {
         <button
           onClick={handleUpload}
           disabled={uploading}
-          className="btn-primary w-full py-3 text-base"
+          className="btn-primary w-full py-3 text-base rounded-full bg-gradient-to-r from-accent-violet to-accent-teal text-white shadow-[0_12px_30px_rgba(124,111,247,0.25)] hover:opacity-95 transition"
         >
           {uploading ? (
             <>

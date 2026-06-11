@@ -31,8 +31,8 @@ const MODELS = {
     description: "Our recommended default model. Balanced speed, reasoning, and accuracy."
   },
   "gemini-flash-latest": {
-    apiName: "gemini-1.5-flash", // Maps to 1.5 flash production API
-    displayName: "Gemini Flash Latest",
+    apiName: "gemini-2.5-flash-lite", // Maps to working 2.5 flash lite
+    displayName: "Gemini Flash Lite Latest",
     accuracy: 4.5,
     speed: "Fast",
     cost: "Balanced",
@@ -44,17 +44,17 @@ const MODELS = {
     description: "Alternative flash model offering stable performance."
   },
   "gemini-pro": {
-    apiName: "gemini-1.5-pro", // Maps to 1.5 pro deep reasoning model
-    displayName: "Gemini Pro",
+    apiName: "gemini-2.5-flash", // Maps to Gemini 2.5 Flash for speed, reliability, and free tier compatibility
+    displayName: "Gemini Pro (via Flash)",
     accuracy: 5,
-    speed: "Slow",
+    speed: "Very Fast",
     cost: "Premium",
-    reasoning: "Excellent",
+    reasoning: "Very Good",
     practicality: "Deep Analysis",
     atsQuality: "Excellent",
     recruiterQuality: "Excellent",
-    confidence: 95,
-    description: "Highest reasoning capability. Ideal for complex synthesis and large text restructuring."
+    confidence: 90,
+    description: "Mapped to Gemini 2.5 Flash (free tier compatible). Same speed and quality as Flash."
   }
 };
 

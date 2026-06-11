@@ -127,10 +127,10 @@ const ResumeBoostPage = () => {
   };
 
   const validateAndSetFile = (file) => {
-    const isDoc = file.type === "application/pdf" || 
-                  file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
-                  file.name.endsWith(".pdf") || 
-                  file.name.endsWith(".docx");
+    const isDoc = file.type === "application/pdf" ||
+      file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+      file.name.endsWith(".pdf") ||
+      file.name.endsWith(".docx");
 
     if (!isDoc) {
       return toast.error("Only PDF or DOCX files are allowed.");
@@ -295,8 +295,8 @@ const ResumeBoostPage = () => {
             <div className="space-y-3">
               {changes.map((ch, idx) => {
                 const color = ch.type === "added" ? "border-emerald-500/30 bg-emerald-500/5 text-emerald-400" :
-                              ch.type === "removed" ? "border-rose-500/30 bg-rose-500/5 text-rose-400" :
-                              "border-amber-500/30 bg-amber-500/5 text-amber-400";
+                  ch.type === "removed" ? "border-rose-500/30 bg-rose-500/5 text-rose-400" :
+                    "border-amber-500/30 bg-amber-500/5 text-amber-400";
                 return (
                   <div key={idx} className={`rounded-xl border p-4 ${color}`}>
                     <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider">
@@ -360,9 +360,8 @@ const ResumeBoostPage = () => {
                   onDragOver={handleDrag}
                   onDragLeave={handleDragLeave}
                   onDrop={handleDrop}
-                  className={`relative rounded-2xl border-2 border-dashed p-5 text-center cursor-pointer transition ${
-                    dragOver ? "border-[#7C5CFC] bg-[#7C5CFC]/5" : "border-white/10 hover:border-white/20 bg-white/2"
-                  }`}
+                  className={`relative rounded-2xl border-2 border-dashed p-5 text-center cursor-pointer transition ${dragOver ? "border-[#7C5CFC] bg-[#7C5CFC]/5" : "border-white/10 hover:border-white/20 bg-white/2"
+                    }`}
                 >
                   <Upload className="mx-auto h-6 w-6 text-slate-500 mb-2" />
                   <p className="text-[10px] text-slate-400">Drag files here or click to browse</p>
@@ -407,11 +406,10 @@ const ResumeBoostPage = () => {
                     <div
                       key={item._id}
                       onClick={() => handleLoadHistoryItem(item)}
-                      className={`group flex items-center justify-between p-3 rounded-xl border transition cursor-pointer ${
-                        arenaRun?._id === item._id
+                      className={`group flex items-center justify-between p-3 rounded-xl border transition cursor-pointer ${arenaRun?._id === item._id
                           ? "border-[#7C5CFC]/40 bg-[#7C5CFC]/8 text-white"
                           : "border-white/5 bg-white/2 text-slate-400 hover:text-white"
-                      }`}
+                        }`}
                     >
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-xs font-semibold">
@@ -446,17 +444,15 @@ const ResumeBoostPage = () => {
               <div className="flex border-b border-white/10 mb-6">
                 <button
                   onClick={() => handleToggleSubFeature("boost")}
-                  className={`flex items-center gap-2 pb-3 px-4 text-sm font-semibold border-b-2 transition ${
-                    activeTab === "boost" ? "border-[#7C5CFC] text-[#A78BFA]" : "border-transparent text-slate-400 hover:text-white"
-                  }`}
+                  className={`flex items-center gap-2 pb-3 px-4 text-sm font-semibold border-b-2 transition ${activeTab === "boost" ? "border-[#7C5CFC] text-[#A78BFA]" : "border-transparent text-slate-400 hover:text-white"
+                    }`}
                 >
                   <Sparkles className="h-4.5 w-4.5" /> Resume Boost (Bullet)
                 </button>
                 <button
                   onClick={() => handleToggleSubFeature("rebuilder")}
-                  className={`flex items-center gap-2 pb-3 px-4 text-sm font-semibold border-b-2 transition ${
-                    activeTab === "rebuilder" ? "border-[#7C5CFC] text-[#A78BFA]" : "border-transparent text-slate-400 hover:text-white"
-                  }`}
+                  className={`flex items-center gap-2 pb-3 px-4 text-sm font-semibold border-b-2 transition ${activeTab === "rebuilder" ? "border-[#7C5CFC] text-[#A78BFA]" : "border-transparent text-slate-400 hover:text-white"
+                    }`}
                 >
                   <Wand2 className="h-4.5 w-4.5" /> Resume Rebuilder (Full)
                 </button>

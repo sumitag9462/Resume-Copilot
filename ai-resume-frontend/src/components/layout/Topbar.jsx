@@ -27,22 +27,22 @@ const Topbar = () => {
   const { selectedModel, setSelectedModel, compareMode, setCompareMode } = useModel()
 
   return (
-    <header className="sticky top-0 z-30 border-b border-white/10 bg-[#0A0A0F]/95 backdrop-blur-xl">
+    <header className="sticky top-0 z-30 border-b border-border-subtle bg-bg-base/90 backdrop-blur-sm">
       <div className="flex items-center justify-between px-6 py-4">
         <div>
-          <p className="text-[11px] uppercase tracking-[0.35em] text-[#8B7CFF]">Resume Copilot</p>
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight text-white">{title}</h1>
+          <p className="text-[11px] uppercase tracking-[0.35em] text-text-muted font-display">Resume Copilot</p>
+          <h1 className="mt-1 text-2xl font-bold tracking-tight text-text-primary font-display">{title}</h1>
         </div>
 
         <div className="flex items-center gap-3">
           {/* Global Model Selector */}
-          <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-[13px] text-slate-300">
-            <Cpu className="h-4 w-4 text-[#A78BFA]" />
-            <span className="font-semibold text-slate-400">Model:</span>
+          <div className="flex items-center gap-2 rounded-xl border border-border-normal bg-bg-elevated px-3 py-2 text-sm text-text-secondary hover:border-border-strong transition">
+            <Cpu className="h-4 w-4 text-accent-violet" />
+            <span className="font-semibold text-text-muted">Model:</span>
             <select
               value={selectedModel}
               onChange={(e) => setSelectedModel(e.target.value)}
-              className="bg-transparent font-medium text-white outline-none cursor-pointer"
+              className="bg-transparent font-medium text-text-primary outline-none cursor-pointer"
             >
               <option value="auto" className="bg-[#0F1326] text-white">Auto</option>
               <option value="gemini-2.5-flash-lite" className="bg-[#0F1326] text-white">Flash Lite</option>
@@ -53,26 +53,27 @@ const Topbar = () => {
           </div>
 
           {/* Model Comparison Toggle */}
-          <label className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-[13px] text-slate-300 cursor-pointer hover:bg-white/10 transition">
+          <label className="flex items-center gap-2 rounded-xl border border-border-normal bg-bg-elevated px-3 py-2 text-sm text-text-secondary cursor-pointer hover:border-accent-violet/50 transition duration-150">
             <input
               type="checkbox"
               checked={compareMode}
               onChange={(e) => setCompareMode(e.target.checked)}
-              className="accent-[#7C5CFC] h-4.5 w-4.5 cursor-pointer rounded-lg border-white/20 bg-white/5"
+              className="accent-accent-violet h-4.5 w-4.5 cursor-pointer rounded-lg border-white/20 bg-white/5"
             />
-            <span className="font-semibold text-slate-200">Compare Models</span>
+            <span className="font-semibold text-text-primary">Compare Models</span>
           </label>
 
-          <label className="hidden items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-slate-300 md:flex">
-            <Search className="h-4 w-4 text-slate-400" />
+          <label className="hidden items-center gap-2 rounded-xl border border-border-subtle bg-bg-elevated px-3 py-2 text-text-secondary md:flex focus-within:border-accent-violet/50 focus-within:ring-1 focus-within:ring-accent-violet/20 transition duration-150">
+            <Search className="h-4 w-4 text-text-muted" />
             <input
               type="text"
               placeholder="Search insights"
-              className="w-32 bg-transparent text-[13px] text-white outline-none placeholder:text-slate-400"
+              className="w-32 bg-transparent text-sm text-text-primary outline-none placeholder:text-text-muted"
             />
           </label>
-          <button className="rounded-2xl border border-white/10 bg-white/5 p-2 text-slate-200 transition hover:bg-white/10">
+          <button className="relative rounded-xl border border-border-normal bg-bg-elevated p-2 text-text-secondary transition hover:bg-bg-muted hover:text-text-primary">
             <Bell className="h-4 w-4" />
+            <span className="w-1.5 h-1.5 bg-accent-teal rounded-full absolute top-1 right-1" />
           </button>
         </div>
       </div>

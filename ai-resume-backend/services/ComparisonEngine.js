@@ -41,13 +41,40 @@ const runModelQuery = async (feature, inputs, modelKey, prompt) => {
       }
     });
 
-    console.log(`[Arena Engine] Querying ${modelKey} (${apiModelName}) for ${feature}...`);
-    const result = await modelInstance.generateContent(prompt);
+    let result = null;
+    let attempt = 1;
+    const maxRetries = 3;
+    let delayMs = 2000;
 
-    // Assert completed successfully and not truncated
+    while (attempt <= maxRetries) {
+      try {
+        console.log(`[Arena Engine] Querying ${modelKey} (${apiModelName}) for ${feature} (attempt ${attempt}/${maxRetries})...`);
+        result = await modelInstance.generateContent(prompt);
+        break; // Success
+      } catch (err) {
+        const isTemporary = 
+          err.message?.includes("503") || 
+          err.message?.includes("Service Unavailable") || 
+          err.message?.includes("429") || 
+          err.message?.includes("Quota exceeded") ||
+          err.message?.includes("Resource exhausted") ||
+          err.message?.includes("overloaded");
+
+        if (isTemporary && attempt < maxRetries) {
+          console.warn(`[Arena Engine] Temporary error on ${modelKey}: ${err.message}. Retrying in ${delayMs}ms...`);
+          await new Promise(resolve => setTimeout(resolve, delayMs));
+          delayMs *= 2; // Exponential backoff
+          attempt++;
+        } else {
+          throw err;
+        }
+      }
+    }
+
+    // Log finish reason if not STOP
     const candidate = result.response.candidates?.[0];
-    if (candidate && candidate.finishReason === "MAX_TOKENS") {
-      throw new Error("AI response truncated due to output limit (MAX_TOKENS).");
+    if (candidate && candidate.finishReason !== "STOP") {
+      console.warn(`[Arena Engine] Warning: Model ${modelKey} finished with reason: ${candidate.finishReason}`);
     }
 
     const responseText = result.response.text();

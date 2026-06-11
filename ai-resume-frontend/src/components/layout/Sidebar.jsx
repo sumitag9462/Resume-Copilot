@@ -9,8 +9,7 @@ import {
   Mail,
   Settings,
   Sparkles,
-  TrendingUp,
-  UserCheck
+  TrendingUp
 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import toast from 'react-hot-toast'
@@ -44,47 +43,49 @@ const Sidebar = () => {
     : 'U'
 
   return (
-    <aside className="fixed left-0 top-0 z-40 hidden h-screen w-[260px] flex-col border-r border-white/10 bg-[#0D0D14] lg:flex">
-      <div className="flex h-16 items-center gap-3 border-b border-white/10 px-5">
-        <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-[#7C5CFC] to-[#5B8FFF] shadow-[0_12px_30px_rgba(124,92,252,0.22)]">
+    <aside className="fixed left-0 top-0 z-40 hidden h-screen w-[260px] flex-col border-r border-border-subtle bg-bg-surface lg:flex">
+      <div className="flex h-16 items-center gap-3 border-b border-border-subtle px-5">
+        <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-accent-violet to-accent-teal shadow-[0_12px_30px_rgba(124,111,247,0.22)]">
           <Sparkles className="h-5 w-5 text-white" />
         </div>
         <div>
-          <p className="font-heading text-[20px] font-bold text-white">Resume Copilot</p>
-          <p className="text-[11px] uppercase tracking-[0.25em] text-slate-400">Career OS</p>
+          <p className="font-display text-[20px] font-semibold text-text-primary">Resume Copilot</p>
+          <p className="text-[11px] uppercase tracking-[0.25em] text-text-muted font-display">Career OS</p>
         </div>
       </div>
 
       <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
+        <div className="text-text-muted text-[10px] tracking-widest uppercase px-4 mb-2 mt-2 font-display">Navigation</div>
         {navItems.map(({ path, label, icon: Icon }) => {
           const active = pathname === path || (path === '/analysis/1' && pathname.startsWith('/analysis'))
           return (
             <Link
               key={path}
               to={path}
-              className={`group flex items-center gap-3 rounded-2xl border border-transparent px-3 py-3 text-[14px] font-medium transition-all duration-200 ${
+              className={`group flex items-center gap-3 py-2.5 px-4 rounded-xl mx-2 text-[14px] font-medium transition-all duration-150 ${
                 active
-                  ? 'border-[#7C5CFC]/30 bg-[#7C5CFC]/12 text-[#A78BFA] shadow-[inset_2px_0_0_#7C5CFC]'
-                  : 'text-slate-300 hover:border-white/10 hover:bg-white/5 hover:text-white'
+                  ? 'text-text-primary border-l-2 border-accent-violet'
+                  : 'text-text-secondary hover:bg-bg-elevated hover:text-text-primary'
               }`}
+              style={active ? { background: 'linear-gradient(90deg, rgba(124, 111, 247, 0.15), rgba(46, 203, 173, 0.08))' } : {}}
             >
-              <Icon className="h-5 w-5" />
+              <Icon className={`h-5 w-5 ${active ? 'text-accent-violet' : 'text-inherit'}`} />
               <span>{label}</span>
             </Link>
           )
         })}
       </nav>
 
-      <div className="border-t border-white/10 p-4">
-        <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#7C5CFC] to-[#00D4AA] text-[12px] font-semibold text-white">{initials}</div>
+      <div className="border-t border-border-subtle p-4">
+        <div className="flex items-center gap-3 rounded-xl border border-border-subtle bg-bg-elevated p-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-accent-violet to-accent-teal text-[12px] font-semibold text-white">{initials}</div>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-[13px] font-semibold text-white">{user?.name || 'Rahul Sharma'}</p>
-            <p className="truncate text-[11px] text-slate-400">{user?.email || 'rahul@resumecopilot.ai'}</p>
+            <p className="truncate text-[13px] font-semibold text-text-primary">{user?.name || 'Rahul Sharma'}</p>
+            <p className="truncate text-[11px] text-text-secondary">{user?.email || 'rahul@resumecopilot.ai'}</p>
           </div>
-          <span className="rounded-full bg-[#00D4AA]/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-[#00D4AA]">Pro</span>
+          <span className="rounded-full bg-accent-teal/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-accent-teal">Pro</span>
         </div>
-        <button onClick={handleLogout} className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-3 py-3 text-[13px] font-semibold text-slate-200 transition hover:bg-red-500/10 hover:text-red-200">
+        <button onClick={handleLogout} className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-border-subtle bg-transparent px-3 py-3 text-[13px] font-semibold text-text-secondary transition hover:border-red-500/40 hover:text-red-400">
           <LogOut className="h-4 w-4" />
           Logout
         </button>

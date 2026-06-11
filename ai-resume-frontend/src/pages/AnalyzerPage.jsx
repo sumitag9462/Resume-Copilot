@@ -5,6 +5,7 @@
 
 import { useState, useEffect } from "react";
 import { useSearchParams, Link } from "react-router-dom";
+import { motion } from "framer-motion";
 import { ScanText, ChevronDown, Zap, CheckCircle, XCircle, AlertTriangle, Lightbulb, BookOpen, Tag } from "lucide-react";
 import DashboardLayout from "../components/layout/DashboardLayout";
 import ArenaWorkspace from "../components/ui/ArenaWorkspace";

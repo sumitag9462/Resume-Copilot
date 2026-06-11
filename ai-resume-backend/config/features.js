@@ -22,19 +22,19 @@ Return ONLY a valid JSON object matching this schema:
 {
   "atsScore": 0-100 score,
   "overallScore": 0-100 score,
-  "missingKeywords": ["keyword1", "keyword2"],
-  "suggestions": ["suggestion1", "suggestion2"],
-  "grammarIssues": ["issue1", "issue2"],
+  "missingKeywords": ["up to 8 missing keywords"],
+  "suggestions": ["exactly 3 key actionable suggestions"],
+  "grammarIssues": ["up to 5 key grammar/spelling issues, empty array if none"],
   "sectionFeedback": {
-    "summary": "feedback text",
-    "experience": "feedback text",
-    "education": "feedback text",
-    "skills": "feedback text",
-    "projects": "feedback text"
+    "summary": "brief feedback text",
+    "experience": "brief feedback text",
+    "education": "brief feedback text",
+    "skills": "brief feedback text",
+    "projects": "brief feedback text"
   },
-  "strengths": ["strength1", "strength2"],
-  "weaknesses": ["weakness1", "weakness2"],
-  "formattingAnalysis": "detailed formatting critique"
+  "strengths": ["exactly 3 key strengths"],
+  "weaknesses": ["exactly 3 key weaknesses"],
+  "formattingAnalysis": "brief formatting critique"
 }`;
     }
   },
@@ -135,7 +135,7 @@ Return ONLY a valid JSON object matching this schema:
     autoModel: "gemini-pro", // Deep preparation uses Pro
     buildPrompt: (inputs) => {
       const { resumeText, targetRole, jobDescription } = inputs;
-      return `You are an expert technical interviewer. Generate personalized interview questions based on the candidate's resume and target role.
+      return `You are an expert technical interviewer. Generate exactly 3 highly-targeted, personalized interview questions based on the candidate's resume and target role.
 
 Target Role: ${targetRole}
 Job Description:
@@ -151,9 +151,10 @@ ${resumeText}
 Return ONLY a valid JSON object matching this schema:
 {
   "matchPercentage": 0-100,
-  "strongSkills": ["skill1", "skill2"],
-  "weakSkills": ["skill1", "skill2"],
+  "strongSkills": ["up to 5 key strong skills"],
+  "weakSkills": ["up to 5 key areas for improvement"],
   "questions": [
+    // Provide exactly 3 questions in this list:
     {
       "type": "Technical | Behavioral | Resume | Project",
       "difficulty": "Easy | Medium | Hard",

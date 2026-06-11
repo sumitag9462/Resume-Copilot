@@ -13,9 +13,6 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const generateContentWithFallback = async (prompt, generationConfig = {}) => {
   const primaryModel = process.env.GEMINI_MODEL || "gemini-2.5-flash";
   const fallbacks = [
-    "gemini-3.5-flash",
-    "gemini-2.0-flash",
-    "gemini-flash-latest",
     "gemini-2.5-flash-lite"
   ];
   
@@ -44,8 +41,8 @@ const generateContentWithFallback = async (prompt, generationConfig = {}) => {
         const result = await model.generateContent(prompt);
         
         const candidate = result.response.candidates?.[0];
-        if (candidate && candidate.finishReason === "MAX_TOKENS") {
-          throw new Error("Response truncated due to token limit");
+        if (candidate && candidate.finishReason !== "STOP") {
+          console.warn(`[AI Helper] Warning: Model ${modelName} finished with reason: ${candidate.finishReason}`);
         }
         
         // Return if successful
@@ -76,7 +73,11 @@ const generateContentWithFallback = async (prompt, generationConfig = {}) => {
     }
   }
 
-  throw new Error(`AI Service is currently overloaded. Last error: ${lastError?.message || "Unknown error"}. Please try again in a few moments.`);
+  console.error('[aiHelper] All models failed:', lastError?.message);
+  throw new Error(
+    "Our AI service is temporarily unavailable. " +
+    "Please try again in a moment. We apologize for the inconvenience."
+  );
 };
 
 module.exports = {

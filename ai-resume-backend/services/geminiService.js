@@ -25,20 +25,11 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 // Initialize the Gemini client with our API key
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-// Use a model available in the current project; allow override via GEMINI_MODEL.
-// gemini-2.5-flash is confirmed available and has a high enough token limit.
-const geminiModel = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
-const model = genAI.getGenerativeModel({
-  model: geminiModel,
-  generationConfig: {
-    responseMimeType: 'application/json',
-    temperature: 0,
-    topK: 1,
-    topP: 1,
-    candidateCount: 1
-  }
-});
-
+// --- MODEL PRIORITY LIST (all free tier) ---
+const FREE_GEMINI_MODELS = [
+  'gemini-2.5-flash',        // Primary: fastest + most capable free model
+  'gemini-2.5-flash-lite'    // Fallback: lighter model
+];
 
 // ── HELPER: Safely parse JSON from AI response ─────────────
 // Sometimes Gemini wraps JSON in markdown code blocks (```json ... ```)
@@ -59,9 +50,54 @@ const parseJSON = (text) => {
 
 // ── HELPER: Generate content and return parsed JSON ────────
 const generateAndParse = async (prompt) => {
-  const result = await model.generateContent(prompt);
-  const text   = result.response.text();
-  return parseJSON(text);
+  const maxRetriesPerModel = 3;
+
+  for (const modelName of FREE_GEMINI_MODELS) {
+    let attempt = 1;
+    let delayMs = 2000;
+    
+    // Explicitly initialize model here for each iteration
+    const model = genAI.getGenerativeModel({
+      model: modelName,
+      generationConfig: {
+        responseMimeType: 'application/json',
+        temperature: 0,
+        topK: 1,
+        topP: 1,
+        candidateCount: 1
+      }
+    });
+
+    while (attempt <= maxRetriesPerModel) {
+      try {
+        console.log(`[geminiService] Attempting model ${modelName} (attempt ${attempt}/${maxRetriesPerModel})...`);
+        const result = await model.generateContent(prompt);
+        const text   = result.response.text();
+        return parseJSON(text);
+      } catch (err) {
+        const isTemporary = 
+          err.message?.includes("503") || 
+          err.message?.includes("Service Unavailable") || 
+          err.message?.includes("429") || 
+          err.message?.includes("Quota exceeded") ||
+          err.message?.includes("Resource exhausted") ||
+          err.message?.includes("overloaded");
+
+        if (isTemporary && attempt < maxRetriesPerModel) {
+          console.warn(`[geminiService] Temporary error with ${modelName}: ${err.message}. Retrying in ${delayMs}ms...`);
+          await new Promise(resolve => setTimeout(resolve, delayMs));
+          delayMs *= 2;
+          attempt++;
+        } else {
+          console.error(`[geminiService] Model ${modelName} failed on attempt ${attempt}. Moving to next model if available. Error: ${err.message}`);
+          break; // Break the while loop to try the next model
+        }
+      }
+    }
+  }
+
+  // If all models in the list fail
+  throw new Error("Our AI models are currently experiencing extremely high demand. Please wait a moment and try again. We apologize for the inconvenience!");
 };
 
 
