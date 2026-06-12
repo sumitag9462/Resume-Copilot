@@ -24,9 +24,11 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import ProtectedRoute from './components/auth/ProtectedRoute'
 
 // Public pages
-import LandingPage    from './pages/LandingPage'
-import LoginPage      from './pages/LoginPage'
-import RegisterPage   from './pages/RegisterPage'
+import LandingPage          from './pages/LandingPage'
+import LoginPage            from './pages/Auth/Login'
+import RegisterPage         from './pages/Auth/Register'
+import ForgotPasswordPage   from './pages/Auth/ForgotPassword'
+import ResetPasswordPage    from './pages/Auth/ResetPasswordPage'
 
 // Protected pages
 import DashboardPage        from './pages/DashboardPage'
@@ -38,14 +40,19 @@ import JDMatchPage          from './pages/JDMatchPage'
 import CoverLetterPage      from './pages/CoverLetterPage'
 import VersionComparePage   from './pages/VersionComparePage'
 import SettingsPage         from './pages/SettingsPage'
+import OutreachPage         from './pages/OutreachPage'
+import JobAlertsPage        from './pages/JobAlertsPage'
+import ResumeComparisonPage from './pages/ResumeComparisonPage'
 
 const App = () => {
   return (
     <Routes>
       {/* ── PUBLIC ROUTES ─────────────────────────────────── */}
-      <Route path="/"         element={<LandingPage />} />
-      <Route path="/login"    element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
+      <Route path="/"                 element={<LandingPage />} />
+      <Route path="/login"            element={<LoginPage />} />
+      <Route path="/register"         element={<RegisterPage />} />
+      <Route path="/forgot-password"  element={<ForgotPasswordPage />} />
+      <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
 
       {/* ── PROTECTED ROUTES ──────────────────────────────── */}
       <Route
@@ -87,6 +94,18 @@ const App = () => {
       <Route
         path="/settings"
         element={<ProtectedRoute><SettingsPage /></ProtectedRoute>}
+      />
+      <Route
+        path="/outreach"
+        element={<ProtectedRoute><OutreachPage /></ProtectedRoute>}
+      />
+      <Route
+        path="/job-alerts"
+        element={<ProtectedRoute><JobAlertsPage /></ProtectedRoute>}
+      />
+      <Route
+        path="/resume-comparison"
+        element={<ProtectedRoute><ResumeComparisonPage /></ProtectedRoute>}
       />
 
 

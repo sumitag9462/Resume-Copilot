@@ -9,7 +9,10 @@ import {
   Mail,
   Settings,
   Sparkles,
-  TrendingUp
+  TrendingUp,
+  Send,
+  Bell,
+  Split
 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import toast from 'react-hot-toast'
@@ -23,6 +26,9 @@ const navItems = [
   { path: '/jd-match', label: 'JD Match', icon: Briefcase },
   { path: '/cover-letter', label: 'Cover Letters', icon: Mail },
   { path: '/version-compare', label: 'Version Compare', icon: TrendingUp },
+  { path: '/resume-comparison', label: 'Resume Comparison', icon: Split },
+  { path: '/outreach', label: 'Outreach', icon: Send },
+  { path: '/job-alerts', label: 'Job Alerts', icon: Bell },
 
   { path: '/settings', label: 'Settings', icon: Settings },
 ]

@@ -1,35 +1,33 @@
-// routes/authRoutes.js
-//
-// FIX: require() path must EXACTLY match your filename on disk.
-// JavaScript on Linux is case-sensitive. 'authcontrollers' and
-// 'authController' are different files on Linux/Mac but the same
-// on Windows — this will silently work locally but crash on any
-// hosting platform (Render, Railway, VPS etc.)
-//
-// Check your actual filename and make sure the require path matches.
-// If your file is named authController.js  → use '../controllers/authController'
-// If your file is named authcontrollers.js → use '../controllers/authcontrollers'
-
 const express = require('express');
-const router  = express.Router();
-
-const {
-  register,
-  login,
-  verifyEmail,
-  resendVerification,
-  getMe
-} = require('../controllers/authController'); // ← make sure this matches your filename
-
+const router = express.Router();
 const { protect } = require('../middleware/authMiddleware');
+const {
+    requestEmailOtp,
+    verifyEmailOtp,
+    loginUser,
+    logoutUser,
+    requestPasswordResetOtp,
+    verifyPasswordResetOtp,
+    resetPassword,
+    getProfile
+} = require('../controllers/authController');
 
-// Public routes
-router.post('/register',             register);
-router.post('/login',                login);
-router.post('/verify-email',         verifyEmail);       // stub — returns disabled message
-router.post('/resend-verification',  resendVerification); // stub — returns disabled message
+router.post('/register', requestEmailOtp);
+router.post('/request-email-otp', requestEmailOtp);
 
-// Protected route — requires valid JWT
-router.get('/me', protect, getMe);
+router.post('/verify-otp', verifyEmailOtp);
+router.post('/verify-email-otp', verifyEmailOtp);
+
+router.post('/login', loginUser);
+router.post('/logout', logoutUser);
+
+router.post('/forgot-password', requestPasswordResetOtp);
+router.post('/request-password-reset-otp', requestPasswordResetOtp);
+
+router.post('/verify-reset-otp', verifyPasswordResetOtp);
+router.post('/verify-password-reset-otp', verifyPasswordResetOtp);
+
+router.post('/reset-password', resetPassword);
+router.get('/me', protect, getProfile);
 
 module.exports = router;
