@@ -134,8 +134,9 @@ Return ONLY a valid JSON object matching this schema:
     displayName: "Interview Prep",
     autoModel: "gemini-pro", // Deep preparation uses Pro
     buildPrompt: (inputs) => {
-      const { resumeText, targetRole, jobDescription } = inputs;
-      return `You are an expert technical interviewer. Generate exactly 3 highly-targeted, personalized interview questions based on the candidate's resume and target role.
+      const { resumeText, targetRole, jobDescription, questionCount } = inputs;
+      const count = questionCount ? parseInt(questionCount, 10) : 3;
+      return `You are an expert technical interviewer. Generate exactly ${count} highly-targeted, personalized interview questions based on the candidate's resume and target role.
 
 Target Role: ${targetRole}
 Job Description:
@@ -154,7 +155,7 @@ Return ONLY a valid JSON object matching this schema:
   "strongSkills": ["up to 5 key strong skills"],
   "weakSkills": ["up to 5 key areas for improvement"],
   "questions": [
-    // Provide exactly 3 questions in this list:
+    // Provide exactly ${count} questions in this list:
     {
       "type": "Technical | Behavioral | Resume | Project",
       "difficulty": "Easy | Medium | Hard",

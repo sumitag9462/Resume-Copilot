@@ -37,6 +37,7 @@ const InterviewPrepPage = () => {
   const [selectedResumeId, setSelectedResumeId] = useState(preselectedId || "");
   const [role, setRole] = useState("Software Engineer");
   const [jobDescription, setJobDescription] = useState("");
+  const [questionCount, setQuestionCount] = useState(3);
 
   // File Upload State
   const [dragOver, setDragOver] = useState(false);
@@ -169,7 +170,8 @@ const InterviewPrepPage = () => {
         inputs: {
           resumeId: selectedResumeId,
           role,
-          jobDescription
+          jobDescription,
+          questionCount
         },
         model: selectedModel,
         compareMode
@@ -550,6 +552,25 @@ const InterviewPrepPage = () => {
                   placeholder="Paste the JD here to generate highly customized interview questions..."
                   className="input-base text-xs resize-none"
                 />
+              </div>
+              
+              <div>
+                <label className="mb-2 block text-xs font-semibold text-slate-300 flex justify-between items-center">
+                  <span>4. Number of Questions</span>
+                  <span className="text-[#00D4AA]">{questionCount} questions</span>
+                </label>
+                <input
+                  type="range"
+                  min="1"
+                  max="10"
+                  value={questionCount}
+                  onChange={(e) => setQuestionCount(Number(e.target.value))}
+                  className="w-full accent-[#7C5CFC] cursor-pointer"
+                />
+                <div className="flex justify-between text-[10px] text-slate-500 mt-1">
+                  <span>1</span>
+                  <span>10 (Max)</span>
+                </div>
               </div>
 
               <button

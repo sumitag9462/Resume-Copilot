@@ -4,7 +4,7 @@
 //   1. Resume Boost: Enhances single bullet points for target roles.
 //   2. Resume Rebuilder: Professional rewrite of entire resumes.
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -22,6 +22,7 @@ import ArenaWorkspace from "../components/ui/ArenaWorkspace";
 import { getAllResumes, uploadResume } from "../api/resumeApi";
 import { runArena, getArenaHistory, deleteArenaHistory } from "../api/arenaApi";
 import { useModel } from "../context/ModelContext";
+import ResumePDFGenerator from "../components/ui/ResumePDFGenerator";
 
 const ResumeBoostPage = () => {
   const [searchParams] = useSearchParams();
@@ -55,6 +56,10 @@ const ResumeBoostPage = () => {
   const [loadingHistory, setLoadingHistory] = useState(true);
 
   const { selectedModel, compareMode } = useModel();
+
+  // PDF Generator Ref and State
+  const pdfRef = useRef();
+  const [pdfContent, setPdfContent] = useState("");
 
   // Initialize
   useEffect(() => {
@@ -183,6 +188,31 @@ const ResumeBoostPage = () => {
       toast.error(err?.response?.data?.message || "Failed to boost");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleDownloadPDF = (output, model) => {
+    if (activeTab === "rebuilder" && output.improvedResume) {
+      setPdfContent(output.improvedResume);
+      // Give React a tiny moment to render the markdown text into the hidden DOM element
+      setTimeout(() => {
+        if (pdfRef.current) {
+          pdfRef.current.generatePDF(`Rebuilt_Resume_${model}.pdf`);
+        }
+      }, 150);
+    } else {
+      // standard text download fallback for Boost mode (since it's just a single bullet)
+      const text = typeof output === "string" ? output : JSON.stringify(output, null, 2);
+      const blob = new Blob([text], { type: "text/plain" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `ResumeBoost_${model}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast.success("Downloaded file successfully!");
     }
   };
 
@@ -533,6 +563,12 @@ const ResumeBoostPage = () => {
               arenaRun={arenaRun}
               onRegenerate={handleRun}
               renderResult={activeTab === "boost" ? renderBoostResult : renderRebuilderResult}
+              downloadHandler={handleDownloadPDF}
+            />
+            
+            <ResumePDFGenerator 
+              ref={pdfRef} 
+              markdownContent={pdfContent} 
             />
           </div>
         </div>
