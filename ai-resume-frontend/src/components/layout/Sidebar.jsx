@@ -11,7 +11,6 @@ import {
   Sparkles,
   TrendingUp,
   Send,
-  Bell,
   Split
 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
@@ -28,7 +27,6 @@ const navItems = [
   { path: '/version-compare', label: 'Version Compare', icon: TrendingUp },
   { path: '/resume-comparison', label: 'Resume Comparison', icon: Split },
   { path: '/outreach', label: 'Outreach', icon: Send },
-  { path: '/job-alerts', label: 'Job Alerts', icon: Bell },
 
   { path: '/settings', label: 'Settings', icon: Settings },
 ]

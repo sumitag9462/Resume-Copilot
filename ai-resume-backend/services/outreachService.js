@@ -8,7 +8,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 class OutreachService {
   async generateOutreachContent(user, data) {
     try {
-      const { targetRole, companyName, tone = 'professional' } = data;
+      const { targetRole, companyName, tone = 'professional', resumeText } = data;
 
       // Make sure we are using the reliable flash model as per current architecture
       const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
@@ -22,10 +22,17 @@ class OutreachService {
         Target Company: ${companyName}
         Tone: ${tone}
 
+        Candidate Resume:
+        """
+        ${resumeText || 'No resume provided.'}
+        """
+
         Please provide:
         1. A compelling Email Subject Line
         2. A concise, professional Cold Email Body (under 150 words)
         3. A short LinkedIn Connection Request Message (under 300 characters)
+
+        STRICT INSTRUCTION: Base your outreach strictly on the candidate's actual experience and skills from the resume provided above. Do NOT invent or hallucinate skills, tools, metrics, or projects. If a specific skill isn't in the resume, don't mention it.
 
         Format the response in JSON with the following keys:
         - emailSubject

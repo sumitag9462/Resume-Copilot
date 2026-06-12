@@ -1,7 +1,9 @@
-import { useState } from 'react';
-import { Send, Building, Briefcase, MessageSquare, Copy, CheckCircle2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Send, Building, Briefcase, MessageSquare, Copy, CheckCircle2, ChevronDown, AlertCircle } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { generateOutreach } from '../api/outreachApi';
+import { getAllResumes } from '../api/resumeApi';
 import { motion } from 'framer-motion';
 import DashboardLayout from '../components/layout/DashboardLayout';
 
@@ -12,8 +14,24 @@ const OutreachPage = () => {
     companyName: '',
     tone: 'professional'
   });
+  const [resumes, setResumes] = useState([]);
+  const [selectedResumeId, setSelectedResumeId] = useState("");
+  const [loadingResumes, setLoadingResumes] = useState(true);
+
   const [result, setResult] = useState(null);
   const [copiedSection, setCopiedSection] = useState(null);
+
+  useEffect(() => {
+    getAllResumes()
+      .then((d) => {
+        setResumes(d.resumes || []);
+        if (d.resumes?.length > 0) {
+          setSelectedResumeId(d.resumes[0]._id);
+        }
+      })
+      .catch(console.error)
+      .finally(() => setLoadingResumes(false));
+  }, []);
 
   const handleGenerate = async (e) => {
     e.preventDefault();
@@ -21,10 +39,14 @@ const OutreachPage = () => {
       toast.error('Please fill in both Role and Company Name.');
       return;
     }
+    if (!selectedResumeId) {
+      toast.error('Please select a target resume.');
+      return;
+    }
 
     setIsLoading(true);
     try {
-      const response = await generateOutreach(formData);
+      const response = await generateOutreach({ ...formData, resumeId: selectedResumeId });
       if (response.success && response.data) {
         setResult(response.data);
         toast.success('Outreach materials generated successfully!');
@@ -63,6 +85,35 @@ const OutreachPage = () => {
             {/* Input Form */}
             <div className="rounded-2xl border border-border-subtle bg-bg-surface p-6 shadow-sm h-fit">
               <form onSubmit={handleGenerate} className="space-y-5">
+                <div className="space-y-2">
+                  <label className="text-[13px] font-medium text-text-secondary">Choose Target Resume</label>
+                  {loadingResumes ? (
+                    <div className="skeleton h-11 w-full rounded-xl" />
+                  ) : resumes.length === 0 ? (
+                    <div className="flex items-center gap-3 bg-amber-500/10 border border-amber-500/20 rounded-xl px-4 py-3">
+                      <AlertCircle className="w-4 h-4 text-amber-500 flex-shrink-0" />
+                      <p className="text-xs text-text-secondary">
+                        No resumes found. <Link to="/resumes" className="font-semibold underline text-text-primary">Upload one</Link>.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="relative">
+                      <select
+                        value={selectedResumeId}
+                        onChange={(e) => setSelectedResumeId(e.target.value)}
+                        className="w-full rounded-xl border border-border-subtle bg-bg-base py-2.5 px-4 text-[14px] text-text-primary focus:border-accent-violet focus:outline-none focus:ring-1 focus:ring-accent-violet transition-colors appearance-none cursor-pointer"
+                        required
+                      >
+                        <option value="">-- Choose Resume --</option>
+                        {resumes.map((r) => (
+                          <option key={r._id} value={r._id}>{r.originalName}</option>
+                        ))}
+                      </select>
+                      <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted pointer-events-none" />
+                    </div>
+                  )}
+                </div>
+
                 <div className="space-y-2">
                   <label className="text-[13px] font-medium text-text-secondary">Target Role</label>
                   <div className="relative">
@@ -106,7 +157,7 @@ const OutreachPage = () => {
 
                 <button
                   type="submit"
-                  disabled={isLoading}
+                  disabled={isLoading || resumes.length === 0 || !selectedResumeId}
                   className="w-full rounded-xl bg-accent-violet py-3 text-[14px] font-semibold text-white transition hover:bg-accent-violet/90 active:scale-[0.98] disabled:opacity-70 flex justify-center items-center gap-2 mt-4"
                 >
                   {isLoading ? 'Drafting...' : (

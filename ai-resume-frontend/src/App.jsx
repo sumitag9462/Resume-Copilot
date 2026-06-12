@@ -41,7 +41,6 @@ import CoverLetterPage      from './pages/CoverLetterPage'
 import VersionComparePage   from './pages/VersionComparePage'
 import SettingsPage         from './pages/SettingsPage'
 import OutreachPage         from './pages/OutreachPage'
-import JobAlertsPage        from './pages/JobAlertsPage'
 import ResumeComparisonPage from './pages/ResumeComparisonPage'
 
 const App = () => {
@@ -98,10 +97,6 @@ const App = () => {
       <Route
         path="/outreach"
         element={<ProtectedRoute><OutreachPage /></ProtectedRoute>}
-      />
-      <Route
-        path="/job-alerts"
-        element={<ProtectedRoute><JobAlertsPage /></ProtectedRoute>}
       />
       <Route
         path="/resume-comparison"

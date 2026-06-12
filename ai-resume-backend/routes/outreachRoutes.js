@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const outreachService = require('../services/outreachService');
+const Resume = require('../models/Resume');
 const { protect } = require('../middleware/authMiddleware');
 
 // @route   POST /api/outreach/generate
@@ -8,16 +9,22 @@ const { protect } = require('../middleware/authMiddleware');
 // @access  Private
 router.post('/generate', protect, async (req, res) => {
   try {
-    const { targetRole, companyName, tone } = req.body;
+    const { targetRole, companyName, tone, resumeId } = req.body;
 
-    if (!targetRole || !companyName) {
-      return res.status(400).json({ success: false, message: 'Please provide targetRole and companyName' });
+    if (!targetRole || !companyName || !resumeId) {
+      return res.status(400).json({ success: false, message: 'Please provide targetRole, companyName, and resumeId' });
+    }
+
+    const resume = await Resume.findOne({ _id: resumeId, user: req.user._id });
+    if (!resume) {
+      return res.status(404).json({ success: false, message: 'Resume not found or access denied' });
     }
 
     const data = await outreachService.generateOutreachContent(req.user, {
       targetRole,
       companyName,
       tone,
+      resumeText: resume.extractedText
     });
 
     res.status(200).json({
