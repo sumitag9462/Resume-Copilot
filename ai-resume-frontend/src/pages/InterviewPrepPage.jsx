@@ -10,23 +10,15 @@ import {
   BrainCircuit,
   MessageSquareQuote,
   Copy,
-  RefreshCw,
   Code,
   User,
-  FileText,
-  Briefcase,
   Search,
-  Filter,
   Bookmark,
   Trash2,
   Upload,
   ChevronDown,
   ChevronUp,
-  Award,
-  Sparkles,
   BookmarkCheck,
-  CheckCircle,
-  AlertCircle,
   X
 } from "lucide-react";
 import toast from "react-hot-toast";
@@ -432,7 +424,7 @@ const InterviewPrepPage = () => {
           <div className="space-y-6">
             {/* Quick Upload */}
             <div className="card p-5 space-y-4">
-              <h3 className="font-semibold text-white text-xs uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+              <h3 className="font-semibold text-xs uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
                 <Upload className="h-4 w-4 text-[#7C5CFC]" /> Upload Resume
               </h3>
               <div
@@ -472,7 +464,7 @@ const InterviewPrepPage = () => {
 
             {/* History logs */}
             <div className="card p-5 space-y-4">
-              <h3 className="font-semibold text-white text-xs uppercase tracking-wider text-slate-400">Past Trials</h3>
+              <h3 className="font-semibold text-xs uppercase tracking-wider text-slate-400">Past Trials</h3>
               {loadingHistory ? (
                 <div className="space-y-2">
                   {[1, 2, 3].map(i => <div key={i} className="skeleton h-12 w-full rounded-xl" />)}

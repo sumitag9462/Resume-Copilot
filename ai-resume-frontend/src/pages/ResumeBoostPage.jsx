@@ -5,23 +5,15 @@
 //   2. Resume Rebuilder: Professional rewrite of entire resumes.
 
 import { useState, useEffect } from "react";
-import { useSearchParams, Link } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Sparkles,
   Wand2,
-  Copy,
-  RefreshCw,
-  FileText,
   Upload,
   X,
-  CheckCircle,
-  TrendingUp,
   Trash2,
-  Download,
-  AlertTriangle,
   Lightbulb,
-  CornerDownRight,
   ShieldCheck
 } from "lucide-react";
 import toast from "react-hot-toast";
@@ -353,7 +345,7 @@ const ResumeBoostPage = () => {
           <div className="space-y-6">
             {activeTab === "rebuilder" && (
               <div className="card p-5 space-y-4">
-                <h3 className="font-semibold text-white text-xs uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                <h3 className="font-semibold text-xs uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
                   <Upload className="h-4 w-4 text-[#7C5CFC]" /> Upload Resume
                 </h3>
                 <div
@@ -393,7 +385,7 @@ const ResumeBoostPage = () => {
 
             {/* Past logs list */}
             <div className="card p-5 space-y-4">
-              <h3 className="font-semibold text-white text-xs uppercase tracking-wider text-slate-400">Past Trials</h3>
+              <h3 className="font-semibold text-xs uppercase tracking-wider text-slate-400">Past Trials</h3>
               {loadingHistory ? (
                 <div className="space-y-2">
                   {[1, 2, 3].map(i => <div key={i} className="skeleton h-11 w-full rounded-xl" />)}
