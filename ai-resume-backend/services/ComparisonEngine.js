@@ -32,7 +32,7 @@ const runModelQuery = async (feature, inputs, modelKey, prompt) => {
   try {
     // ⚠️ SPECIFIC INSTANTIATION PATTERN TO PREVENT 256 TOKEN LIMIT BUG
     // Configure responseMimeType and maxOutputTokens inside getGenerativeModel
-    const modelInstance = genAI.getGenerativeModel({
+    let modelInstance = genAI.getGenerativeModel({
       model: apiModelName,
       generationConfig: {
         temperature: 0.1, // low temperature for consistent schema adherence
@@ -60,10 +60,22 @@ const runModelQuery = async (feature, inputs, modelKey, prompt) => {
           err.message?.includes("overloaded");
 
         if (isTemporary && attempt < maxRetries) {
-          console.warn(`[Arena Engine] Temporary error on ${modelKey}: ${err.message}. Retrying in ${delayMs}ms...`);
-          await new Promise(resolve => setTimeout(resolve, delayMs));
-          delayMs *= 2; // Exponential backoff
-          attempt++;
+          // If the error specifically mentions a long wait time (e.g. 429 Quota Exceeded),
+          // fallback to the lighter model immediately to preserve UX rather than failing.
+          if (err.message?.includes("429") || err.message?.includes("Quota exceeded")) {
+             console.warn(`[Arena Engine] Rate limit hit for ${modelKey}. Switching to fallback model gemini-2.5-flash-lite.`);
+             modelInstance = genAI.getGenerativeModel({
+               model: "gemini-2.5-flash-lite",
+               generationConfig: { temperature: 0.1, maxOutputTokens: 8192 }
+             });
+             // We don't delay, we just instantly retry on the fallback model
+             attempt++;
+          } else {
+            console.warn(`[Arena Engine] Temporary error on ${modelKey}: ${err.message}. Retrying in ${delayMs}ms...`);
+            await new Promise(resolve => setTimeout(resolve, delayMs));
+            delayMs *= 2; // Exponential backoff
+            attempt++;
+          }
         } else {
           throw err;
         }
