@@ -24,7 +24,8 @@ const app = express();
 app.use(cors({
   origin: [
     "http://localhost:5173",
-    process.env.CLIENT_URL || "https://yourfrontend.vercel.app",
+    process.env.CLIENT_URL,
+    "https://resume-copilot-beta.vercel.app",
     "https://resume-copilot-1.onrender.com"
   ],
   credentials: true
