@@ -35,7 +35,6 @@ const runModelQuery = async (feature, inputs, modelKey, prompt) => {
     const modelInstance = genAI.getGenerativeModel({
       model: apiModelName,
       generationConfig: {
-        responseMimeType: "application/json",
         temperature: 0.1, // low temperature for consistent schema adherence
         maxOutputTokens: 8192 // Full model context output
       }
@@ -81,10 +80,8 @@ const runModelQuery = async (feature, inputs, modelKey, prompt) => {
     let parsedJSON = null;
 
     try {
-      const cleanedText = responseText
-        .replace(/```json\s*/g, "")
-        .replace(/```\s*/g, "")
-        .trim();
+      const match = responseText.match(/\{[\s\S]*\}|\[[\s\S]*\]/);
+      const cleanedText = match ? match[0] : responseText.trim();
       parsedJSON = JSON.parse(cleanedText);
     } catch (parseError) {
       console.error(`[Arena Engine] JSON parsing failed for model ${modelKey}. Raw:`, responseText);

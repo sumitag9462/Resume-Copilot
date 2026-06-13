@@ -10,9 +10,6 @@ class OutreachService {
     try {
       const { targetRole, companyName, tone = 'professional', resumeText } = data;
 
-      // Make sure we are using the reliable flash model as per current architecture
-      const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
-
       const prompt = `
         You are an expert career coach and networking strategist.
         Create a cold outreach package for a candidate trying to connect with professionals or recruiters.
@@ -40,16 +37,13 @@ class OutreachService {
         - linkedinMessage
       `;
 
-      const result = await model.generateContent(prompt);
+      const { generateContentWithFallback } = require('./aiHelper');
+      
+      const result = await generateContentWithFallback(prompt);
       const responseText = result.response.text();
       
-      // Parse JSON from markdown code block if present
-      let jsonStr = responseText;
-      if (jsonStr.includes('```json')) {
-        jsonStr = jsonStr.split('```json')[1].split('```')[0].trim();
-      } else if (jsonStr.includes('```')) {
-        jsonStr = jsonStr.split('```')[1].split('```')[0].trim();
-      }
+      const match = responseText.match(/\{[\s\S]*\}|\[[\s\S]*\]/);
+      const jsonStr = match ? match[0] : responseText.trim();
 
       return JSON.parse(jsonStr);
     } catch (error) {

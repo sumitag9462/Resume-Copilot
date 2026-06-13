@@ -37,10 +37,8 @@ const FREE_GEMINI_MODELS = [
 const parseJSON = (text) => {
   try {
     // Remove ```json and ``` if present, then trim whitespace
-    const cleaned = text
-      .replace(/```json\s*/g, '')
-      .replace(/```\s*/g, '')
-      .trim();
+    const match = text.match(/\{[\s\S]*\}|\[[\s\S]*\]/);
+    const cleaned = match ? match[0] : text.trim();
     return JSON.parse(cleaned);
   } catch (error) {
     console.error('Raw AI response that failed to parse:', text);

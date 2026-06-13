@@ -50,7 +50,8 @@ Rewrite this bullet point following all rules. Return ONLY the JSON object.`;
   const raw = result.response.text().trim();
 
   // Strip markdown code blocks if AI adds them (safety net)
-  const cleaned = raw.replace(/^```(?:json)?\n?/i, "").replace(/\n?```$/i, "").trim();
+  const match = raw.match(/\{[\s\S]*\}|\[[\s\S]*\]/);
+  const cleaned = match ? match[0] : raw.trim();
 
   let parsed;
   try {
@@ -99,7 +100,8 @@ Return ONLY a JSON array — no markdown, no explanation:
   });
 
   const raw = result.response.text().trim();
-  const cleaned = raw.replace(/^```(?:json)?\n?/i, "").replace(/\n?```$/i, "").trim();
+  const match = raw.match(/\{[\s\S]*\}|\[[\s\S]*\]/);
+  const cleaned = match ? match[0] : raw.trim();
 
   try {
     return JSON.parse(cleaned);

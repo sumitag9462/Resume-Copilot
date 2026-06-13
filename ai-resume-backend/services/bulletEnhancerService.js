@@ -30,7 +30,8 @@ Return ONLY a JSON object with this exact structure (no markdown, no backticks, 
   const result = await generateContentWithFallback(prompt, { maxOutputTokens: 400 });
 
   const raw = result.response.text().trim();
-  const cleaned = raw.replace(/^```(?:json)?\n?/i, "").replace(/\n?```$/i, "").trim();
+  const match = raw.match(/\{[\s\S]*\}|\[[\s\S]*\]/);
+  const cleaned = match ? match[0] : raw.trim();
 
   let parsed;
   try {

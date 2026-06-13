@@ -20,13 +20,28 @@ const errorHandler          = require('./middleware/errorHandler');
 
 const app = express();
 
+// Trust proxy for rate limiter behind reverse proxies (Render)
+app.set('trust proxy', 1);
+
+const allowedOrigins = [
+  "http://localhost:5173",
+  process.env.CLIENT_URL,
+  "https://resume-copilot-beta.vercel.app",
+  "https://resume-copilot-1.onrender.com"
+].filter(Boolean);
+
 app.use(cors({
-  origin: [
-    "http://localhost:5173",
-    process.env.CLIENT_URL,
-    "https://resume-copilot-beta.vercel.app",
-    "https://resume-copilot-1.onrender.com"
-  ],
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    // Allow if in allowedOrigins list or if it's a vercel domain
+    if (allowedOrigins.indexOf(origin) !== -1 || origin.endsWith('.vercel.app')) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
 }));
 
@@ -59,7 +74,7 @@ app.use('/api/arena',           arenaRoutes);
 app.use('/api/outreach',        outreachRoutes);
 
 app.get('/', (req, res) => {
-  res.json({ message: '✅ Resume Copilot API is running!' });
+  res.json({ message: 'Resume Copilot API is running' });
 });
 
 app.use(errorHandler);

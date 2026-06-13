@@ -32,10 +32,15 @@ Return ONLY a valid JSON object with this exact structure (no markdown, no expla
   ]
 }`;
 
-  const result = await generateContentWithFallback(prompt, { temperature: 0.5, maxOutputTokens: 800 });
+  const result = await generateContentWithFallback(prompt, {
+    temperature: 0.2,
+    maxOutputTokens: 2048,
+    responseMimeType: "application/json"
+  });
 
   const raw = result.response.text().trim();
-  const cleaned = raw.replace(/^```(?:json)?\n?/i, "").replace(/\n?```$/i, "").trim();
+  const match = raw.match(/\{[\s\S]*\}|\[[\s\S]*\]/);
+  const cleaned = match ? match[0] : raw.trim();
 
   let parsed;
   try {

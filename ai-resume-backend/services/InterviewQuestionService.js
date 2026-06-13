@@ -76,7 +76,8 @@ Return ONLY a JSON object — no markdown, no backticks, no explanation:
   });
 
   const raw = result.response.text().trim();
-  const cleaned = raw.replace(/^```(?:json)?\n?/i, "").replace(/\n?```$/i, "").trim();
+  const match = raw.match(/\{[\s\S]*\}|\[[\s\S]*\]/);
+  const cleaned = match ? match[0] : raw.trim();
 
   let parsed;
   try {
