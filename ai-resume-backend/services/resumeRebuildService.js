@@ -70,8 +70,8 @@ Schema:
   const result = await generateContentWithFallback(prompt, { maxOutputTokens: 6000 });
 
   const raw = result.response.text().trim();
-  const match = raw.match(/\{[\s\S]*\}|\[[\s\S]*\]/);
-  const cleaned = match ? match[0] : raw.trim();
+  const { extractAndCleanJSON } = require('./aiHelper');
+  const cleaned = extractAndCleanJSON(raw);
 
   let parsed;
   try {

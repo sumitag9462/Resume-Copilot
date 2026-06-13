@@ -80,8 +80,8 @@ const runModelQuery = async (feature, inputs, modelKey, prompt) => {
     let parsedJSON = null;
 
     try {
-      const match = responseText.match(/\{[\s\S]*\}|\[[\s\S]*\]/);
-      const cleanedText = match ? match[0] : responseText.trim();
+      const { extractAndCleanJSON } = require('./aiHelper');
+      const cleanedText = extractAndCleanJSON(responseText);
       parsedJSON = JSON.parse(cleanedText);
     } catch (parseError) {
       console.error(`[Arena Engine] JSON parsing failed for model ${modelKey}. Raw:`, responseText);

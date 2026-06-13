@@ -80,6 +80,44 @@ const generateContentWithFallback = async (prompt, generationConfig = {}) => {
   );
 };
 
+/**
+ * Extracts JSON from LLM output, stripping markdown formatting
+ * and sanitizing any unescaped newlines within JSON strings.
+ */
+const extractAndCleanJSON = (rawText) => {
+  const match = rawText.match(/\{[\s\S]*\}|\[[\s\S]*\]/);
+  let cleaned = match ? match[0] : rawText.trim();
+  
+  let inString = false;
+  let isEscaped = false;
+  let fixed = "";
+  
+  for (let i = 0; i < cleaned.length; i++) {
+    let char = cleaned[i];
+    
+    if (char === '"' && !isEscaped) {
+      inString = !inString;
+    }
+    
+    if (char === '\\' && !isEscaped) {
+      isEscaped = true;
+    } else {
+      isEscaped = false;
+    }
+
+    if (inString) {
+      if (char === '\n') fixed += '\\n';
+      else if (char === '\r') fixed += '\\r';
+      else if (char === '\t') fixed += '\\t';
+      else fixed += char;
+    } else {
+      fixed += char;
+    }
+  }
+  return fixed;
+};
+
 module.exports = {
-  generateContentWithFallback
+  generateContentWithFallback,
+  extractAndCleanJSON
 };
