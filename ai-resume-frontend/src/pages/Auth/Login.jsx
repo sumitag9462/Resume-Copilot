@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Mail, Lock } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Mail, Sparkles, ArrowRight, Github } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { FloatingInput, MagneticButton } from './AuthComponents';
+import { FloatingInput, PrimaryButton, AuthLayout } from './AuthComponents';
 import toast from 'react-hot-toast';
 
 const LoginPage = () => {
@@ -38,54 +38,62 @@ const LoginPage = () => {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-            <div className="max-w-md w-full mx-auto p-8 border border-slate-100 rounded-2xl shadow-xl bg-white">
-                <h2 className="text-2xl font-black text-slate-800 text-center mb-2">Welcome Back</h2>
-                <p className="text-sm text-slate-500 text-center mb-8">Sign in to your account to continue</p>
+        <AuthLayout>
+            <div className="mb-8 flex flex-col items-center text-center">
+                <Link to="/" className="mb-6 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-accent-violet to-accent-teal shadow-[0_8px_30px_rgba(124,111,247,0.3)]">
+                    <Sparkles className="h-6 w-6 text-white" />
+                </Link>
+                <h2 className="font-display text-3xl font-bold text-white tracking-tight mb-2">Welcome Back</h2>
+                <p className="text-[15px] text-slate-400">Continue your AI hiring journey</p>
+            </div>
 
-                <form onSubmit={handleLogin} className="space-y-4">
+            <form onSubmit={handleLogin} className="space-y-4">
+                <FloatingInput 
+                    label="Email Address" 
+                    type="email" 
+                    name="email" 
+                    value={formData.email} 
+                    onChange={handleInputChange} 
+                    icon={Mail} 
+                    required 
+                />
+                
+                <div className="space-y-1.5">
                     <FloatingInput 
-                        label="Email Address" 
-                        type="email" 
-                        name="email" 
-                        value={formData.email} 
+                        label="Password" 
+                        type="password" 
+                        name="password" 
+                        value={formData.password} 
                         onChange={handleInputChange} 
-                        icon={Mail} 
                         required 
                     />
-                    
-                    <div className="space-y-1">
-                        <FloatingInput 
-                            label="Password" 
-                            type="password" 
-                            name="password" 
-                            value={formData.password} 
-                            onChange={handleInputChange} 
-                            required 
-                        />
-                        <div className="flex justify-end">
-                            <button 
-                                type="button" 
-                                onClick={() => navigate('/forgot-password')} 
-                                className="text-xs text-purple-600 font-bold hover:underline"
-                            >
-                                Forgot password?
-                            </button>
-                        </div>
+                    <div className="flex justify-end">
+                        <Link 
+                            to="/forgot-password" 
+                            className="text-[13px] font-semibold text-accent-violet-light transition-colors hover:text-accent-teal hover:underline"
+                        >
+                            Forgot password?
+                        </Link>
                     </div>
+                </div>
 
-                    {error && <p className="text-xs text-red-500 font-bold text-center">{error}</p>}
-                    
-                    <MagneticButton type="submit" isLoading={isLoading} className="mt-4">
-                        Sign In
-                    </MagneticButton>
+                {error && (
+                    <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-center">
+                        <p className="text-[13px] font-semibold text-red-400">{error}</p>
+                    </div>
+                )}
+                
+                <div className="pt-2">
+                    <PrimaryButton type="submit" isLoading={isLoading}>
+                        Sign In <ArrowRight className="h-4 w-4" />
+                    </PrimaryButton>
+                </div>
+            </form>
 
-                    <p className="text-center text-sm text-slate-500 mt-6">
-                        Don't have an account? <button type="button" onClick={() => navigate('/register')} className="text-purple-600 font-bold hover:underline">Create one</button>
-                    </p>
-                </form>
-            </div>
-        </div>
+            <p className="mt-8 text-center text-[14px] text-slate-400">
+                Don't have an account? <Link to="/register" className="font-semibold text-accent-violet transition-colors hover:text-accent-teal hover:underline">Create Account</Link>
+            </p>
+        </AuthLayout>
     );
 };
 

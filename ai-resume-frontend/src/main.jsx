@@ -15,6 +15,7 @@ import { Toaster } from 'react-hot-toast'
 import { AuthProvider } from './context/AuthContext'
 import { ModelProvider } from './context/ModelContext'
 import { ArenaProvider } from './context/ArenaContext'
+import GlobalErrorBoundary from './components/layout/GlobalErrorBoundary'
 import App from './App'
 import './index.css'
 
@@ -24,7 +25,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       <AuthProvider>
         <ModelProvider>
           <ArenaProvider>
-            <App />
+            <GlobalErrorBoundary>
+              <App />
+            </GlobalErrorBoundary>
           </ArenaProvider>
         </ModelProvider>
         <Toaster
@@ -52,4 +55,4 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       </AuthProvider>
     </BrowserRouter>
   </React.StrictMode>
-)
+)// trigger reload

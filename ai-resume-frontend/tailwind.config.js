@@ -4,69 +4,156 @@ export default {
   darkMode: 'class',
   theme: {
     extend: {
-      fontFamily: {
-        sans: ['Inter', 'sans-serif'],
-        display: ['"Plus Jakarta Sans"', 'sans-serif'],
-        heading: ['"Plus Jakarta Sans"', 'sans-serif'],
-        body: ['Inter', 'sans-serif'],
-      },
       colors: {
-        'bg-base': '#0A0B0F',
-        'bg-surface': '#111318',
-        'bg-elevated': '#181C24',
-        'bg-muted': '#1E2330',
-        'border-subtle': 'rgba(255, 255, 255, 0.06)',
-        'border-normal': 'rgba(255, 255, 255, 0.10)',
-        'border-strong': 'rgba(255, 255, 255, 0.18)',
-        'accent-violet': '#7C6FF7',
-        'accent-violet-light': '#A89EFF',
-        'accent-teal': '#2ECBAD',
-        'accent-teal-light': '#5EEBD0',
-        'text-primary': '#F0F0F5',
-        'text-secondary': '#9B9FAD',
-        'text-muted': '#5C6070',
-        brand: {
-          50:  '#F3F0FF',
-          100: '#E9E3FF',
-          200: '#D1C6FF',
-          300: '#B39BFF',
-          400: '#9A80FF',
-          500: '#7C6FF7',
-          600: '#6847F5',
-          700: '#5A3CE0',
-          800: '#4B31B8',
-          900: '#3C288E',
+        // Layered backgrounds — never use flat black
+        base:     '#0A0B0F',   // deepest — page bg
+        surface:  '#111318',   // cards, sidebar
+        elevated: '#181C24',   // modals, dropdowns
+        muted:    '#1E2330',   // inputs, inactive
+
+        // Brand
+        accent: {
+          violet: '#7C6FF7',
+          'violet-dim': '#5B54C4',
+          'violet-glow': 'rgba(124,111,247,0.15)',
+          teal:   '#2ECBAD',
+          'teal-dim': '#1E9E89',
+          'teal-glow': 'rgba(46,203,173,0.15)',
         },
-        surface: {
-          DEFAULT: '#111318',
-          50: '#0A0B0F',
-          100: '#181C24',
-          200: '#1E2330',
-        },
-        sidebar: '#111318',
+
+        // Semantic
+        success: '#2ECBAD',
+        warning: '#FBBF24',
+        danger:  '#F87171',
+        info:    '#60A5FA',
+
+        // Text hierarchy
+        primary:   '#F8FAFC',
+        secondary: '#94A3B8',
+        tertiary:  '#475569',
+        disabled:  '#334155',
       },
-      transitionDuration: {
-        DEFAULT: '200ms',
+
+      fontFamily: {
+        heading: ['Plus Jakarta Sans', 'sans-serif'],
+        display: ['Plus Jakarta Sans', 'sans-serif'],
+        body:    ['Inter', 'sans-serif'],
+        mono:    ['JetBrains Mono', 'monospace'],
       },
+
+      fontSize: {
+        // Tighter, more precise scale
+        'xs':   ['11px', { lineHeight: '16px', letterSpacing: '0.02em' }],
+        'sm':   ['13px', { lineHeight: '20px' }],
+        'base': ['14px', { lineHeight: '22px' }],
+        'md':   ['15px', { lineHeight: '24px' }],
+        'lg':   ['17px', { lineHeight: '26px' }],
+        'xl':   ['20px', { lineHeight: '28px', letterSpacing: '-0.01em' }],
+        '2xl':  ['24px', { lineHeight: '32px', letterSpacing: '-0.02em' }],
+        '3xl':  ['30px', { lineHeight: '38px', letterSpacing: '-0.025em' }],
+        '4xl':  ['36px', { lineHeight: '44px', letterSpacing: '-0.03em' }],
+      },
+
+      borderRadius: {
+        'sm':  '6px',
+        'md':  '8px',
+        'lg':  '12px',
+        'xl':  '16px',
+        '2xl': '20px',
+        '3xl': '24px',
+      },
+
       boxShadow: {
-        card: '0 1px 3px 0 rgba(0,0,0,0.08), 0 1px 2px -1px rgba(0,0,0,0.06)',
-        'card-hover': '0 10px 40px -10px rgba(99,102,241,0.18)',
-        glow: '0 0 0 3px rgba(99,102,241,0.15)',
+        // Layered shadow system — never use single shadows
+        'card': `
+          0 1px 0 0 rgba(255,255,255,0.04) inset,
+          0 1px 2px 0 rgba(0,0,0,0.3),
+          0 4px 8px 0 rgba(0,0,0,0.2)
+        `,
+        'card-hover': `
+          0 1px 0 0 rgba(255,255,255,0.06) inset,
+          0 2px 4px 0 rgba(0,0,0,0.3),
+          0 8px 24px 0 rgba(0,0,0,0.3),
+          0 0 0 1px rgba(124,111,247,0.12)
+        `,
+        'glow-violet': `
+          0 0 0 1px rgba(124,111,247,0.3),
+          0 0 20px rgba(124,111,247,0.15),
+          0 0 40px rgba(124,111,247,0.05)
+        `,
+        'glow-teal': `
+          0 0 0 1px rgba(46,203,173,0.3),
+          0 0 20px rgba(46,203,173,0.15)
+        `,
+        'btn': `
+          0 1px 0 0 rgba(255,255,255,0.12) inset,
+          0 -1px 0 0 rgba(0,0,0,0.3) inset,
+          0 2px 4px rgba(0,0,0,0.3),
+          0 0 0 1px rgba(124,111,247,0.5)
+        `,
+        'input-focus': `
+          0 0 0 3px rgba(124,111,247,0.2),
+          0 0 0 1px rgba(124,111,247,0.6)
+        `,
       },
-      backgroundImage: {
-        'grid-pattern': `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Cpath d='M0 0h32v32H0z' fill='none'/%3E%3Cpath d='M0 0h1v32H0zM31 0h1v32h-1zM0 0h32v1H0zM0 31h32v1H0z' fill='%23e2e8f0' opacity='.6'/%3E%3C/svg%3E")`,
-        'hero-mesh': 'radial-gradient(at 40% 20%, hsla(240,80%,92%,1) 0px, transparent 50%), radial-gradient(at 80% 0%, hsla(260,80%,95%,1) 0px, transparent 50%), radial-gradient(at 0% 50%, hsla(220,80%,94%,1) 0px, transparent 50%)',
-      },
-      animation: {
-        'float': 'float 6s ease-in-out infinite',
-        'pulse-slow': 'pulse 3s ease-in-out infinite',
-        'spin-slow': 'spin 8s linear infinite',
-      },
+
       keyframes: {
+        // Shimmer for skeleton loaders
+        shimmer: {
+          '0%':   { backgroundPosition: '-400px 0' },
+          '100%': { backgroundPosition: '400px 0' },
+        },
+        // Subtle float — cards and icons only
         float: {
           '0%, 100%': { transform: 'translateY(0px)' },
-          '50%': { transform: 'translateY(-12px)' },
+          '50%':      { transform: 'translateY(-4px)' },
         },
+        // Breathing glow — badges and CTAs
+        'glow-pulse': {
+          '0%, 100%': { boxShadow: '0 0 12px rgba(124,111,247,0.3)' },
+          '50%': { boxShadow: '0 0 24px rgba(124,111,247,0.6)' },
+        },
+        // Score ring fill
+        'ring-fill': {
+          '0%':   { strokeDashoffset: '339' },
+          '100%': { strokeDashoffset: 'var(--dash-offset)' },
+        },
+        // Fade up — used everywhere
+        'fade-up': {
+          '0%':   { opacity: '0', transform: 'translateY(12px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        // Counter number roll
+        'count-up': {
+          '0%':   { transform: 'translateY(100%)', opacity: '0' },
+          '100%': { transform: 'translateY(0)', opacity: '1' },
+        },
+        // Typing cursor blink
+        blink: {
+          '0%, 100%': { opacity: '1' },
+          '50%':      { opacity: '0' },
+        },
+        // Gradient shift for hero
+        'gradient-shift': {
+          '0%, 100%': { backgroundPosition: '0% 50%' },
+          '50%':      { backgroundPosition: '100% 50%' },
+        },
+        // Streaming dot pulse
+        'dot-pulse': {
+          '0%, 100%': { opacity: '0.4', transform: 'scale(1)' },
+          '50%':      { opacity: '1', transform: 'scale(1.3)' },
+        },
+      },
+
+      animation: {
+        'shimmer':        'shimmer 1.8s linear infinite',
+        'float':          'float 4s ease-in-out infinite',
+        'glow-pulse':     'glow-pulse 3s ease-in-out infinite',
+        'ring-fill':      'ring-fill 1.2s ease-out forwards',
+        'fade-up':        'fade-up 0.5s ease-out forwards',
+        'gradient-shift': 'gradient-shift 6s ease infinite',
+        'blink':          'blink 1s step-end infinite',
+        'dot-pulse':      'dot-pulse 1.4s ease-in-out infinite',
       },
     },
   },

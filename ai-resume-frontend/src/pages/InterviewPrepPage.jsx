@@ -1,10 +1,5 @@
-// src/pages/InterviewPrepPage.jsx — AI INTERVIEW PREPARATION ARENA
-//
-// Generates role-based technical and behavioral questions from candidate resumes,
-// highlighting strong areas, weak skills, and questions across multiple models.
-
 import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   BrainCircuit,
@@ -19,15 +14,30 @@ import {
   ChevronDown,
   ChevronUp,
   BookmarkCheck,
-  X
+  X,
+  AlertCircle,
+  PlayCircle
 } from "lucide-react";
 import toast from "react-hot-toast";
 import DashboardLayout from "../components/layout/DashboardLayout";
 import ArenaWorkspace from "../components/ui/ArenaWorkspace";
+import WorkspaceLayout from "../components/layout/WorkspaceLayout";
 import { getAllResumes, uploadResume } from "../api/resumeApi";
 import { getArenaHistory, deleteArenaHistory } from "../api/arenaApi";
 import { useArena } from "../context/ArenaContext";
 import { useModel } from "../context/ModelContext";
+import EmptyState from "../components/ui/EmptyState";
+
+const ProgressBar = ({ value, colorClass, bgClass }) => (
+  <div className="h-2 w-full overflow-hidden rounded-full bg-white/[0.04] mt-2">
+    <motion.div
+      initial={{ width: 0 }}
+      animate={{ width: `${value}%` }}
+      transition={{ duration: 1, ease: "easeOut" }}
+      className={`h-full rounded-full ${colorClass} ${bgClass}`}
+    />
+  </div>
+);
 
 const InterviewPrepPage = () => {
   const [searchParams] = useSearchParams();
@@ -185,7 +195,7 @@ const InterviewPrepPage = () => {
         toast.success("Prep history deleted.");
         setHistoryList((prev) => prev.filter((item) => item._id !== id));
         if (arenaRun?._id === id) {
-          setArenaRun(null);
+          executeRun("interview_prep", null);
           setExpandedIndex(null);
         }
       }
@@ -196,15 +206,15 @@ const InterviewPrepPage = () => {
 
   // Load a session from history
   const handleLoadHistoryItem = (item) => {
-    setArenaRun(item);
     setRole(item.input.role);
     setJobDescription(item.input.jobDescription || "");
     setExpandedIndex(null);
-    toast.success(`Loaded mock interview for ${item.input.role}`);
+    toast.success(`Loaded inputs for ${item.input.role}. Click generate to re-run.`);
   };
 
   // Bookmarking Toggle
-  const toggleBookmark = (qObj) => {
+  const toggleBookmark = (qObj, e) => {
+    e.stopPropagation();
     let updated = [...bookmarkedQuestions];
     const idx = updated.findIndex((item) => item.question === qObj.question);
     if (idx > -1) {
@@ -219,7 +229,8 @@ const InterviewPrepPage = () => {
   };
 
   // Copy details
-  const copyQuestionDetails = (qObj) => {
+  const copyQuestionDetails = (qObj, e) => {
+    e.stopPropagation();
     const text = `Q: ${qObj.question}\n\nExpected Answer Hint:\n${qObj.expectedAnswer}\n\nFollow-up: ${qObj.followUpQuestion || ""}`;
     navigator.clipboard.writeText(text);
     toast.success("Copied Q&A details!");
@@ -233,9 +244,9 @@ const InterviewPrepPage = () => {
   };
 
   const getTypeBadgeStyles = (type) => {
-    if (type?.toLowerCase() === "technical") return "bg-blue-500/10 border-blue-500/20 text-blue-400";
-    if (type?.toLowerCase() === "behavioral") return "bg-purple-500/10 border-purple-500/20 text-purple-400";
-    if (type?.toLowerCase() === "project") return "bg-emerald-500/10 border-emerald-500/20 text-emerald-400";
+    if (type?.toLowerCase() === "technical") return "bg-[#5B8FFF]/10 border-[#5B8FFF]/20 text-[#8FB3FF]";
+    if (type?.toLowerCase() === "behavioral") return "bg-[#7C5CFC]/10 border-[#7C5CFC]/20 text-[#A78BFA]";
+    if (type?.toLowerCase() === "project") return "bg-[#00D4AA]/10 border-[#00D4AA]/20 text-[#5DE8C5]";
     return "bg-slate-500/10 border-slate-500/20 text-slate-400";
   };
 
@@ -252,7 +263,6 @@ const InterviewPrepPage = () => {
     const list = output.questions || [];
     const categories = ["All", ...new Set(list.map((q) => q.type).filter(Boolean))];
 
-    // Filter questions based on category & search query
     const filtered = list.filter((q) => {
       const matchesCategory = selectedCategory === "All" || q.type?.toLowerCase() === selectedCategory.toLowerCase();
       const matchesSearch = q.question?.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -260,43 +270,52 @@ const InterviewPrepPage = () => {
       return matchesCategory && matchesSearch;
     });
 
+    const matchScore = output.matchPercentage || 0;
+
     return (
       <div className="space-y-6">
+        
+        {/* Top Stats */}
         <div className="grid gap-4 sm:grid-cols-3">
-          <div className="rounded-xl border border-white/5 bg-white/3 p-4 text-center">
-            <span className="text-[10px] uppercase text-slate-400">Match score</span>
-            <p className="text-2xl font-bold text-white mt-1">{output.matchPercentage || 0}%</p>
+          <div className="col-span-1 card p-5 flex flex-col justify-center shadow-[0_10px_30px_rgba(124,111,247,0.1)]">
+            <div className="flex justify-between items-end mb-1">
+              <span className="text-[11px] font-bold uppercase tracking-widest text-slate-500">Match Confidence</span>
+              <span className="text-xl font-black text-[#A78BFA]">{matchScore}%</span>
+            </div>
+            <ProgressBar value={matchScore} colorClass="bg-[#7C5CFC]" bgClass="shadow-[0_0_10px_rgba(124,92,252,0.5)]" />
           </div>
-          <div className="rounded-xl border border-white/5 bg-white/2 p-4">
-            <span className="text-[10px] uppercase text-slate-400 block mb-1">Strong Skills Found</span>
-            <div className="flex flex-wrap gap-1 max-h-16 overflow-y-auto">
+
+          <div className="col-span-1 card p-5 flex flex-col border-t-2 border-t-emerald-500/50">
+            <span className="text-[11px] font-bold uppercase tracking-widest text-emerald-400 mb-3 block">Strong Areas</span>
+            <div className="flex flex-wrap gap-1.5 overflow-y-auto max-h-16">
               {(output.strongSkills || []).map((s, i) => (
-                <span key={i} className="rounded bg-emerald-500/10 px-2 py-0.5 text-[10px] text-emerald-400 border border-emerald-500/20">{s}</span>
+                <span key={i} className="rounded-md border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-200">{s}</span>
               ))}
             </div>
           </div>
-          <div className="rounded-xl border border-white/5 bg-white/2 p-4">
-            <span className="text-[10px] uppercase text-slate-400 block mb-1">Missing/Weak Skills</span>
-            <div className="flex flex-wrap gap-1 max-h-16 overflow-y-auto">
+
+          <div className="col-span-1 card p-5 flex flex-col border-t-2 border-t-rose-500/50">
+            <span className="text-[11px] font-bold uppercase tracking-widest text-rose-400 mb-3 block">Review Needed</span>
+            <div className="flex flex-wrap gap-1.5 overflow-y-auto max-h-16">
               {(output.weakSkills || []).map((s, i) => (
-                <span key={i} className="rounded bg-rose-500/10 px-2 py-0.5 text-[10px] text-rose-400 border border-rose-500/20">{s}</span>
+                <span key={i} className="rounded-md border border-rose-500/20 bg-rose-500/10 px-2 py-0.5 text-[10px] font-bold text-rose-200">{s}</span>
               ))}
             </div>
           </div>
         </div>
 
         {/* Filters and Search box */}
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-t border-white/5 pt-4">
-          <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-y border-white/[0.06] py-4 bg-[#0A0B0F]/50 px-4 rounded-xl">
+          <div className="flex flex-wrap gap-2">
             {categories.map((cat) => (
               <button
                 key={cat}
                 type="button"
                 onClick={() => setSelectedCategory(cat)}
-                className={`px-3 py-1.5 rounded-full text-[10px] font-semibold border transition ${
+                className={`px-3 py-1.5 rounded-lg text-[11px] font-bold tracking-wider uppercase transition-colors ${
                   selectedCategory === cat
-                    ? "bg-[#7C5CFC] border-[#7C5CFC] text-white"
-                    : "bg-white/5 border-white/10 text-slate-300 hover:bg-white/10"
+                    ? "bg-[#7C5CFC] text-white shadow-[0_4px_14px_rgba(124,92,252,0.4)]"
+                    : "bg-white/[0.04] text-slate-400 hover:bg-white/[0.08] hover:text-white"
                 }`}
               >
                 {cat}
@@ -304,67 +323,70 @@ const InterviewPrepPage = () => {
             ))}
           </div>
 
-          <div className="relative w-full sm:w-64 flex-shrink-0">
-            <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400" />
+          <div className="relative w-full sm:w-64 flex-shrink-0 group">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 transition-colors group-focus-within:text-[#7C5CFC]" />
             <input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full rounded-xl border border-white/10 bg-[#0E101D] pl-9 pr-3 py-2 text-xs text-slate-200 outline-none focus:border-[#7C5CFC]"
+              className="input-base w-full pl-9 py-2"
               placeholder="Search questions..."
             />
           </div>
         </div>
 
-        {/* Expandable question cards */}
+        {/* Question Cards */}
         {filtered.length === 0 ? (
-          <div className="py-8 text-center text-xs text-slate-500 italic">No questions match filter/search criteria.</div>
+          <div className="py-12 text-center text-[13px] text-slate-500">No questions match your filter criteria.</div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-4 max-h-[600px] overflow-y-auto custom-scrollbar pr-2">
             {filtered.map((item, idx) => {
               const isExpanded = expandedIndex === idx;
               const isBookmarked = bookmarkedQuestions.some((b) => b.question === item.question);
 
               return (
-                <div
+                <motion.div
+                  layout
                   key={idx}
-                  onClick={() => setExpandedIndex(isExpanded ? null : idx)}
-                  className={`rounded-2xl border bg-[#0E101D] cursor-pointer hover:border-[#7C5CFC]/30 transition overflow-hidden ${
-                    isExpanded ? "border-[#7C5CFC]/40 shadow-lg" : "border-white/5"
+                  className={`card group overflow-hidden transition-all duration-300 cursor-pointer ${
+                    isExpanded ? "border-[#7C5CFC]/40 shadow-[0_10px_30px_rgba(124,111,247,0.15)] ring-1 ring-[#7C5CFC]/20" : "hover:border-[#7C5CFC]/30 hover:bg-white/[0.04]"
                   }`}
+                  onClick={() => setExpandedIndex(isExpanded ? null : idx)}
                 >
-                  <div className="p-4 flex gap-4 items-start justify-between">
-                    <div className="space-y-1.5">
-                      <div className="flex items-center flex-wrap gap-2 text-[9px] font-bold">
-                        <span className="text-slate-500">#{idx + 1}</span>
-                        <span className={`px-2 py-0.5 rounded-full border ${getTypeBadgeStyles(item.type)}`}>
+                  <div className="p-5 flex gap-4 items-start justify-between">
+                    <div className="space-y-2.5">
+                      <div className="flex items-center flex-wrap gap-2 text-[10px] font-bold uppercase tracking-widest">
+                        <span className="flex h-5 w-5 items-center justify-center rounded bg-white/[0.06] text-slate-400">
+                          {idx + 1}
+                        </span>
+                        <span className={`px-2 py-0.5 rounded-md border ${getTypeBadgeStyles(item.type)}`}>
                           {getIconForType(item.type)} {item.type}
                         </span>
-                        <span className={`px-2 py-0.5 rounded-full border ${getDifficultyStyles(item.difficulty)}`}>
+                        <span className={`px-2 py-0.5 rounded-md border ${getDifficultyStyles(item.difficulty)}`}>
                           {item.difficulty}
                         </span>
                       </div>
-                      <h4 className="text-xs md:text-sm font-semibold text-white leading-relaxed">{item.question}</h4>
+                      <h4 className="text-[14px] md:text-[15px] font-bold text-white leading-relaxed font-body">{item.question}</h4>
                     </div>
 
-                    <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex shrink-0 items-center gap-1">
                       <button
-                        onClick={() => copyQuestionDetails(item)}
-                        className="p-1.5 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition"
+                        onClick={(e) => copyQuestionDetails(item, e)}
+                        className="p-2 text-slate-500 hover:text-white hover:bg-white/[0.06] rounded-lg transition-colors"
                         title="Copy Details"
                       >
-                        <Copy className="h-3.5 w-3.5" />
+                        <Copy className="h-4 w-4" />
                       </button>
                       <button
-                        onClick={() => toggleBookmark(item)}
-                        className={`p-1.5 rounded-lg transition ${
-                          isBookmarked ? "text-yellow-400 hover:text-yellow-300" : "text-slate-400 hover:text-white"
+                        onClick={(e) => toggleBookmark(item, e)}
+                        className={`p-2 rounded-lg transition-colors ${
+                          isBookmarked ? "text-amber-400 bg-amber-400/10 hover:bg-amber-400/20" : "text-slate-500 hover:text-white hover:bg-white/[0.06]"
                         }`}
                         title="Bookmark"
                       >
-                        {isBookmarked ? <BookmarkCheck className="h-3.5 w-3.5" /> : <Bookmark className="h-3.5 w-3.5" />}
+                        {isBookmarked ? <BookmarkCheck className="h-4 w-4" /> : <Bookmark className="h-4 w-4" />}
                       </button>
-                      <div className="p-1 text-slate-400">
-                        {isExpanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+                      <div className="p-2 text-slate-500 transition-transform duration-300" style={{ transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+                        <ChevronDown className="h-4 w-4" />
                       </div>
                     </div>
                   </div>
@@ -372,33 +394,34 @@ const InterviewPrepPage = () => {
                   <AnimatePresence>
                     {isExpanded && (
                       <motion.div
-                        initial={{ height: 0 }}
-                        animate={{ height: "auto" }}
-                        exit={{ height: 0 }}
-                        className="border-t border-white/5 bg-[#080911]/50"
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="border-t border-white/[0.06] bg-[#0A0B0F]/50"
                       >
-                        <div className="p-4 space-y-3 text-xs leading-relaxed text-slate-300">
+                        <div className="p-5 space-y-4 text-[13px] leading-relaxed text-slate-300 font-body">
                           <div>
-                            <span className="font-bold text-[#A78BFA]">Expected Answer Key</span>
-                            <p className="mt-1 text-slate-200">{item.expectedAnswer}</p>
+                            <span className="font-bold text-[#A78BFA] uppercase tracking-wider text-[10px] mb-1.5 block">Expected Answer Key</span>
+                            <p className="text-slate-200 bg-white/[0.02] p-3 rounded-xl border border-white/[0.04]">{item.expectedAnswer}</p>
                           </div>
                           {item.followUpQuestion && (
                             <div>
-                              <span className="font-bold text-[#5DE8C5]">Suggested Follow-up</span>
-                              <p className="mt-1 text-slate-200">{item.followUpQuestion}</p>
+                              <span className="font-bold text-[#5DE8C5] uppercase tracking-wider text-[10px] mb-1.5 block">Suggested Follow-up</span>
+                              <p className="text-slate-200 border-l-2 border-[#5DE8C5] pl-3 py-1 italic">{item.followUpQuestion}</p>
                             </div>
                           )}
-                          <div className="flex flex-wrap gap-4 pt-2 border-t border-white/5 text-[10px] text-slate-400">
-                            <span>Relevance: <strong>{item.resumeRelevance || "High"}</strong></span>
+                          <div className="flex flex-wrap gap-4 pt-4 mt-2 border-t border-white/[0.06] text-[11px] text-slate-400">
+                            <span className="rounded bg-white/[0.06] px-2 py-1">Resume Relevance: <strong className="text-white ml-1">{item.resumeRelevance || "High"}</strong></span>
                             {item.relevanceExplanation && (
-                              <span className="flex-1">Detail: <em>{item.relevanceExplanation}</em></span>
+                              <span className="flex-1 flex items-center gap-2"><PlayCircle className="h-3 w-3 text-[#7C5CFC]" /> <em>{item.relevanceExplanation}</em></span>
                             )}
                           </div>
                         </div>
                       </motion.div>
                     )}
                   </AnimatePresence>
-                </div>
+                </motion.div>
               );
             })}
           </div>
@@ -409,144 +432,104 @@ const InterviewPrepPage = () => {
 
   return (
     <DashboardLayout>
-      <div className="mx-auto max-w-7xl p-6 lg:p-8">
-        <div className="grid gap-8 lg:grid-cols-[280px_1fr]">
-          {/* Left panel: history & uploads */}
-          <div className="space-y-6">
-            {/* Quick Upload */}
-            <div className="card p-5 space-y-4">
-              <h3 className="font-semibold text-xs uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                <Upload className="h-4 w-4 text-[#7C5CFC]" /> Upload Resume
-              </h3>
-              <div
-                onDragOver={handleDrag}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-                className={`relative rounded-2xl border-2 border-dashed p-5 text-center cursor-pointer transition ${
-                  dragOver ? "border-[#7C5CFC] bg-[#7C5CFC]/5" : "border-white/10 hover:border-white/20 bg-white/2"
-                }`}
-              >
-                <Upload className="mx-auto h-6 w-6 text-slate-500 mb-2" />
-                <p className="text-[10px] text-slate-400 leading-normal">Drag PDF/DOCX or click to browse</p>
-                <input
-                  type="file"
-                  onChange={(e) => validateAndSetFile(e.target.files[0])}
-                  className="hidden"
-                  id="dropzone-file"
-                />
-                <label htmlFor="dropzone-file" className="absolute inset-0 cursor-pointer" />
-              </div>
-              {uploadFile && (
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-xs bg-white/5 rounded-xl p-2.5">
-                    <span className="truncate max-w-[150px] text-slate-300 font-semibold">{uploadFile.name}</span>
-                    <button onClick={() => setUploadFile(null)} className="text-rose-400"><X className="h-4 w-4" /></button>
-                  </div>
-                  <button
-                    onClick={handleUploadResume}
-                    disabled={uploading}
-                    className="btn-primary w-full py-2 text-xs flex justify-center items-center gap-1.5"
-                  >
-                    {uploading ? "Uploading..." : "Parse File"}
-                  </button>
-                </div>
-              )}
+      <div className="mx-auto w-full max-w-[1280px] page-enter">
+        
+        {/* Contextual Header */}
+        <div className="mb-8 flex flex-col justify-between gap-6 overflow-hidden rounded-3xl border border-white/[0.06] bg-[#0E101A] p-6 shadow-2xl sm:flex-row sm:items-center sm:p-8 relative">
+          <div className="absolute right-0 top-0 h-full w-1/2 bg-gradient-to-l from-[#7C5CFC]/10 to-transparent opacity-40" />
+          
+          <div className="relative z-10">
+            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#7C5CFC]/20 bg-[#7C5CFC]/5 px-3 py-1">
+              <BrainCircuit className="h-3.5 w-3.5 text-[#7C5CFC]" />
+              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#7C5CFC]">Interview Simulator</span>
             </div>
-
-            {/* History logs */}
-            <div className="card p-5 space-y-4">
-              <h3 className="font-semibold text-xs uppercase tracking-wider text-slate-400">Past Trials</h3>
-              {loadingHistory ? (
-                <div className="space-y-2">
-                  {[1, 2, 3].map(i => <div key={i} className="skeleton h-12 w-full rounded-xl" />)}
-                </div>
-              ) : historyList.length === 0 ? (
-                <p className="text-xs text-slate-500 italic">No prep runs logged.</p>
-              ) : (
-                <div className="space-y-2 max-h-[350px] overflow-y-auto pr-1">
-                  {historyList.map((item) => (
-                    <div
-                      key={item._id}
-                      onClick={() => handleLoadHistoryItem(item)}
-                      className={`group flex items-center justify-between p-3 rounded-xl border transition cursor-pointer ${
-                        arenaRun?._id === item._id
-                          ? "border-[#7C5CFC]/40 bg-[#7C5CFC]/8 text-white"
-                          : "border-white/5 bg-white/2 text-slate-400 hover:text-white"
-                      }`}
-                    >
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-xs font-semibold">{item.input.role}</p>
-                        <p className="text-[9px] text-slate-500 mt-1">{new Date(item.createdAt).toLocaleDateString("en-IN")}</p>
-                      </div>
-                      <button
-                        onClick={(e) => handleDeleteHistory(item._id, e)}
-                        className="opacity-0 group-hover:opacity-100 text-slate-500 hover:text-red-400 p-1"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+            <h1 className="font-display text-3xl font-bold tracking-tight text-white">Interview Prep Arena</h1>
+            <p className="mt-2 text-[14px] text-slate-400 max-w-lg">
+              Generate role-specific technical, behavioral, and resume-based questions to practice for your next interview.
+            </p>
           </div>
+        </div>
 
-          {/* Right panel: Form inputs and workspace */}
-          <div className="space-y-6">
-            {/* Introductory header */}
-            <div className="rounded-[28px] border border-white/10 bg-[linear-gradient(135deg,#141420_0%,#0F1326_45%,#0F172A_100%)] p-6 shadow-xl lg:p-7">
-              <p className="text-[11px] uppercase tracking-[0.35em] text-[#8FB3FF]">Prep Arena</p>
-              <h1 className="mt-2 text-3xl font-semibold text-white">Interview Prep Simulator</h1>
-              <p className="mt-2 text-sm text-slate-400">
-                Simulate role-specific technical, behavioral, and resume-based questions across multiple models in parallel.
-              </p>
-            </div>
+        {/* 60/40 Responsive Workspace */}
+        <WorkspaceLayout
+          rightEmpty={!arenaRun && !isLoading}
+          left={
+            <form onSubmit={handleGenerate} className="card p-6 sm:p-8 space-y-8">
+              <div className="border-b border-white/[0.06] pb-4">
+                <h2 className="text-[15px] font-bold text-white">Simulation Details</h2>
+                <p className="text-[12px] text-slate-400 mt-1">Configure your mock interview parameters.</p>
+              </div>
 
-            {/* Config inputs */}
-            <form onSubmit={handleGenerate} className="card p-6 space-y-4">
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid gap-6 sm:grid-cols-2">
+                {/* Target Role */}
                 <div>
-                  <label className="mb-2 block text-xs font-semibold text-slate-300">1. Target Job Role</label>
-                  <input
-                    type="text"
-                    value={role}
-                    onChange={(e) => setRole(e.target.value)}
-                    placeholder="e.g. Frontend Engineer, DevOps..."
-                    className="input-base text-sm"
-                    required
-                  />
+                  <label className="mb-2 block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
+                    1. Target Role
+                  </label>
+                  <div className="relative group">
+                    <User className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500 transition-colors group-focus-within:text-[#7C5CFC]" />
+                    <input
+                      type="text"
+                      value={role}
+                      onChange={(e) => setRole(e.target.value)}
+                      placeholder="e.g. Frontend Engineer"
+                      className="input-base pl-11 text-[14px] w-full"
+                      required
+                    />
+                  </div>
                 </div>
+
+                {/* Resume */}
                 <div>
-                  <label className="mb-2 block text-xs font-semibold text-slate-300">2. Select Resume Reference</label>
-                  <select
-                    value={selectedResumeId}
-                    onChange={(e) => setSelectedResumeId(e.target.value)}
-                    className="input-base cursor-pointer"
-                    required
-                  >
-                    <option value="">-- Choose Resume --</option>
-                    {resumes.map(r => (
-                      <option key={r._id} value={r._id}>{r.originalName}</option>
-                    ))}
-                  </select>
+                  <label className="mb-2 block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
+                    2. Base Resume
+                  </label>
+                  {resumes.length === 0 ? (
+                    <div className="flex items-center gap-2 rounded-xl border border-amber-500/20 bg-amber-500/10 p-3">
+                      <AlertCircle className="h-4 w-4 shrink-0 text-amber-500" />
+                      <p className="text-[12px] text-amber-200">
+                        No resumes. <Link to="/resumes" className="font-bold underline">Upload one</Link>.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="relative">
+                      <select
+                        value={selectedResumeId}
+                        onChange={(e) => setSelectedResumeId(e.target.value)}
+                        className="input-base w-full appearance-none pr-10 text-[14px]"
+                        required
+                      >
+                        <option value="">Choose Resume...</option>
+                        {resumes.map(r => (
+                          <option key={r._id} value={r._id}>{r.originalName}</option>
+                        ))}
+                      </select>
+                      <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+                    </div>
+                  )}
                 </div>
               </div>
 
+              {/* JD */}
               <div>
-                <label className="mb-2 block text-xs font-semibold text-slate-300">3. Target Job Description (Recommended)</label>
+                <label className="mb-2 flex items-center justify-between text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
+                  <span>3. Job Description</span>
+                  <span className="text-[9px] text-slate-600 border border-white/[0.08] px-1.5 py-0.5 rounded">OPTIONAL</span>
+                </label>
                 <textarea
-                  rows={4}
+                  rows={6}
                   value={jobDescription}
                   onChange={(e) => setJobDescription(e.target.value)}
-                  placeholder="Paste the JD here to generate highly customized interview questions..."
-                  className="input-base text-xs resize-none"
+                  placeholder="Paste JD to make questions highly specific..."
+                  className="input-base w-full text-[14px] resize-none leading-relaxed"
                 />
               </div>
-              
+
+              {/* Count */}
               <div>
-                <label className="mb-2 flex text-xs font-semibold text-slate-300 justify-between items-center">
-                  <span>4. Number of Questions</span>
-                  <span className="text-[#00D4AA]">{questionCount} questions</span>
+                <label className="mb-4 flex text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500 justify-between items-center">
+                  <span>4. Question Count</span>
+                  <span className="text-white bg-[#7C5CFC]/20 px-2 py-0.5 rounded text-[10px]">{questionCount} questions</span>
                 </label>
                 <input
                   type="range"
@@ -554,31 +537,101 @@ const InterviewPrepPage = () => {
                   max="10"
                   value={questionCount}
                   onChange={(e) => setQuestionCount(Number(e.target.value))}
-                  className="w-full accent-[#7C5CFC] cursor-pointer"
+                  className="w-full accent-[#7C5CFC] cursor-pointer h-2 bg-white/[0.08] rounded-full appearance-none outline-none"
                 />
-                <div className="flex justify-between text-[10px] text-slate-500 mt-1">
-                  <span>1</span>
-                  <span>10 (Max)</span>
+                <div className="flex justify-between text-[10px] font-bold text-slate-600 mt-2">
+                  <span>1 Question</span>
+                  <span>10 Max</span>
                 </div>
               </div>
 
-              <button
-                type="submit"
-                disabled={isLoading || !selectedResumeId}
-                className="btn-primary w-full py-3.5 text-sm flex justify-center items-center gap-1.5"
-              >
-                <BrainCircuit className="h-4.5 w-4.5" /> Generate Tailored Questions
-              </button>
+              {/* Submit */}
+              <div className="pt-4 border-t border-white/[0.06]">
+                <button
+                  type="submit"
+                  disabled={isLoading || !selectedResumeId}
+                  className={`btn-primary relative w-full h-[56px] text-[15px] overflow-hidden ${isLoading ? 'animate-pulse' : ''}`}
+                >
+                  {isLoading ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <div className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                      Simulating Interview...
+                    </span>
+                  ) : (
+                    <span className="flex items-center justify-center gap-2">
+                      <BrainCircuit className="h-5 w-5" /> Generate Mock Interview
+                    </span>
+                  )}
+                </button>
+              </div>
             </form>
+          }
+          right={
+            <div className="min-w-0 space-y-6 w-full">
+              {!arenaRun && !isLoading ? (
+                <EmptyState
+                  icon={MessageSquareQuote}
+                  title="Interview Questions Will Appear Here"
+                  subtitle="Role-specific technical and behavioral questions generated from your resume."
+                  chips={[
+                    { label: "Technical", color: "violet" },
+                    { label: "Behavioral", color: "teal" },
+                    { label: "Role-Specific", color: "amber" }
+                  ]}
+                />
+              ) : (
+                <ArenaWorkspace
+                  isLoading={isLoading}
+                  arenaRun={arenaRun}
+                  onRegenerate={handleGenerate}
+                  renderResult={renderPrepResult}
+                />
+              )}
 
-            <ArenaWorkspace
-              isLoading={isLoading}
-              arenaRun={arenaRun}
-              onRegenerate={handleGenerate}
-              renderResult={renderPrepResult}
-            />
-          </div>
-        </div>
+              {/* History Logs */}
+              <div className="card p-6">
+                <h3 className="mb-4 text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500 flex items-center gap-2">
+                  Recent Sessions
+                </h3>
+                {loadingHistory ? (
+                  <div className="space-y-3">
+                    {[1, 2].map(i => <div key={i} className="skeleton h-[52px] w-full rounded-xl" />)}
+                  </div>
+                ) : historyList.length === 0 ? (
+                  <div className="rounded-xl border border-dashed border-white/[0.08] p-6 text-center">
+                    <p className="text-[12px] text-slate-500">No mock interviews saved.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                    {historyList.map((item) => (
+                      <div
+                        key={item._id}
+                        onClick={() => handleLoadHistoryItem(item)}
+                        className={`group flex items-center justify-between p-4 rounded-xl border transition-colors cursor-pointer ${
+                          arenaRun?._id === item._id
+                            ? "border-[#7C5CFC]/40 bg-[#7C5CFC]/10 text-white"
+                            : "border-white/[0.04] bg-[#0A0B0F] text-slate-400 hover:border-white/[0.1] hover:text-white"
+                        }`}
+                      >
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-[13px] font-bold">{item.input.role}</p>
+                          <p className="text-[10px] text-slate-500 mt-1">{new Date(item.createdAt).toLocaleDateString("en-US", { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+                        </div>
+                        <button
+                          onClick={(e) => handleDeleteHistory(item._id, e)}
+                          className="opacity-0 group-hover:opacity-100 text-slate-500 hover:text-rose-400 p-2 transition-colors rounded-lg hover:bg-white/[0.06]"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              
+            </div>
+          }
+        />
       </div>
     </DashboardLayout>
   );

@@ -1,9 +1,3 @@
-// src/pages/ResumeBoostPage.jsx — RESUME BOOST & REBUILDER ARENA
-//
-// Combines:
-//   1. Resume Boost: Enhances single bullet points for target roles.
-//   2. Resume Rebuilder: Professional rewrite of entire resumes.
-
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -14,16 +8,20 @@ import {
   X,
   Trash2,
   Lightbulb,
-  ShieldCheck
+  ShieldCheck,
+  ChevronDown,
+  Zap
 } from "lucide-react";
 import toast from "react-hot-toast";
 import DashboardLayout from "../components/layout/DashboardLayout";
 import ArenaWorkspace from "../components/ui/ArenaWorkspace";
+import WorkspaceLayout from "../components/layout/WorkspaceLayout";
 import { getAllResumes, uploadResume } from "../api/resumeApi";
 import { getArenaHistory, deleteArenaHistory } from "../api/arenaApi";
 import { useModel } from "../context/ModelContext";
 import { useArena } from "../context/ArenaContext";
 import ResumePDFGenerator from "../components/ui/ResumePDFGenerator";
+import EmptyState from "../components/ui/EmptyState";
 
 const ResumeBoostPage = () => {
   const [searchParams] = useSearchParams();
@@ -105,7 +103,7 @@ const ResumeBoostPage = () => {
   // Toggle active sub-feature
   const handleToggleSubFeature = (tab) => {
     setActiveTab(tab);
-    setArenaRun(null);
+    executeRun(activeFeatureId, null); // Clear current run
     setHistoryList([]);
   };
 
@@ -217,7 +215,7 @@ const ResumeBoostPage = () => {
         toast.success("Record deleted.");
         setHistoryList((prev) => prev.filter((item) => item._id !== id));
         if (arenaRun?._id === id) {
-          setArenaRun(null);
+          executeRun(activeFeatureId, null);
         }
       }
     } catch (err) {
@@ -227,7 +225,7 @@ const ResumeBoostPage = () => {
 
   // Load a session from history
   const handleLoadHistoryItem = (item) => {
-    setArenaRun(item);
+    // Requires backend changes to fully load into context, so we just set the inputs
     if (activeTab === "boost") {
       setBulletText(item.input.bulletText || "");
       setRole(item.input.targetRole || "");
@@ -236,7 +234,7 @@ const ResumeBoostPage = () => {
       setRole(item.input.targetRole || "");
       setJobDescription(item.input.jobDescription || "");
     }
-    toast.success(`Loaded past session`);
+    toast.success(`Loaded inputs from past session. Click Generate to re-run.`);
   };
 
   // Render Resume Boost Output (single bullet)
@@ -245,40 +243,40 @@ const ResumeBoostPage = () => {
     return (
       <div className="space-y-6">
         <div>
-          <span className="text-[10px] uppercase text-slate-400 block mb-1">Original Bullet</span>
-          <p className="text-xs text-slate-400 bg-white/2 p-3.5 rounded-xl border border-white/5 line-through">{output.original}</p>
+          <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500 block mb-2">Original Bullet</span>
+          <p className="text-[13px] text-slate-400 bg-white/[0.02] p-4 rounded-xl border border-white/[0.06] line-through">{output.original}</p>
         </div>
 
         <div>
-          <span className="text-[10px] uppercase text-[#00D4AA] block mb-1">Enhanced Bullet</span>
-          <p className="text-xs md:text-sm font-semibold text-slate-200 bg-white/2 p-4 rounded-xl border border-[#00D4AA]/20 leading-relaxed">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-accent-teal block mb-2">Enhanced Bullet</span>
+          <p className="text-[14px] md:text-[15px] font-bold text-white bg-accent-teal/10 p-5 rounded-xl border border-accent-teal/30 leading-relaxed shadow-[0_0_15px_rgba(46,203,173,0.15)]">
             {output.enhanced}
           </p>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <div className="rounded-xl border border-white/5 bg-white/2 p-4">
-            <h5 className="text-xs font-semibold uppercase tracking-wider text-[#8FB3FF] mb-2.5">Action Verbs Used</h5>
-            <div className="flex flex-wrap gap-1.5">
+          <div className="card p-5">
+            <h5 className="text-[11px] font-bold uppercase tracking-widest text-[#8FB3FF] mb-3">Action Verbs Used</h5>
+            <div className="flex flex-wrap gap-2">
               {(output.actionVerbsUsed || []).map((v, i) => (
-                <span key={i} className="rounded bg-blue-500/10 border border-blue-500/20 px-2 py-0.5 text-[10px] text-slate-200">{v}</span>
+                <span key={i} className="rounded-lg bg-[#8FB3FF]/10 border border-[#8FB3FF]/20 px-2.5 py-1 text-[11px] font-bold text-[#8FB3FF]">{v}</span>
               ))}
             </div>
           </div>
-          <div className="rounded-xl border border-white/5 bg-white/2 p-4">
-            <h5 className="text-xs font-semibold uppercase tracking-wider text-[#A78BFA] mb-2.5">ATS Keywords Added</h5>
-            <div className="flex flex-wrap gap-1.5">
+          <div className="card p-5">
+            <h5 className="text-[11px] font-bold uppercase tracking-widest text-accent-violet-light mb-3">ATS Keywords Added</h5>
+            <div className="flex flex-wrap gap-2">
               {(output.atsKeywordsAdded || []).map((kw, i) => (
-                <span key={i} className="rounded bg-[#7C5CFC]/10 border border-[#7C5CFC]/20 px-2 py-0.5 text-[10px] text-slate-200">{kw}</span>
+                <span key={i} className="rounded-lg bg-accent-violet/10 border border-accent-violet/20 px-2.5 py-1 text-[11px] font-bold text-accent-violet-light">{kw}</span>
               ))}
             </div>
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center justify-between rounded-xl bg-white/3 p-3 text-xs text-slate-400 gap-2">
-          <span>Readability Score: <strong>{output.readabilityScore || 0}/100</strong></span>
-          <span>Grammar: <strong>{output.grammarScore || 0}%</strong></span>
-          <span className="rounded bg-white/5 px-2 py-0.5 uppercase tracking-wider font-bold text-[9px] text-slate-300">
+        <div className="flex flex-wrap items-center justify-between rounded-xl bg-white/[0.04] p-4 text-[12px] text-slate-400 gap-2 border border-white/[0.06]">
+          <span>Readability Score: <strong className="text-white ml-1">{output.readabilityScore || 0}/100</strong></span>
+          <span>Grammar: <strong className="text-white ml-1">{output.grammarScore || 0}%</strong></span>
+          <span className="rounded bg-white/[0.08] px-2.5 py-1 uppercase tracking-widest font-bold text-[10px] text-white">
             {output.tone} Tone
           </span>
         </div>
@@ -296,15 +294,15 @@ const ResumeBoostPage = () => {
     return (
       <div className="space-y-6">
         <div>
-          <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Rebuilt Resume Content (Markdown)</h4>
-          <pre className="text-xs text-slate-200 leading-relaxed bg-white/2 p-4 rounded-xl border border-white/5 whitespace-pre-wrap font-mono max-h-[400px] overflow-y-auto">
+          <h4 className="text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-3">Rebuilt Resume Content (Markdown)</h4>
+          <pre className="text-[13px] text-slate-300 leading-relaxed bg-[#0A0B0F] p-5 rounded-2xl border border-white/[0.08] whitespace-pre-wrap font-mono max-h-[500px] overflow-y-auto custom-scrollbar shadow-inner">
             {rebuiltText}
           </pre>
         </div>
 
         {changes.length > 0 && (
           <div>
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-[#00D4AA] mb-3">Rebuild Changes Log</h4>
+            <h4 className="text-[11px] font-bold uppercase tracking-widest text-accent-teal mb-4">Rebuild Changes Log</h4>
             <div className="space-y-3">
               {changes.map((ch, idx) => {
                 const color = ch.type === "added" ? "border-emerald-500/30 bg-emerald-500/5 text-emerald-400" :
@@ -312,16 +310,16 @@ const ResumeBoostPage = () => {
                     "border-amber-500/30 bg-amber-500/5 text-amber-400";
                 return (
                   <div key={idx} className={`rounded-xl border p-4 ${color}`}>
-                    <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider">
+                    <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider mb-2">
                       <span>Section: {ch.section}</span>
                       <span>{ch.type}</span>
                     </div>
                     {ch.original && (
-                      <p className="text-xs line-through text-slate-400 mt-2">Original: "{ch.original}"</p>
+                      <p className="text-[12px] line-through opacity-70 mb-2">"{ch.original}"</p>
                     )}
-                    <p className="text-xs font-semibold mt-1">Improved: "{ch.improved}"</p>
+                    <p className="text-[13px] font-bold">"{ch.improved}"</p>
                     {ch.description && (
-                      <p className="text-[10px] mt-2 italic text-slate-300">Description: {ch.description}</p>
+                      <p className="text-[11px] mt-2 italic opacity-80">{ch.description}</p>
                     )}
                   </div>
                 );
@@ -331,22 +329,22 @@ const ResumeBoostPage = () => {
         )}
 
         {output.recruiterFeedback && (
-          <div className="rounded-xl border border-white/5 bg-white/3 p-4">
-            <h5 className="text-xs font-semibold uppercase tracking-wider text-[#8FB3FF] flex items-center gap-1.5 mb-2">
+          <div className="card p-5 border-l-2 border-l-[#8FB3FF]">
+            <h5 className="text-[11px] font-bold uppercase tracking-widest text-[#8FB3FF] flex items-center gap-2 mb-3">
               <ShieldCheck className="h-4 w-4" /> Recruiter Perspective
             </h5>
-            <p className="text-xs text-slate-300 leading-relaxed">{output.recruiterFeedback}</p>
+            <p className="text-[13px] text-slate-300 leading-relaxed">{output.recruiterFeedback}</p>
           </div>
         )}
 
         {suggestions.length > 0 && (
-          <div className="rounded-xl border border-white/5 bg-white/3 p-4">
-            <h5 className="text-xs font-semibold uppercase tracking-wider text-amber-400 flex items-center gap-1.5 mb-2">
+          <div className="card p-5 border border-amber-500/20 bg-amber-500/5">
+            <h5 className="text-[11px] font-bold uppercase tracking-widest text-amber-400 flex items-center gap-2 mb-3">
               <Lightbulb className="h-4 w-4" /> Future Tweaks
             </h5>
-            <ul className="space-y-1 text-xs text-slate-300">
+            <ul className="space-y-2 text-[13px] text-amber-200/80">
               {suggestions.map((sug, i) => (
-                <li key={i} className="flex items-start gap-1.5">
+                <li key={i} className="flex items-start gap-2">
                   <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-amber-400" />
                   {sug}
                 </li>
@@ -360,209 +358,259 @@ const ResumeBoostPage = () => {
 
   return (
     <DashboardLayout>
-      <div className="mx-auto max-w-7xl p-6 lg:p-8">
-        <div className="grid gap-8 lg:grid-cols-[280px_1fr]">
-          {/* Left Panel: Uploads and history */}
-          <div className="space-y-6">
-            {activeTab === "rebuilder" && (
-              <div className="card p-5 space-y-4">
-                <h3 className="font-semibold text-xs uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                  <Upload className="h-4 w-4 text-[#7C5CFC]" /> Upload Resume
-                </h3>
-                <div
-                  onDragOver={handleDrag}
-                  onDragLeave={handleDragLeave}
-                  onDrop={handleDrop}
-                  className={`relative rounded-2xl border-2 border-dashed p-5 text-center cursor-pointer transition ${dragOver ? "border-[#7C5CFC] bg-[#7C5CFC]/5" : "border-white/10 hover:border-white/20 bg-white/2"
-                    }`}
-                >
-                  <Upload className="mx-auto h-6 w-6 text-slate-500 mb-2" />
-                  <p className="text-[10px] text-slate-400">Drag files here or click to browse</p>
-                  <input
-                    type="file"
-                    onChange={(e) => validateAndSetFile(e.target.files[0])}
-                    className="hidden"
-                    id="dropzone-file"
-                  />
-                  <label htmlFor="dropzone-file" className="absolute inset-0 cursor-pointer" />
-                </div>
-                {uploadFile && (
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between text-xs bg-white/5 rounded-xl p-2.5">
-                      <span className="truncate max-w-[150px] text-slate-300 font-semibold">{uploadFile.name}</span>
-                      <button onClick={() => setUploadFile(null)} className="text-rose-400"><X className="h-4 w-4" /></button>
-                    </div>
-                    <button
-                      onClick={handleUploadResume}
-                      disabled={uploading}
-                      className="btn-primary w-full py-2 text-xs flex justify-center items-center gap-1.5"
-                    >
-                      {uploading ? "Uploading..." : "Parse File"}
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Past logs list */}
-            <div className="card p-5 space-y-4">
-              <h3 className="font-semibold text-xs uppercase tracking-wider text-slate-400">Past Trials</h3>
-              {loadingHistory ? (
-                <div className="space-y-2">
-                  {[1, 2, 3].map(i => <div key={i} className="skeleton h-11 w-full rounded-xl" />)}
-                </div>
-              ) : historyList.length === 0 ? (
-                <p className="text-xs text-slate-500 italic">No past sessions.</p>
-              ) : (
-                <div className="space-y-2 max-h-[350px] overflow-y-auto pr-1">
-                  {historyList.map((item) => (
-                    <div
-                      key={item._id}
-                      onClick={() => handleLoadHistoryItem(item)}
-                      className={`group flex items-center justify-between p-3 rounded-xl border transition cursor-pointer ${arenaRun?._id === item._id
-                          ? "border-[#7C5CFC]/40 bg-[#7C5CFC]/8 text-white"
-                          : "border-white/5 bg-white/2 text-slate-400 hover:text-white"
-                        }`}
-                    >
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-xs font-semibold">
-                          {activeTab === "boost" ? item.input.bulletText : item.input.targetRole}
-                        </p>
-                        <p className="text-[9px] text-slate-500 mt-1">{new Date(item.createdAt).toLocaleDateString("en-IN")}</p>
-                      </div>
-                      <button
-                        onClick={(e) => handleDeleteHistory(item._id, e)}
-                        className="opacity-0 group-hover:opacity-100 text-slate-500 hover:text-red-400 p-1"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
+      <div className="mx-auto w-full max-w-[1280px] page-enter">
+        
+        {/* Contextual Header */}
+        <div className="mb-8 flex flex-col justify-between gap-6 overflow-hidden rounded-3xl border border-white/[0.06] bg-[#0E101A] p-6 shadow-2xl sm:flex-row sm:items-center sm:p-8 relative">
+          <div className="absolute right-0 top-0 h-full w-1/2 bg-gradient-to-l from-accent-teal/10 to-transparent opacity-40" />
+          
+          <div className="relative z-10">
+            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-accent-teal/20 bg-accent-teal/10 px-3 py-1">
+              <Sparkles className="h-3.5 w-3.5 text-accent-teal" />
+              <span className="text-[10px] font-bold uppercase tracking-widest text-accent-teal">Content Optimization</span>
             </div>
+            <h1 className="font-display text-3xl font-bold tracking-tight text-white">Resume Boost & Rebuilder</h1>
+            <p className="mt-2 text-[14px] text-slate-400 max-w-lg">
+              Enhance single bullet points or trigger complete professional resume rewrites across multiple AI models.
+            </p>
           </div>
+        </div>
 
-          {/* Right Panel: inputs + workspace display */}
-          <div className="space-y-6">
-            <div className="rounded-[28px] border border-white/10 bg-[linear-gradient(135deg,#141420_0%,#0F1326_45%,#0F172A_100%)] p-6 shadow-xl lg:p-7">
-              <p className="text-[11px] uppercase tracking-[0.35em] text-[#00D4AA]">Optimizations</p>
-              <h1 className="mt-2 text-3xl font-semibold text-white">Resume Boost & Rebuilder Arena</h1>
-              <p className="mt-2 text-sm text-slate-400">
-                Enhance single bullet points or trigger complete professional resume rewrites across multiple models.
-              </p>
-            </div>
-
-            <div className="card p-6">
-              <div className="flex border-b border-white/10 mb-6">
+        {/* 60/40 Responsive Workspace */}
+        <WorkspaceLayout
+          rightEmpty={!arenaRun && !isLoading}
+          left={
+            <div className="card p-0 overflow-hidden">
+              <div className="flex border-b border-white/[0.06] bg-[#0A0B0F]">
                 <button
                   onClick={() => handleToggleSubFeature("boost")}
-                  className={`flex items-center gap-2 pb-3 px-4 text-sm font-semibold border-b-2 transition ${activeTab === "boost" ? "border-[#7C5CFC] text-[#A78BFA]" : "border-transparent text-slate-400 hover:text-white"
+                  className={`flex-1 flex items-center justify-center gap-2 py-4 px-4 text-[13px] font-bold border-b-2 transition-colors ${activeTab === "boost" ? "border-accent-teal text-white bg-white/[0.02]" : "border-transparent text-slate-500 hover:text-slate-300 hover:bg-white/[0.01]"
                     }`}
                 >
-                  <Sparkles className="h-4.5 w-4.5" /> Resume Boost (Bullet)
+                  <Sparkles className="h-4 w-4" /> Boost Bullet Point
                 </button>
                 <button
                   onClick={() => handleToggleSubFeature("rebuilder")}
-                  className={`flex items-center gap-2 pb-3 px-4 text-sm font-semibold border-b-2 transition ${activeTab === "rebuilder" ? "border-[#7C5CFC] text-[#A78BFA]" : "border-transparent text-slate-400 hover:text-white"
+                  className={`flex-1 flex items-center justify-center gap-2 py-4 px-4 text-[13px] font-bold border-b-2 transition-colors ${activeTab === "rebuilder" ? "border-accent-violet-light text-white bg-white/[0.02]" : "border-transparent text-slate-500 hover:text-slate-300 hover:bg-white/[0.01]"
                     }`}
                 >
-                  <Wand2 className="h-4.5 w-4.5" /> Resume Rebuilder (Full)
+                  <Wand2 className="h-4 w-4" /> Full Rebuild
                 </button>
               </div>
 
-              <form onSubmit={handleRun} className="space-y-4">
-                {activeTab === "boost" ? (
-                  <>
-                    <div>
-                      <label className="mb-2 block text-xs font-semibold text-slate-300 font-heading">1. Paste Original Bullet Point</label>
-                      <textarea
-                        rows={3}
-                        value={bulletText}
-                        onChange={(e) => setBulletText(e.target.value)}
-                        placeholder="Paste single bullet point here (e.g. was coding React features)..."
-                        className="input-base text-xs resize-none leading-relaxed"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="mb-2 block text-xs font-semibold text-slate-300">2. Target Role (Optional)</label>
+              <div className="p-6 sm:p-8">
+                {activeTab === "rebuilder" && (
+                  <div className="mb-8">
+                    <h3 className="mb-3 text-[11px] font-bold uppercase tracking-widest text-slate-500 flex items-center gap-2">
+                      <Upload className="h-4 w-4 text-accent-violet-light" /> Upload New Resume (Optional)
+                    </h3>
+                    <div
+                      onDragOver={handleDrag}
+                      onDragLeave={handleDragLeave}
+                      onDrop={handleDrop}
+                      className={`relative rounded-2xl border-2 border-dashed p-6 text-center cursor-pointer transition-colors ${dragOver ? "border-accent-violet-light bg-accent-violet/5" : "border-white/[0.08] hover:border-white/[0.15] bg-[#0A0B0F]"
+                        }`}
+                    >
+                      <Upload className="mx-auto h-6 w-6 text-slate-600 mb-3" />
+                      <p className="text-[12px] font-bold text-slate-400">Drag files here or click to browse</p>
+                      <p className="text-[10px] text-slate-500 mt-1">PDF or DOCX up to 5MB</p>
                       <input
-                        type="text"
-                        value={role}
-                        onChange={(e) => setRole(e.target.value)}
-                        placeholder="e.g. Senior Frontend Engineer"
-                        className="input-base text-sm"
+                        type="file"
+                        onChange={(e) => validateAndSetFile(e.target.files[0])}
+                        className="hidden"
+                        id="dropzone-file"
                       />
+                      <label htmlFor="dropzone-file" className="absolute inset-0 cursor-pointer" />
                     </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="grid gap-4 sm:grid-cols-2">
+                    {uploadFile && (
+                      <div className="mt-3 space-y-3">
+                        <div className="flex items-center justify-between text-[12px] bg-white/[0.04] border border-white/[0.06] rounded-xl p-3">
+                          <span className="truncate max-w-[200px] text-white font-bold">{uploadFile.name}</span>
+                          <button onClick={() => setUploadFile(null)} className="text-rose-400 hover:bg-rose-400/10 p-1 rounded-md transition-colors"><X className="h-4 w-4" /></button>
+                        </div>
+                        <button
+                          onClick={handleUploadResume}
+                          disabled={uploading}
+                          className="btn-primary w-full py-2.5 text-[13px] flex justify-center items-center gap-2"
+                        >
+                          {uploading ? "Uploading..." : "Parse File"}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <form onSubmit={handleRun} className="space-y-6">
+                  {activeTab === "boost" ? (
+                    <>
                       <div>
-                        <label className="mb-2 block text-xs font-semibold text-slate-300">1. Target Job Role</label>
-                        <input
-                          type="text"
-                          value={role}
-                          onChange={(e) => setRole(e.target.value)}
-                          placeholder="e.g. SDE II, DevOps Architect..."
-                          className="input-base text-sm"
+                        <label className="mb-2 block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">1. Original Bullet Point</label>
+                        <textarea
+                          rows={4}
+                          value={bulletText}
+                          onChange={(e) => setBulletText(e.target.value)}
+                          placeholder="Paste single bullet point here (e.g. was coding React features)..."
+                          className="input-base text-[13px] resize-none leading-relaxed"
                           required
                         />
                       </div>
                       <div>
-                        <label className="mb-2 block text-xs font-semibold text-[#8FB3FF]">2. Select Resume Reference</label>
-                        <select
-                          value={selectedResumeId}
-                          onChange={(e) => setSelectedResumeId(e.target.value)}
-                          className="input-base cursor-pointer"
-                          required
-                        >
-                          <option value="">-- Choose Resume --</option>
-                          {resumes.map(r => (
-                            <option key={r._id} value={r._id}>{r.originalName}</option>
-                          ))}
-                        </select>
+                        <label className="mb-2 flex justify-between items-center text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
+                          <span>2. Target Role</span>
+                          <span className="text-[9px] border border-white/[0.08] px-1.5 py-0.5 rounded text-slate-600">OPTIONAL</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={role}
+                          onChange={(e) => setRole(e.target.value)}
+                          placeholder="e.g. Senior Frontend Engineer"
+                          className="input-base text-[14px]"
+                        />
                       </div>
-                    </div>
-                    <div>
-                      <label className="mb-2 block text-xs font-semibold text-slate-300">3. Target Job Description (Recommended)</label>
-                      <textarea
-                        rows={4}
-                        value={jobDescription}
-                        onChange={(e) => setJobDescription(e.target.value)}
-                        placeholder="Paste the target JD here to rewrite the resume professionally..."
-                        className="input-base text-xs resize-none"
-                      />
-                    </div>
-                  </>
-                )}
+                    </>
+                  ) : (
+                    <>
+                      <div className="grid gap-6 sm:grid-cols-2">
+                        <div>
+                          <label className="mb-2 block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">1. Target Job Role</label>
+                          <input
+                            type="text"
+                            value={role}
+                            onChange={(e) => setRole(e.target.value)}
+                            placeholder="e.g. SDE II, DevOps Architect..."
+                            className="input-base text-[14px]"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label className="mb-2 block text-[11px] font-bold uppercase tracking-[0.2em] text-[#8FB3FF]">2. Base Resume</label>
+                          <div className="relative">
+                            <select
+                              value={selectedResumeId}
+                              onChange={(e) => setSelectedResumeId(e.target.value)}
+                              className="input-base w-full appearance-none pr-10 text-[14px] cursor-pointer"
+                              required
+                            >
+                              <option value="">-- Choose Resume --</option>
+                              {resumes.map(r => (
+                                <option key={r._id} value={r._id}>{r.originalName}</option>
+                              ))}
+                            </select>
+                            <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+                          </div>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="mb-2 flex justify-between items-center text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
+                          <span>3. Target Job Description</span>
+                          <span className="text-[9px] border border-white/[0.08] px-1.5 py-0.5 rounded text-[#8FB3FF]">RECOMMENDED</span>
+                        </label>
+                        <textarea
+                          rows={6}
+                          value={jobDescription}
+                          onChange={(e) => setJobDescription(e.target.value)}
+                          placeholder="Paste the target JD here to rewrite the resume professionally..."
+                          className="input-base text-[13px] resize-none leading-relaxed"
+                        />
+                      </div>
+                    </>
+                  )}
 
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="btn-primary w-full py-3.5 text-sm flex justify-center items-center gap-1.5"
-                >
-                  <Wand2 className="h-4.5 w-4.5" />
-                  {isLoading ? "Running enhancements..." : activeTab === "boost" ? "Boost Bullet" : "Rebuild Entire Resume"}
-                </button>
-              </form>
+                  <div className="pt-4 border-t border-white/[0.06]">
+                    <button
+                      type="submit"
+                      disabled={isLoading}
+                      className={`btn-primary relative w-full h-[52px] overflow-hidden ${isLoading ? 'animate-pulse' : ''}`}
+                      style={!isLoading && activeTab === "boost" ? { backgroundImage: 'linear-gradient(to right, #00D4AA, #00A68A)' } : {}}
+                    >
+                      {isLoading ? (
+                         <span className="flex items-center gap-2">
+                           <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                           Running enhancements...
+                         </span>
+                      ) : (
+                        <span className="flex items-center gap-2">
+                          <Wand2 className="h-4 w-4" />
+                          {activeTab === "boost" ? "Boost Bullet Point" : "Rebuild Entire Resume"}
+                        </span>
+                      )}
+                    </button>
+                  </div>
+                </form>
+              </div>
             </div>
+          }
+          right={
+            <div className="min-w-0 space-y-6 w-full">
+              {!arenaRun && !isLoading ? (
+                <EmptyState
+                  icon={Zap}
+                  title="Ready to Boost Your Resume"
+                  subtitle="Select a resume and we'll rewrite your bullet points with stronger action verbs and quantified impact."
+                  chips={[
+                    { label: "Stronger Bullets", color: "violet" },
+                    { label: "Action Verbs", color: "teal" },
+                    { label: "Impact Metrics", color: "amber" }
+                  ]}
+                />
+              ) : (
+                <ArenaWorkspace
+                  isLoading={isLoading}
+                  arenaRun={arenaRun}
+                  onRegenerate={handleRun}
+                  renderResult={activeTab === "boost" ? renderBoostResult : renderRebuilderResult}
+                  downloadHandler={handleDownloadPDF}
+                />
+              )}
 
-            <ArenaWorkspace
-              isLoading={isLoading}
-              arenaRun={arenaRun}
-              onRegenerate={handleRun}
-              renderResult={activeTab === "boost" ? renderBoostResult : renderRebuilderResult}
-              downloadHandler={handleDownloadPDF}
-            />
-            
-            <ResumePDFGenerator 
-              ref={pdfRef} 
-              markdownContent={pdfContent} 
-            />
-          </div>
-        </div>
+              {/* History Logs */}
+              <div className="card p-6">
+                <h3 className="mb-4 text-[11px] font-bold uppercase tracking-widest text-slate-500">Recent Sessions</h3>
+                {loadingHistory ? (
+                  <div className="space-y-3">
+                    {[1, 2].map(i => <div key={i} className="skeleton h-[52px] w-full rounded-xl" />)}
+                  </div>
+                ) : historyList.length === 0 ? (
+                  <div className="rounded-xl border border-dashed border-white/[0.08] p-5 text-center">
+                    <p className="text-[12px] text-slate-500">No past sessions found.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                    {historyList.map((item) => (
+                      <div
+                        key={item._id}
+                        onClick={() => handleLoadHistoryItem(item)}
+                        className={`group flex items-center justify-between p-3 rounded-xl border transition-colors cursor-pointer ${
+                          arenaRun?._id === item._id
+                            ? "border-accent-teal/40 bg-accent-teal/10 text-white"
+                            : "border-white/[0.04] bg-[#0A0B0F] text-slate-400 hover:border-white/[0.1] hover:text-white"
+                        }`}
+                      >
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-[13px] font-bold">
+                            {activeTab === "boost" ? item.input.bulletText : item.input.targetRole}
+                          </p>
+                          <p className="text-[10px] text-slate-500 mt-1">{new Date(item.createdAt).toLocaleDateString("en-US", { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+                        </div>
+                        <button
+                          onClick={(e) => handleDeleteHistory(item._id, e)}
+                          className="opacity-0 group-hover:opacity-100 text-slate-500 hover:text-rose-400 p-2 transition-colors rounded-lg hover:bg-white/[0.06]"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <ResumePDFGenerator 
+                ref={pdfRef} 
+                markdownContent={pdfContent} 
+              />
+            </div>
+          }
+        />
       </div>
     </DashboardLayout>
   );

@@ -1,14 +1,11 @@
-// src/pages/CoverLetterPage.jsx — AI COVER LETTER GENERATOR
-//
-// Generates personalized, professional cover letters using multiple models
-// in parallel and displays their outputs side-by-side.
-
 import { useState, useEffect } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { FileText, ChevronDown, Sparkles, Building2, Tag, AlertCircle, CheckCircle } from "lucide-react";
+import { FileText, ChevronDown, Sparkles, Building2, Tag, AlertCircle, CheckCircle, PenTool, ArrowRight, Lightbulb } from "lucide-react";
 import DashboardLayout from "../components/layout/DashboardLayout";
 import ArenaWorkspace from "../components/ui/ArenaWorkspace";
+import WorkspaceLayout from "../components/layout/WorkspaceLayout";
+import EmptyState from "../components/ui/EmptyState";
 import { getAllResumes } from "../api/resumeApi";
 import { useArena } from "../context/ArenaContext";
 import { useModel } from "../context/ModelContext";
@@ -20,23 +17,15 @@ const STYLES = [
   {
     key: "professional",
     label: "Professional",
-    desc: "Formal and polished — ideal for MNCs and large corporations",
+    desc: "Formal and polished — ideal for MNCs",
     emoji: "👔",
     color: "border-[#7C5CFC] bg-[#7C5CFC]/10 text-white",
     inactive: "border-white/10 hover:border-white/20 text-slate-400"
   },
   {
-    key: "formal",
-    label: "Formal",
-    desc: "Traditional and structured — highly conservative language",
-    emoji: "🏛️",
-    color: "border-[#5B8FFF] bg-[#5B8FFF]/10 text-white",
-    inactive: "border-white/10 hover:border-white/20 text-slate-400"
-  },
-  {
     key: "startup",
     label: "Startup",
-    desc: "Conversational and energetic — shows innovation mindset",
+    desc: "Energetic and innovative — highly engaging",
     emoji: "🚀",
     color: "border-[#00D4AA] bg-[#00D4AA]/10 text-white",
     inactive: "border-white/10 hover:border-white/20 text-slate-400"
@@ -44,7 +33,7 @@ const STYLES = [
   {
     key: "creative",
     label: "Creative",
-    desc: "Personalized and engaging — shows unique personality",
+    desc: "Personalized — shows unique personality",
     emoji: "🎨",
     color: "border-[#A78BFA] bg-[#A78BFA]/10 text-white",
     inactive: "border-white/10 hover:border-white/20 text-slate-400"
@@ -115,21 +104,24 @@ const CoverLetterPage = () => {
     const paragraphs = letterText.split(/\n\n|\r\n\r\n/).filter(Boolean);
 
     return (
-      <div className="space-y-5">
+      <div className="space-y-6">
         {highlights.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {highlights.map((h, i) => (
-              <span key={i} className="inline-flex items-center gap-1.5 rounded-full bg-[#7C5CFC]/10 border border-[#7C5CFC]/20 px-3 py-1 text-xs text-[#A78BFA]">
+              <span key={i} className="inline-flex items-center gap-1.5 rounded-lg border border-accent-teal/20 bg-accent-teal/10 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-accent-teal">
                 <Tag className="h-3 w-3" /> {h}
               </span>
             ))}
           </div>
         )}
 
-        <div className="space-y-4 text-xs md:text-sm leading-relaxed text-slate-200 bg-white/2 p-5 rounded-xl border border-white/5 whitespace-pre-wrap max-h-[500px] overflow-y-auto font-body">
-          {paragraphs.map((para, idx) => (
-            <p key={idx} className="leading-7">{para}</p>
-          ))}
+        <div className="group relative overflow-hidden rounded-2xl border border-white/[0.08] bg-[#0E101A] p-8 shadow-[0_20px_40px_rgba(0,0,0,0.5)] transition-shadow hover:shadow-[0_20px_60px_rgba(124,111,247,0.15)] max-h-[70vh] overflow-y-auto custom-scrollbar">
+          <div className="absolute inset-0 bg-gradient-to-br from-accent-violet/5 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+          <div className="relative z-10 space-y-5 text-[14px] leading-relaxed text-slate-300 font-body">
+            {paragraphs.map((para, idx) => (
+              <p key={idx} className="leading-8">{para}</p>
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -138,184 +130,177 @@ const CoverLetterPage = () => {
   const jdCharsLeft = Math.max(0, MIN_JD_LENGTH - jdText.trim().length);
   const isButtonEnabled = selectedId && company.trim() && jdText.trim().length >= MIN_JD_LENGTH;
 
-  const getHintText = () => {
-    if (!selectedId) return { msg: "Select a resume to continue", color: "text-slate-400" };
-    if (!company.trim()) return { msg: "Enter the company name to continue", color: "text-slate-400" };
-    if (jdText.trim().length === 0) return { msg: "Paste a job description to continue", color: "text-slate-400" };
-    if (jdText.trim().length < MIN_JD_LENGTH) return { msg: `Paste ${jdCharsLeft} more characters in the JD field`, color: "text-amber-500" };
-    return null;
-  };
-  const hint = getHintText();
-
   return (
     <DashboardLayout>
-      <div className="mx-auto max-w-6xl p-6 lg:p-8">
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-8 rounded-[28px] border border-white/10 bg-[linear-gradient(135deg,#141420_0%,#0F1326_45%,#0F172A_100%)] p-6 shadow-[0_30px_60px_rgba(15,23,42,0.45)] lg:p-7"
-        >
-          <p className="text-[11px] uppercase tracking-[0.35em] text-[#00D4AA]">Cover Letters</p>
-          <h1 className="mt-2 text-3xl font-semibold text-white">Cover Letter Arena</h1>
-          <p className="mt-2 text-sm text-slate-400">
-            Generate highly customizable, recruiter-ready cover letters from multiple models simultaneously and choose the winner.
-          </p>
-        </motion.div>
-
-        <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr] items-start mb-8">
-          <form onSubmit={handleGenerate} className="card p-6 space-y-5">
-            {/* Step 1: Resume selector */}
-            <div>
-              <label className="mb-2 block text-xs font-semibold text-slate-300">
-                1. Select Base Resume
-              </label>
-              {loadingList ? (
-                <div className="skeleton h-11 w-full rounded-xl" />
-              ) : resumes.length === 0 ? (
-                <div className="flex items-center gap-3 bg-amber-500/10 border border-amber-500/20 rounded-xl px-4 py-3">
-                  <AlertCircle className="w-4 h-4 text-amber-500 flex-shrink-0" />
-                  <p className="text-xs text-slate-300">
-                    No resumes found. <Link to="/resumes" className="font-semibold underline text-white">Upload one first</Link>.
-                  </p>
-                </div>
-              ) : (
-                <div className="relative">
-                  <select
-                    value={selectedId}
-                    onChange={(e) => setSelectedId(e.target.value)}
-                    className="input-base appearance-none pr-10 cursor-pointer"
-                    required
-                  >
-                    <option value="">-- Choose Resume --</option>
-                    {resumes.map((r) => (
-                      <option key={r._id} value={r._id}>{r.originalName}</option>
-                    ))}
-                  </select>
-                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-                </div>
-              )}
+      <div className="mx-auto w-full max-w-[1280px] page-enter">
+        
+        {/* Contextual Header */}
+        <div className="mb-8 flex flex-col justify-between gap-6 overflow-hidden rounded-3xl border border-white/[0.06] bg-[#0E101A] p-6 shadow-2xl sm:flex-row sm:items-center sm:p-8 relative">
+          <div className="absolute right-0 top-0 h-full w-1/2 bg-gradient-to-l from-accent-teal/10 to-transparent opacity-40" />
+          
+          <div className="relative z-10">
+            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-accent-teal/20 bg-accent-teal/5 px-3 py-1">
+              <PenTool className="h-3.5 w-3.5 text-accent-teal" />
+              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-accent-teal">Document Generator</span>
             </div>
-
-            {/* Step 2: Company */}
-            <div>
-              <label className="mb-2 block text-xs font-semibold text-slate-300">
-                2. Target Company Name
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  value={company}
-                  onChange={(e) => setCompany(e.target.value)}
-                  placeholder="e.g. Swiggy, Uber, Microsoft..."
-                  className="input-base pl-10"
-                  required
-                />
-                <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              </div>
-            </div>
-
-            {/* Step 3: JD */}
-            <div>
-              <label className="mb-2 block text-xs font-semibold text-slate-300">
-                3. Job Description
-              </label>
-              <textarea
-                value={jdText}
-                onChange={(e) => setJdText(e.target.value)}
-                placeholder="Paste the target job description here..."
-                rows={5}
-                className="input-base resize-none leading-relaxed text-xs"
-                required
-              />
-              <div className="flex items-center justify-between mt-1.5 text-[10px]">
-                <p className="text-slate-400">{jdText.length} characters</p>
-                {jdText.length > 0 && jdText.length < MIN_JD_LENGTH && (
-                  <p className="text-amber-500 font-medium">
-                    {jdCharsLeft} more chars required
-                  </p>
-                )}
-                {jdText.length >= MIN_JD_LENGTH && (
-                  <p className="text-emerald-500 font-medium flex items-center gap-1">
-                    <CheckCircle className="w-3.5 h-3.5" /> Ready
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {/* Step 4: Writing style */}
-            <div>
-              <label className="mb-3 block text-xs font-semibold text-slate-300">
-                4. Tone / Writing Style
-              </label>
-              <div className="grid grid-cols-2 gap-2">
-                {STYLES.map((s) => (
-                  <button
-                    key={s.key}
-                    type="button"
-                    onClick={() => setStyle(s.key)}
-                    className={`p-3 rounded-xl border text-left transition-all duration-200 ${
-                      style === s.key ? s.color : s.inactive + " bg-[#0F1322]"
-                    }`}
-                  >
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-base">{s.emoji}</span>
-                      <span className="font-semibold text-xs">{s.label}</span>
-                    </div>
-                    <p className={`text-[10px] leading-tight ${style === s.key ? "text-slate-200" : "text-slate-400"}`}>
-                      {s.desc}
-                    </p>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Submit */}
-            <div>
-              <button
-                type="submit"
-                disabled={isLoading || !isButtonEnabled}
-                className="btn-primary w-full py-3 text-sm flex items-center justify-center gap-2"
-              >
-                {isLoading ? (
-                  <div className="w-5 h-5 rounded-full border-2 border-white/30 border-t-white animate-spin" />
-                ) : (
-                  <><Sparkles className="w-4 h-4" /> Generate Cover Letters</>
-                )}
-              </button>
-              {!isLoading && !isButtonEnabled && hint && (
-                <p className={`text-[10px] text-center mt-2 ${hint.color}`}>
-                  ⬆ {hint.msg}
-                </p>
-              )}
-            </div>
-          </form>
-
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.05 }}
-            className="rounded-3xl border border-white/5 bg-white/2 p-6 text-sm text-slate-300 space-y-4"
-          >
-            <h3 className="font-semibold text-white flex items-center gap-2">
-              <FileText className="h-5 w-5 text-[#00D4AA]" />
-              Cover Letter Insights
-            </h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              How model outputs compare:
+            <h1 className="font-display text-3xl font-bold tracking-tight text-white">Cover Letter AI</h1>
+            <p className="mt-2 text-[14px] text-slate-400 max-w-lg">
+              Generate highly personalized, recruiter-ready cover letters customized exactly to your target job description.
             </p>
-            <div className="space-y-2 text-xs leading-relaxed text-slate-300">
-              <p>✓ <strong>Lite</strong> focuses on fast standard structures, offering rapid, cover-all-bases letters.</p>
-              <p>✓ <strong>Flash</strong> adds customization targeting specific company markers and tech frameworks.</p>
-              <p>✓ <strong>Pro</strong> drafts customized copy, blending career narratives with strict factual accuracy matching your resume.</p>
-            </div>
-          </motion.div>
+          </div>
         </div>
 
-        <ArenaWorkspace
-          isLoading={isLoading}
-          arenaRun={arenaRun}
-          onRegenerate={handleGenerate}
-          renderResult={renderResult}
+        {/* 60/40 Responsive Workspace */}
+        <WorkspaceLayout
+          left={
+            <form onSubmit={handleGenerate} className="card p-6 sm:p-8 space-y-8">
+              <div className="border-b border-white/[0.06] pb-4">
+                <h2 className="text-[15px] font-bold text-white">Campaign Details</h2>
+                <p className="text-[12px] text-slate-400 mt-1">Configure your generation parameters.</p>
+              </div>
+
+              <div className="grid gap-6 sm:grid-cols-2">
+                {/* Step 1: Resume */}
+                <div>
+                  <label className="mb-2 block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
+                    1. Base Resume
+                  </label>
+                  {loadingList ? (
+                    <div className="skeleton h-[52px] w-full rounded-xl" />
+                  ) : resumes.length === 0 ? (
+                    <div className="flex items-center gap-2 rounded-xl border border-amber-500/20 bg-amber-500/10 p-3">
+                      <AlertCircle className="h-4 w-4 shrink-0 text-amber-500" />
+                      <p className="text-[12px] text-amber-200">
+                        No resumes. <Link to="/resumes" className="font-bold underline">Upload one</Link>.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="relative">
+                      <select
+                        value={selectedId}
+                        onChange={(e) => setSelectedId(e.target.value)}
+                        className="input-base w-full appearance-none pr-10 text-[14px]"
+                        required
+                      >
+                        <option value="">Choose Resume...</option>
+                        {resumes.map((r) => (
+                          <option key={r._id} value={r._id}>{r.originalName}</option>
+                        ))}
+                      </select>
+                      <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+                    </div>
+                  )}
+                </div>
+
+                {/* Step 2: Company */}
+                <div>
+                  <label className="mb-2 block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
+                    2. Target Company
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={company}
+                      onChange={(e) => setCompany(e.target.value)}
+                      placeholder="e.g. Swiggy, Uber..."
+                      className="input-base w-full pl-10 text-[14px]"
+                      required
+                    />
+                    <Building2 className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Step 3: JD */}
+              <div>
+                <label className="mb-2 block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
+                  3. Job Description
+                </label>
+                <textarea
+                  value={jdText}
+                  onChange={(e) => setJdText(e.target.value)}
+                  placeholder="Paste the JD here..."
+                  rows={8}
+                  className="input-base w-full resize-none text-[14px] leading-relaxed"
+                  required
+                />
+                <div className="mt-2 flex items-center justify-between text-[11px] font-bold">
+                  <p className="text-slate-500">{jdText.length} chars</p>
+                  {jdText.length > 0 && jdText.length < MIN_JD_LENGTH && (
+                    <p className="text-amber-500">{jdCharsLeft} more needed</p>
+                  )}
+                  {jdText.length >= MIN_JD_LENGTH && (
+                    <p className="flex items-center gap-1 text-emerald-400"><CheckCircle className="h-3.5 w-3.5" /> Ready</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Step 4: Style */}
+              <div>
+                <label className="mb-3 block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
+                  4. Tone Profile
+                </label>
+                <div className="grid gap-4 sm:grid-cols-3">
+                  {STYLES.map((s) => (
+                    <button
+                      key={s.key}
+                      type="button"
+                      onClick={() => setStyle(s.key)}
+                      className={`flex flex-col items-center justify-center gap-2 rounded-2xl border p-4 text-center transition-all duration-200 ${
+                        style === s.key ? s.color + " shadow-lg" : s.inactive + " bg-[#0A0B0F]"
+                      }`}
+                    >
+                      <span className="text-2xl">{s.emoji}</span>
+                      <div>
+                        <p className="text-[13px] font-bold">{s.label}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Submit */}
+              <div className="pt-4 border-t border-white/[0.06]">
+                <button
+                  type="submit"
+                  disabled={isLoading || !isButtonEnabled}
+                  className={`btn-primary relative w-full h-[56px] text-[15px] overflow-hidden ${isLoading ? 'animate-pulse' : ''}`}
+                >
+                  {isLoading ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <div className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                      Generating...
+                    </span>
+                  ) : (
+                    <span className="flex items-center justify-center gap-2">
+                      Generate Cover Letter <ArrowRight className="h-5 w-5" />
+                    </span>
+                  )}
+                </button>
+              </div>
+            </form>
+          }
+          right={
+            !arenaRun && !isLoading ? (
+              <EmptyState
+                icon={PenTool}
+                title="Cover Letter Will Appear Here"
+                subtitle="Provide your resume, company name, and job description to generate a highly personalized cover letter."
+                chips={[
+                  { label: "Professional", color: "violet" },
+                  { label: "Startup", color: "teal" },
+                  { label: "Creative", color: "amber" }
+                ]}
+              />
+            ) : (
+              <ArenaWorkspace
+                isLoading={isLoading}
+                arenaRun={arenaRun}
+                onRegenerate={handleGenerate}
+                renderResult={renderResult}
+              />
+            )
+          }
         />
       </div>
     </DashboardLayout>

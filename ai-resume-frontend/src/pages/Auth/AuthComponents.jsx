@@ -1,12 +1,14 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
-import gsap from 'gsap';
+import { motion } from 'framer-motion';
 
-// Animated Floating Input field
+// Premium Animated Floating Input field
 export const FloatingInput = ({ label, type = "text", value, onChange, name, required, icon: Icon, minLength, title, readOnly }) => {
   const [showPassword, setShowPassword] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
   const isPassword = type === 'password';
   const inputType = isPassword ? (showPassword ? 'text' : 'password') : type;
+  const isFilled = value && value.toString().length > 0;
 
   return (
     <div className="relative w-full group">
@@ -19,14 +21,23 @@ export const FloatingInput = ({ label, type = "text", value, onChange, name, req
         minLength={minLength}
         title={title}
         readOnly={readOnly}
-        placeholder=" "
-        className="peer w-full text-slate-800 bg-slate-50 border border-slate-200 focus:border-purple-500 focus:ring-4 focus:ring-purple-500/10 rounded-xl pt-6 pb-2 px-5 outline-none transition-all duration-200"
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setIsFocused(false)}
+        className={`w-full rounded-xl border bg-[#0E101A] px-5 pb-3 pt-6 text-[15px] font-medium text-white outline-none transition-all duration-300
+          ${isFocused || isFilled ? 'border-accent-violet/60 shadow-[0_0_15px_rgba(124,92,252,0.15)] bg-[#121422]' : 'border-white/[0.08] hover:border-white/[0.15]'}
+        `}
       />
-      <label className="absolute left-5 top-4 text-slate-400 text-xs font-bold uppercase tracking-wider transition-all peer-placeholder-shown:text-sm peer-placeholder-shown:top-4.5 peer-focus:top-1.5 peer-focus:text-[10px] peer-focus:text-purple-600 peer-valid:top-1.5 peer-valid:text-[10px] pointer-events-none">
+      <label 
+        className={`pointer-events-none absolute left-5 transition-all duration-300 uppercase tracking-widest font-bold
+          ${isFocused || isFilled ? 'top-2 text-[9px] text-accent-violet-light' : 'top-[18px] text-xs text-slate-500'}
+        `}
+      >
         {label}
       </label>
       {Icon && !isPassword && (
-        <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-purple-600 transition-colors pointer-events-none">
+        <div className={`pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 transition-colors duration-300
+          ${isFocused ? 'text-accent-violet' : 'text-slate-500 group-hover:text-slate-400'}
+        `}>
           <Icon size={18} />
         </div>
       )}
@@ -34,7 +45,9 @@ export const FloatingInput = ({ label, type = "text", value, onChange, name, req
         <button
           type="button"
           onClick={() => setShowPassword(!showPassword)}
-          className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-purple-600 transition-colors focus:outline-none"
+          className={`absolute right-4 top-1/2 -translate-y-1/2 transition-colors duration-300 focus:outline-none
+            ${isFocused ? 'text-accent-violet' : 'text-slate-500 hover:text-slate-300'}
+          `}
         >
           {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
         </button>
@@ -43,43 +56,26 @@ export const FloatingInput = ({ label, type = "text", value, onChange, name, req
   );
 };
 
-// Premium Magnetic Animated Button (using GSAP)
-export const MagneticButton = ({ children, type = "button", onClick, disabled, isLoading, className = "" }) => {
-  const btnRef = useRef(null);
-
-  const handleMouseMove = (e) => {
-    if(!btnRef.current || disabled || isLoading) return;
-    const rect = btnRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left - rect.width / 2;
-    const y = e.clientY - rect.top - rect.height / 2;
-    gsap.to(btnRef.current, { x: x * 0.15, y: y * 0.15, duration: 0.3, ease: 'power2.out' });
-  };
-
-  const handleMouseLeave = () => {
-    if(!btnRef.current) return;
-    gsap.to(btnRef.current, { x: 0, y: 0, duration: 0.5, ease: 'elastic.out(1, 0.3)' });
-  };
-
+// Premium SaaS Primary Button
+export const PrimaryButton = ({ children, type = "button", onClick, disabled, isLoading, className = "" }) => {
   return (
     <button
-      ref={btnRef}
       type={type}
       onClick={onClick}
       disabled={disabled || isLoading}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-      className={`w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold py-4 px-6 rounded-xl transition-all duration-200 hover:shadow-lg hover:shadow-indigo-500/20 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
+      className={`group relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-accent-violet to-accent-teal p-[1px] transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 shadow-lg shadow-accent-violet/20 hover:shadow-xl hover:shadow-accent-violet/30 ${className}`}
     >
-      <span className="relative flex items-center justify-center gap-2">
+      <div className="absolute inset-0 bg-gradient-to-r from-accent-violet to-accent-teal opacity-100 transition-opacity duration-300 group-hover:opacity-90" />
+      <div className="relative flex h-[48px] w-full items-center justify-center gap-2 rounded-[11px] bg-transparent text-[15px] font-bold tracking-wide text-white transition-all">
         {isLoading ? (
-          <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+          <span className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
         ) : children}
-      </span>
+      </div>
     </button>
   );
 };
 
-// OTP Digits Coordinator (automatically transitions focus between inputs)
+// OTP Digits Coordinator
 export const OtpInput = ({ length = 6, value, onChange }) => {
   const [otpArray, setOtpArray] = useState(new Array(length).fill(""));
   const inputRefs = useRef([]);
@@ -123,7 +119,7 @@ export const OtpInput = ({ length = 6, value, onChange }) => {
   };
 
   return (
-    <div className="flex gap-2 justify-between w-full">
+    <div className="flex w-full justify-between gap-2">
       {otpArray.map((digit, i) => (
         <input
           key={i}
@@ -135,9 +131,109 @@ export const OtpInput = ({ length = 6, value, onChange }) => {
           onChange={(e) => handleChange(e, i)}
           onKeyDown={(e) => handleKeyDown(e, i)}
           onPaste={handlePaste}
-          className="w-12 h-14 sm:w-14 sm:h-16 text-center text-2xl font-extrabold text-slate-800 border border-slate-200 bg-slate-50 focus:border-purple-500 focus:ring-4 focus:ring-purple-500/10 rounded-xl outline-none transition-all duration-200"
+          className="h-[56px] w-[46px] rounded-xl border border-white/[0.08] bg-surface text-center text-xl font-bold text-white outline-none transition-all duration-300 focus:border-accent-violet focus:bg-[#151724] focus:shadow-[0_0_15px_rgba(124,92,252,0.15)] focus:ring-1 focus:ring-accent-violet sm:h-[60px] sm:w-[50px]"
         />
       ))}
+    </div>
+  );
+};
+
+// Countdown Timer for OTP
+export const CountdownTimer = ({ initialSeconds = 60, onResend }) => {
+  const [seconds, setSeconds] = useState(initialSeconds);
+
+  useEffect(() => {
+    if (seconds > 0) {
+      const timerId = setTimeout(() => setSeconds(seconds - 1), 1000);
+      return () => clearTimeout(timerId);
+    }
+  }, [seconds]);
+
+  const handleResend = () => {
+    setSeconds(initialSeconds);
+    if (onResend) onResend();
+  };
+
+  return (
+    <div className="flex items-center justify-center gap-1.5 text-[13px] font-medium mt-6">
+      <span className="text-slate-400">Didn't receive a code?</span>
+      {seconds > 0 ? (
+        <span className="text-slate-500">Resend in {seconds}s</span>
+      ) : (
+        <button 
+          type="button" 
+          onClick={handleResend}
+          className="text-accent-violet font-semibold transition-colors hover:text-accent-teal hover:underline"
+        >
+          Resend Code
+        </button>
+      )}
+    </div>
+  );
+};
+
+// Password Strength Indicator
+export const PasswordStrengthIndicator = ({ password }) => {
+  const calculateStrength = (pass) => {
+    let score = 0;
+    if (!pass) return { score: 0, label: '', color: 'bg-white/[0.08]' };
+    if (pass.length >= 8) score += 1;
+    if (/[A-Z]/.test(pass)) score += 1;
+    if (/[0-9]/.test(pass)) score += 1;
+    if (/[^A-Za-z0-9]/.test(pass)) score += 1;
+
+    if (score < 2) return { score, label: 'Weak', color: 'bg-rose-500' };
+    if (score === 2) return { score, label: 'Fair', color: 'bg-amber-400' };
+    if (score === 3) return { score, label: 'Good', color: 'bg-blue-400' };
+    return { score, label: 'Strong', color: 'bg-emerald-400' };
+  };
+
+  const strength = calculateStrength(password);
+
+  return (
+    <div className="mt-3 flex flex-col gap-1.5">
+      <div className="flex h-1.5 w-full gap-1">
+        {[1, 2, 3, 4].map((level) => (
+          <div
+            key={level}
+            className={`h-full flex-1 rounded-full transition-colors duration-300 ${
+              level <= strength.score ? strength.color : 'bg-white/[0.08]'
+            }`}
+          />
+        ))}
+      </div>
+      <div className="flex justify-between items-center text-[12px]">
+        <span className="text-slate-400 font-medium">Password strength</span>
+        {strength.label && (
+          <span className={`font-bold ${
+            strength.score < 2 ? 'text-rose-500' :
+            strength.score === 2 ? 'text-amber-400' :
+            strength.score === 3 ? 'text-blue-400' : 'text-emerald-400'
+          }`}>
+            {strength.label}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// Layout Shell for Auth Pages
+export const AuthLayout = ({ children }) => {
+  return (
+    <div className="landing-shell relative flex min-h-screen items-center justify-center p-6 overflow-hidden">
+      <div className="dot-grid absolute inset-0 opacity-40" />
+      <div className="hero-orb hero-orb-a opacity-30" />
+      <div className="hero-orb hero-orb-b opacity-30" />
+      
+      <motion.div 
+        initial={{ opacity: 0, y: 20, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+        className="auth-card relative z-10 w-full max-w-[450px] p-8 sm:p-10 rounded-3xl"
+      >
+        {children}
+      </motion.div>
     </div>
   );
 };

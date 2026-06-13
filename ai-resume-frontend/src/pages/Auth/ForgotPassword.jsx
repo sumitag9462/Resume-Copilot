@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Mail, ShieldCheck, ArrowRight, ArrowLeft } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
 import apiClient from '../../api/apiClient';
-import { FloatingInput, MagneticButton, OtpInput } from './AuthComponents';
+import { FloatingInput, PrimaryButton, OtpInput, AuthLayout, CountdownTimer } from './AuthComponents';
 
 const ForgotPasswordPage = () => {
     const [step, setStep] = useState(1);
@@ -41,7 +41,6 @@ const ForgotPasswordPage = () => {
         try {
             const res = await apiClient.post('/auth/verify-password-reset-otp', { email, otp });
             if (res.data.success) {
-                // Navigate to the reset password page with the short-lived recovery token
                 navigate(`/reset-password/${res.data.resetToken}`);
             }
         } catch (err) {
@@ -52,40 +51,75 @@ const ForgotPasswordPage = () => {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-            <div className="max-w-md w-full mx-auto p-8 border border-slate-100 rounded-2xl shadow-xl bg-white">
-                <h2 className="text-2xl font-black text-slate-800 text-center mb-2">Recover Password</h2>
-                <p className="text-sm text-slate-500 text-center mb-8">
-                    {step === 1 ? "Enter your email to request a reset code." : "Verify code to restore access."}
+        <AuthLayout>
+            <div className="mb-8 flex flex-col items-center text-center">
+                <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-accent-violet to-accent-teal shadow-[0_8px_30px_rgba(124,111,247,0.3)]">
+                    <ShieldCheck className="h-6 w-6 text-white" />
+                </div>
+                <h2 className="font-display text-3xl font-bold text-white tracking-tight mb-2">Recover Password</h2>
+                <p className="text-[15px] text-slate-400">
+                    {step === 1 ? "Enter your email to receive a reset code." : "Verify code to restore access."}
                 </p>
-
-                <AnimatePresence mode="wait">
-                    {step === 1 && (
-                        <motion.form key="step1" onSubmit={handleRequestOtp} className="space-y-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                            <FloatingInput label="Registered Email" type="email" value={email} onChange={e => setEmail(e.target.value)} icon={Mail} required />
-                            {error && <p className="text-xs text-red-500 font-bold text-center">{error}</p>}
-                            <MagneticButton type="submit" isLoading={isLoading}>Send Recovery Code</MagneticButton>
-                            
-                            <button type="button" onClick={() => navigate('/login')} className="w-full text-center text-sm text-slate-500 hover:text-slate-800 transition-colors">
-                                Back to login
-                            </button>
-                        </motion.form>
-                    )}
-
-                    {step === 2 && (
-                        <motion.form key="step2" onSubmit={handleVerifyOtp} className="space-y-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                            <p className="text-slate-600 text-sm text-center">
-                                Enter the 6-digit code sent to <b className="text-slate-800">{email}</b>
-                            </p>
-                            <OtpInput length={6} value={otp} onChange={setOtp} />
-                            {error && <p className="text-xs text-red-500 font-bold text-center">{error}</p>}
-                            <MagneticButton type="submit" isLoading={isLoading}>Verify Code</MagneticButton>
-                            <button type="button" onClick={() => setStep(1)} className="w-full text-center text-xs text-slate-400 hover:text-slate-600 transition-colors">Change email</button>
-                        </motion.form>
-                    )}
-                </AnimatePresence>
             </div>
-        </div>
+
+            <AnimatePresence mode="wait">
+                {step === 1 && (
+                    <motion.form key="step1" onSubmit={handleRequestOtp} className="space-y-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                        <FloatingInput label="Registered Email" type="email" value={email} onChange={e => setEmail(e.target.value)} icon={Mail} required />
+                        
+                        {error && (
+                            <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-center">
+                                <p className="text-[13px] font-semibold text-red-400">{error}</p>
+                            </div>
+                        )}
+                        
+                        <div className="pt-2">
+                            <PrimaryButton type="submit" isLoading={isLoading}>
+                                Send Recovery Code <ArrowRight className="h-4 w-4" />
+                            </PrimaryButton>
+                        </div>
+                        
+                        <Link to="/login" className="flex w-full items-center justify-center gap-2 text-[13px] font-medium text-slate-400 transition-colors hover:text-white">
+                            <ArrowLeft className="h-3.5 w-3.5" /> Back to login
+                        </Link>
+                    </motion.form>
+                )}
+
+                {step === 2 && (
+                    <motion.form key="step2" onSubmit={handleVerifyOtp} className="space-y-6" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+                        <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5 text-center">
+                            <Mail className="mx-auto h-8 w-8 text-accent-teal opacity-80 mb-3" />
+                            <p className="text-[14px] text-slate-300">
+                                Enter the 6-digit code sent to<br />
+                                <strong className="text-white mt-1 inline-block">{email}</strong>
+                            </p>
+                        </div>
+
+                        <div className="flex justify-center py-2">
+                            <OtpInput length={6} value={otp} onChange={setOtp} />
+                        </div>
+                        
+                        {error && (
+                            <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-center">
+                                <p className="text-[13px] font-semibold text-red-400">{error}</p>
+                            </div>
+                        )}
+                        
+                        <div className="pt-2">
+                            <PrimaryButton type="submit" isLoading={isLoading}>
+                                Verify Code <ArrowRight className="h-4 w-4" />
+                            </PrimaryButton>
+                        </div>
+
+                        <CountdownTimer initialSeconds={60} onResend={handleRequestOtp} />
+
+                        <button type="button" onClick={() => setStep(1)} className="mt-4 flex w-full items-center justify-center gap-2 text-[13px] font-medium text-slate-400 transition-colors hover:text-white">
+                            <ArrowLeft className="h-3.5 w-3.5" /> Change email address
+                        </button>
+                    </motion.form>
+                )}
+            </AnimatePresence>
+        </AuthLayout>
     );
 };
 

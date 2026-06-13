@@ -24,6 +24,7 @@ import {
   FileText
 } from "lucide-react";
 import toast from "react-hot-toast";
+import SkeletonLoader from "./SkeletonLoader";
 
 // Config data matching config/models.js on backend
 const MODEL_META = {
@@ -45,26 +46,20 @@ const ArenaWorkspace = ({
 
   if (isLoading) {
     return (
-      <div className="card flex flex-col items-center justify-center p-12 text-center">
-        <div className="relative flex h-16 w-16 items-center justify-center">
-          <div className="absolute h-full w-full animate-ping rounded-full bg-[#7C5CFC]/20" />
-          <div className="h-12 w-12 animate-spin rounded-full border-4 border-white/10 border-t-[#7C5CFC]" />
-        </div>
-        <p className="mt-6 text-lg font-semibold text-white">Engaging AI Model Arena…</p>
-        <p className="mt-2 max-w-md text-sm text-slate-400">
-          Running Gemini models in parallel, scoring results across grammar, ATS optimization, and recruiter feedback.
-        </p>
-        <div className="mt-6 w-64 space-y-2">
-          <div className="h-2 w-full overflow-hidden rounded-full bg-white/5">
-            <motion.div
-              initial={{ x: "-100%" }}
-              animate={{ x: "100%" }}
-              transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
-              className="h-full w-1/2 rounded-full bg-gradient-to-r from-[#7C5CFC] to-[#00D4AA]"
+      <div className="card p-6">
+        <div className="flex items-center gap-2 mb-4">
+          {/* 3 pulsing dots */}
+          {[0, 0.2, 0.4].map((delay, i) => (
+            <div key={i}
+              className="w-1.5 h-1.5 rounded-full bg-accent-violet"
+              style={{ animation: `dot-pulse 1.4s ease-in-out ${delay}s infinite` }}
             />
-          </div>
-          <p className="text-[11px] text-slate-500">Retrieving tokens & validating JSON schemas</p>
+          ))}
+          <span className="text-xs text-secondary ml-1">
+            Gemini is analyzing...
+          </span>
         </div>
+        <SkeletonLoader variant="result" />
       </div>
     );
   }

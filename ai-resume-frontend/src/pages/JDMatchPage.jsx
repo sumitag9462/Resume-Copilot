@@ -1,14 +1,11 @@
-// src/pages/JDMatchPage.jsx — JOB DESCRIPTION MATCH ARENA
-//
-// Matches a candidate's resume with a target job description, comparing
-// skill sets, match ratios, and improvements across models.
-
 import { useState, useEffect } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Briefcase, ChevronDown, CheckCircle, XCircle, Target, Lightbulb, AlertCircle } from "lucide-react";
+import { Briefcase, ChevronDown, CheckCircle, XCircle, Target, Lightbulb, AlertCircle, ArrowRight, Percent } from "lucide-react";
 import DashboardLayout from "../components/layout/DashboardLayout";
 import ArenaWorkspace from "../components/ui/ArenaWorkspace";
+import WorkspaceLayout from "../components/layout/WorkspaceLayout";
+import EmptyState from "../components/ui/EmptyState";
 import { getAllResumes } from "../api/resumeApi";
 import { useArena } from '../context/ArenaContext';
 import { useModel } from "../context/ModelContext";
@@ -17,11 +14,22 @@ import toast from "react-hot-toast";
 const MIN_JD_LENGTH = 50;
 
 const verdictConfig = {
-  "Strong Match": { bg: "bg-emerald-400/10 border-emerald-400/20 text-emerald-400", emoji: "🎯" },
-  "Good Match": { bg: "bg-blue-400/10 border-blue-400/20 text-blue-400", emoji: "👍" },
-  "Moderate Match": { bg: "bg-amber-400/10 border-amber-400/20 text-amber-400", emoji: "⚠️" },
-  "Weak Match": { bg: "bg-red-400/10 border-red-400/20 text-red-400", emoji: "❌" }
+  "Strong Match": { bg: "from-emerald-500/20 to-emerald-500/5 text-emerald-400 border-emerald-500/30", icon: "🎯" },
+  "Good Match": { bg: "from-blue-500/20 to-blue-500/5 text-blue-400 border-blue-500/30", icon: "👍" },
+  "Moderate Match": { bg: "from-amber-500/20 to-amber-500/5 text-amber-400 border-amber-500/30", icon: "⚠️" },
+  "Weak Match": { bg: "from-rose-500/20 to-rose-500/5 text-rose-400 border-rose-500/30", icon: "❌" }
 };
+
+const ProgressBar = ({ value, colorClass, bgClass }) => (
+  <div className="h-2 w-full overflow-hidden rounded-full bg-white/[0.04] mt-2">
+    <motion.div
+      initial={{ width: 0 }}
+      animate={{ width: `${value}%` }}
+      transition={{ duration: 1, ease: "easeOut" }}
+      className={`h-full rounded-full ${colorClass} ${bgClass}`}
+    />
+  </div>
+);
 
 const JDMatchPage = () => {
   const [searchParams] = useSearchParams();
@@ -75,43 +83,58 @@ const JDMatchPage = () => {
   const renderResult = (output) => {
     if (!output) return null;
     const verdict = output.verdict || "Moderate Match";
-    const cfg = verdictConfig[verdict] || { bg: "bg-slate-400/10 border-white/10 text-slate-400", emoji: "📊" };
+    const cfg = verdictConfig[verdict] || { bg: "from-slate-500/20 to-slate-500/5 text-slate-400 border-slate-500/30", icon: "📊" };
+    
+    const matchScore = output.matchScore || 0;
+    const skillScore = output.skillCoverage || 0;
 
     return (
       <div className="space-y-6">
+        
+        {/* Top Analytics Row */}
         <div className="grid gap-4 sm:grid-cols-3">
-          <div className={`rounded-xl border p-4 text-center ${cfg.bg}`}>
-            <span className="text-[10px] uppercase text-slate-400">Verdict</span>
-            <p className="text-lg font-extrabold mt-1">{cfg.emoji} {verdict}</p>
+          <div className={`col-span-1 rounded-2xl border bg-gradient-to-b p-5 ${cfg.bg} flex flex-col justify-center items-center text-center shadow-lg`}>
+            <span className="text-[10px] font-bold uppercase tracking-widest opacity-80">Verdict</span>
+            <p className="mt-1 text-[18px] font-black">{cfg.icon} {verdict}</p>
           </div>
-          <div className="rounded-xl border border-white/5 bg-white/3 p-4 text-center">
-            <span className="text-[10px] uppercase text-slate-400">Match score</span>
-            <p className="text-xl font-bold text-white mt-1">{output.matchScore || 0}%</p>
+          
+          <div className="col-span-1 card p-5 flex flex-col justify-center">
+            <div className="flex justify-between items-end mb-1">
+              <span className="text-[11px] font-bold uppercase tracking-widest text-slate-500">Match Score</span>
+              <span className="text-xl font-black text-white">{matchScore}%</span>
+            </div>
+            <ProgressBar value={matchScore} colorClass="bg-[#8FB3FF]" bgClass="shadow-[0_0_10px_rgba(143,179,255,0.5)]" />
           </div>
-          <div className="rounded-xl border border-white/5 bg-white/3 p-4 text-center">
-            <span className="text-[10px] uppercase text-slate-400">Skill Coverage</span>
-            <p className="text-xl font-bold text-[#00D4AA] mt-1">{output.skillCoverage || 0}%</p>
+
+          <div className="col-span-1 card p-5 flex flex-col justify-center">
+            <div className="flex justify-between items-end mb-1">
+              <span className="text-[11px] font-bold uppercase tracking-widest text-slate-500">Skill Coverage</span>
+              <span className="text-xl font-black text-accent-teal">{skillScore}%</span>
+            </div>
+            <ProgressBar value={skillScore} colorClass="bg-accent-teal" bgClass="shadow-[0_0_10px_rgba(46,203,173,0.5)]" />
           </div>
         </div>
 
+        {/* Executive Summary */}
         {output.summary && (
-          <div>
-            <h5 className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Match Summary</h5>
-            <p className="text-xs text-slate-200 leading-relaxed bg-white/2 p-4 rounded-xl border border-white/5">
+          <div className="card p-6 border-l-2 border-l-[#8FB3FF]">
+            <h5 className="mb-2 text-[11px] font-bold uppercase tracking-widest text-[#8FB3FF]">Match Summary</h5>
+            <p className="text-[13px] leading-relaxed text-slate-300">
               {output.summary}
             </p>
           </div>
         )}
 
-        <div className="grid gap-4 sm:grid-cols-2">
+        {/* Skills Split */}
+        <div className="grid gap-6 sm:grid-cols-2">
           {output.matchedSkills?.length > 0 && (
-            <div className="rounded-xl border border-white/5 bg-white/2 p-4">
-              <h5 className="text-xs font-semibold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5 mb-3">
-                <CheckCircle className="h-4 w-4" /> Matched Skills
+            <div className="card p-5 border-t-2 border-t-emerald-500/50">
+              <h5 className="mb-4 flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-emerald-400">
+                <CheckCircle className="h-4 w-4" /> Matched Requirements
               </h5>
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap gap-2">
                 {output.matchedSkills.map((s, idx) => (
-                  <span key={idx} className="rounded bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 text-xs text-slate-200">
+                  <span key={idx} className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-bold text-emerald-200">
                     {s}
                   </span>
                 ))}
@@ -120,13 +143,13 @@ const JDMatchPage = () => {
           )}
 
           {output.missingSkills?.length > 0 && (
-            <div className="rounded-xl border border-white/5 bg-white/2 p-4">
-              <h5 className="text-xs font-semibold uppercase tracking-wider text-rose-400 flex items-center gap-1.5 mb-3">
-                <XCircle className="h-4 w-4" /> Missing Skills
+            <div className="card p-5 border-t-2 border-t-rose-500/50">
+              <h5 className="mb-4 flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-rose-400">
+                <XCircle className="h-4 w-4" /> Missing Requirements
               </h5>
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap gap-2">
                 {output.missingSkills.map((s, idx) => (
-                  <span key={idx} className="rounded bg-rose-500/10 border border-rose-500/20 px-2.5 py-0.5 text-xs text-slate-200">
+                  <span key={idx} className="rounded-lg border border-rose-500/20 bg-rose-500/10 px-2.5 py-1 text-[11px] font-bold text-rose-200">
                     {s}
                   </span>
                 ))}
@@ -135,15 +158,16 @@ const JDMatchPage = () => {
           )}
         </div>
 
+        {/* Actionable Recommendations */}
         {output.recommendations?.length > 0 && (
-          <div className="rounded-xl border border-white/5 bg-white/3 p-4">
-            <h5 className="text-xs font-semibold uppercase tracking-wider text-[#A78BFA] flex items-center gap-1.5 mb-3">
-              <Lightbulb className="h-4 w-4" /> Optimization Recommendations
+          <div className="card p-6 border border-accent-violet/10">
+            <h5 className="mb-4 flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-accent-violet-light">
+              <Lightbulb className="h-4 w-4" /> Optimization Plan
             </h5>
-            <ul className="space-y-2 text-xs text-slate-300">
+            <ul className="grid gap-3 sm:grid-cols-2">
               {output.recommendations.map((rec, idx) => (
-                <li key={idx} className="flex items-start gap-2">
-                  <span className="mt-1 flex h-4 w-4 flex-shrink-0 items-center justify-center rounded bg-[#A78BFA]/10 text-[10px] font-bold text-[#A78BFA]">
+                <li key={idx} className="flex items-start gap-3 rounded-xl border border-white/[0.04] bg-[#0A0B0F] p-4 text-[13px] text-slate-300 transition-colors hover:border-accent-violet/20">
+                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-accent-violet/10 text-[10px] font-black text-accent-violet-light">
                     {idx + 1}
                   </span>
                   {rec}
@@ -161,120 +185,133 @@ const JDMatchPage = () => {
 
   return (
     <DashboardLayout>
-      <div className="mx-auto max-w-6xl p-6 lg:p-8">
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-8 rounded-[28px] border border-white/10 bg-[linear-gradient(135deg,#141420_0%,#0F1326_45%,#0F172A_100%)] p-6 shadow-[0_30px_60px_rgba(15,23,42,0.45)] lg:p-7"
-        >
-          <p className="text-[11px] uppercase tracking-[0.35em] text-[#8FB3FF]">Job Fit</p>
-          <h1 className="mt-2 text-3xl font-semibold text-white">JD Match Arena</h1>
-          <p className="mt-2 text-sm text-slate-400">
-            Cross-reference your resume with job requirements, mapping skills gap, keywords matches, and recommendations across multiple models.
-          </p>
-        </motion.div>
-
-        <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr] items-start mb-8">
-          <form onSubmit={handleMatch} className="card p-6 space-y-5">
-            {/* Step 1: Resume selector */}
-            <div>
-              <label className="mb-2 block text-xs font-semibold text-slate-300">
-                1. Choose Target Resume
-              </label>
-              {loadingList ? (
-                <div className="skeleton h-11 w-full rounded-xl" />
-              ) : resumes.length === 0 ? (
-                <div className="flex items-center gap-3 bg-amber-500/10 border border-amber-500/20 rounded-xl px-4 py-3">
-                  <AlertCircle className="w-4 h-4 text-amber-500 flex-shrink-0" />
-                  <p className="text-xs text-slate-300">
-                    No resumes found. <Link to="/resumes" className="font-semibold underline text-white">Upload one first</Link>.
-                  </p>
-                </div>
-              ) : (
-                <div className="relative">
-                  <select
-                    value={selectedId}
-                    onChange={(e) => setSelectedId(e.target.value)}
-                    className="input-base appearance-none pr-10 cursor-pointer"
-                    required
-                  >
-                    <option value="">-- Choose Resume --</option>
-                    {resumes.map((r) => (
-                      <option key={r._id} value={r._id}>{r.originalName}</option>
-                    ))}
-                  </select>
-                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-                </div>
-              )}
+      <div className="mx-auto w-full max-w-[1280px] page-enter">
+        
+        {/* Contextual Header */}
+        <div className="mb-8 flex flex-col justify-between gap-6 overflow-hidden rounded-3xl border border-white/[0.06] bg-[#0E101A] p-6 shadow-2xl sm:flex-row sm:items-center sm:p-8 relative">
+          <div className="absolute right-0 top-0 h-full w-1/2 bg-gradient-to-l from-[#8FB3FF]/10 to-transparent opacity-40" />
+          
+          <div className="relative z-10">
+            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#8FB3FF]/20 bg-[#8FB3FF]/5 px-3 py-1">
+              <Target className="h-3.5 w-3.5 text-[#8FB3FF]" />
+              <span className="text-[10px] font-bold uppercase tracking-widest text-[#8FB3FF]">Applicant Tracking</span>
             </div>
-
-            {/* Step 2: JD Text */}
-            <div>
-              <label className="mb-2 block text-xs font-semibold text-slate-300">
-                2. Paste Job Description
-              </label>
-              <textarea
-                value={jdText}
-                onChange={(e) => setJdText(e.target.value)}
-                placeholder="Paste responsibilities, tools, frameworks, and job specs..."
-                rows={7}
-                className="input-base resize-none leading-relaxed text-xs"
-                required
-              />
-              <div className="flex items-center justify-between mt-1.5 text-[10px]">
-                <p className="text-slate-400">{jdText.length} characters</p>
-                {jdText.length > 0 && jdText.length < MIN_JD_LENGTH && (
-                  <p className="text-amber-500 font-medium">
-                    {jdCharsLeft} more chars required
-                  </p>
-                )}
-                {jdText.length >= MIN_JD_LENGTH && (
-                  <p className="text-emerald-500 font-medium flex items-center gap-1">
-                    <CheckCircle className="w-3.5 h-3.5" /> Ready
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={isLoading || !isButtonEnabled}
-              className="btn-primary w-full py-3 text-sm flex items-center justify-center gap-2"
-            >
-              {isLoading ? (
-                <div className="w-5 h-5 rounded-full border-2 border-white/30 border-t-white animate-spin" />
-              ) : (
-                <><Target className="w-4 h-4" /> Run Match Analysis</>
-              )}
-            </button>
-          </form>
-
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.05 }}
-            className="rounded-3xl border border-white/5 bg-white/2 p-6 text-sm text-slate-300 space-y-4"
-          >
-            <h3 className="font-semibold text-white flex items-center gap-2">
-              <Briefcase className="h-5 w-5 text-[#8FB3FF]" />
-              Match Analytics
-            </h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Parallel evaluation checklist:
+            <h1 className="font-display text-3xl font-bold tracking-tight text-white">JD Match Arena</h1>
+            <p className="mt-2 text-[14px] text-slate-400 max-w-lg">
+              Cross-reference your resume with job requirements, mapping skills gap, keywords matches, and generating optimization plans.
             </p>
-            <div className="space-y-2 text-xs leading-relaxed text-slate-300">
-              <p>✓ <strong>Lite</strong> cross-references syntax terms and tool names.</p>
-              <p>✓ <strong>Flash</strong> determines match score weighting and calculates direct skill overlays.</p>
-              <p>✓ <strong>Pro</strong> simulates deep recruitment queries, highlighting core narrative gaps and recommending contextual resume edits.</p>
-            </div>
-          </motion.div>
+          </div>
         </div>
 
-        <ArenaWorkspace
-          isLoading={isLoading}
-          arenaRun={arenaRun}
-          onRegenerate={handleMatch}
-          renderResult={renderResult}
+        {/* 60/40 Responsive Workspace */}
+        <WorkspaceLayout
+          rightEmpty={!arenaRun && !isLoading}
+          left={
+            <form onSubmit={handleMatch} className="card p-6 sm:p-8 space-y-8">
+              <div className="border-b border-white/[0.06] pb-4">
+                <h2 className="text-[15px] font-bold text-white">Match Parameters</h2>
+                <p className="text-[12px] text-slate-400 mt-1">Configure your scan settings.</p>
+              </div>
+
+              {/* Step 1: Resume */}
+              <div>
+                <label className="mb-2 block text-[11px] font-bold uppercase tracking-widest text-slate-500">
+                  1. Base Resume
+                </label>
+                {loadingList ? (
+                  <div className="skeleton h-[52px] w-full rounded-xl" />
+                ) : resumes.length === 0 ? (
+                  <div className="flex items-center gap-2 rounded-xl border border-amber-500/20 bg-amber-500/10 p-3">
+                    <AlertCircle className="h-4 w-4 shrink-0 text-amber-500" />
+                    <p className="text-[12px] text-amber-200">
+                      No resumes. <Link to="/resumes" className="font-bold underline">Upload one</Link>.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="relative">
+                    <select
+                      value={selectedId}
+                      onChange={(e) => setSelectedId(e.target.value)}
+                      className="input-base w-full appearance-none pr-10 text-[14px]"
+                      required
+                    >
+                      <option value="">Choose Resume...</option>
+                      {resumes.map((r) => (
+                        <option key={r._id} value={r._id}>{r.originalName}</option>
+                      ))}
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+                  </div>
+                )}
+              </div>
+
+              {/* Step 2: JD Text */}
+              <div>
+                <label className="mb-2 block text-[11px] font-bold uppercase tracking-widest text-slate-500">
+                  2. Job Description
+                </label>
+                <textarea
+                  value={jdText}
+                  onChange={(e) => setJdText(e.target.value)}
+                  placeholder="Paste the target JD here..."
+                  rows={10}
+                  className="input-base w-full resize-none text-[14px] leading-relaxed min-h-[200px]"
+                  required
+                />
+                <div className="mt-2 flex items-center justify-between text-[11px] font-bold">
+                  <p className="text-slate-500">{jdText.length} chars</p>
+                  {jdText.length > 0 && jdText.length < MIN_JD_LENGTH && (
+                    <p className="text-amber-500">{jdCharsLeft} more needed</p>
+                  )}
+                  {jdText.length >= MIN_JD_LENGTH && (
+                    <p className="flex items-center gap-1 text-[#8FB3FF]"><CheckCircle className="h-3.5 w-3.5" /> Ready</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Submit Button */}
+              <div className="pt-4 border-t border-white/[0.06]">
+                <button
+                  type="submit"
+                  disabled={isLoading || !isButtonEnabled}
+                  className={`btn-primary relative w-full h-[56px] text-[15px] overflow-hidden ${isLoading ? 'animate-pulse' : ''}`}
+                  style={!isLoading ? { backgroundImage: 'linear-gradient(to right, #5B8FFF, #3B6FD9)' } : {}}
+                >
+                  {isLoading ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <div className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                      Scanning JD...
+                    </span>
+                  ) : (
+                    <span className="flex items-center justify-center gap-2">
+                      Run Match Analysis <ArrowRight className="h-5 w-5" />
+                    </span>
+                  )}
+                </button>
+              </div>
+            </form>
+          }
+          right={
+            !arenaRun && !isLoading ? (
+              <EmptyState
+                icon={Target}
+                title="Match Results Will Appear Here"
+                subtitle="Paste a job description and run the analysis to see your match score, keyword gaps, and optimization roadmap."
+                chips={[
+                  { label:'Match Score', color:'violet' },
+                  { label:'Missing Keywords', color:'red' },
+                  { label:'Optimization Tips', color:'teal' }
+                ]}
+              />
+            ) : (
+              <ArenaWorkspace
+                isLoading={isLoading}
+                arenaRun={arenaRun}
+                onRegenerate={handleMatch}
+                renderResult={renderResult}
+              />
+            )
+          }
         />
       </div>
     </DashboardLayout>
