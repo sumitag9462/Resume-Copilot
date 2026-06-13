@@ -22,7 +22,11 @@ const errorHandler          = require('./middleware/errorHandler');
 const app = express();
 
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:5173',
+  origin: [
+    "http://localhost:5173",
+    process.env.CLIENT_URL || "https://yourfrontend.vercel.app",
+    "https://resume-copilot-1.onrender.com"
+  ],
   credentials: true
 }));
 
