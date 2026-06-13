@@ -10,7 +10,7 @@ import { GitCompare, ChevronDown, AlertCircle, Award, Target, FileText, CheckCir
 import DashboardLayout from "../components/layout/DashboardLayout";
 import ArenaWorkspace from "../components/ui/ArenaWorkspace";
 import { getAllResumes } from "../api/resumeApi";
-import { runArena } from "../api/arenaApi";
+import { useArena } from "../context/ArenaContext";
 import { useModel } from "../context/ModelContext";
 import toast from "react-hot-toast";
 
@@ -18,12 +18,13 @@ const ResumeComparisonPage = () => {
   const [resumes, setResumes] = useState([]);
   const [selectedIdA, setSelectedIdA] = useState("");
   const [selectedIdB, setSelectedIdB] = useState("");
-
-  const [isLoading, setIsLoading] = useState(false);
   const [loadingList, setLoadingList] = useState(true);
-  const [arenaRun, setArenaRun] = useState(null);
 
-  const { selectedModel } = useModel();
+  const { activeRuns, executeRun } = useArena();
+  const runState = activeRuns["resume_comparison"] || { isLoading: false, arenaRun: null };
+  const { isLoading, arenaRun } = runState;
+  
+  const { selectedModel, compareMode } = useModel();
 
   useEffect(() => {
     getAllResumes()
@@ -41,7 +42,7 @@ const ResumeComparisonPage = () => {
   }, []);
 
   const handleCompare = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     if (!selectedIdA || !selectedIdB) {
       toast.error("Please select two resumes to compare");
       return;
@@ -51,26 +52,15 @@ const ResumeComparisonPage = () => {
       return;
     }
 
-    setArenaRun(null);
-    setIsLoading(true);
-
-    try {
-      const data = await runArena({
-        feature: "resume_comparison",
-        inputs: {
-          resumeIdA: selectedIdA,
-          resumeIdB: selectedIdB
-        },
-        model: selectedModel,
-        compareMode: false // Compare mode runs multiple models, we just want one model to compare two resumes
-      });
-      setArenaRun(data.arenaRun);
-      toast.success("Resume comparison complete! ⚖️");
-    } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to compare resumes");
-    } finally {
-      setIsLoading(false);
-    }
+    await executeRun("resume_comparison", {
+      feature: "resume_comparison",
+      inputs: {
+        resumeIdA: selectedIdA,
+        resumeIdB: selectedIdB
+      },
+      model: selectedModel,
+      compareMode
+    });
   };
 
   const renderResult = (output) => {

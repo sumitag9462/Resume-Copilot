@@ -14,6 +14,7 @@ import { BrowserRouter } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import { AuthProvider } from './context/AuthContext'
 import { ModelProvider } from './context/ModelContext'
+import { ArenaProvider } from './context/ArenaContext'
 import App from './App'
 import './index.css'
 
@@ -22,7 +23,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <BrowserRouter>
       <AuthProvider>
         <ModelProvider>
-          <App />
+          <ArenaProvider>
+            <App />
+          </ArenaProvider>
         </ModelProvider>
         <Toaster
           position="top-right"

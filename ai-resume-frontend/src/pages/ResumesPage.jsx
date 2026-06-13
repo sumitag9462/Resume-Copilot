@@ -43,8 +43,10 @@ const ResumesPage = () => {
       const data = await uploadResume(file)
       toast.success('Resume uploaded successfully! ✅')
       setResumes((prev) => [data.resume, ...prev])
+      return true
     } catch (err) {
       toast.error(err.response?.data?.message || 'Upload failed. Please try again.')
+      return false
     } finally {
       setUploading(false)
     }

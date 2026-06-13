@@ -25,7 +25,8 @@ import toast from "react-hot-toast";
 import DashboardLayout from "../components/layout/DashboardLayout";
 import ArenaWorkspace from "../components/ui/ArenaWorkspace";
 import { getAllResumes, uploadResume } from "../api/resumeApi";
-import { runArena, getArenaHistory, deleteArenaHistory } from "../api/arenaApi";
+import { getArenaHistory, deleteArenaHistory } from "../api/arenaApi";
+import { useArena } from "../context/ArenaContext";
 import { useModel } from "../context/ModelContext";
 
 const InterviewPrepPage = () => {
@@ -45,8 +46,9 @@ const InterviewPrepPage = () => {
   const [uploading, setUploading] = useState(false);
 
   // Active Session State
-  const [isLoading, setIsLoading] = useState(false);
-  const [arenaRun, setArenaRun] = useState(null);
+  const { activeRuns, executeRun } = useArena();
+  const runState = activeRuns["interview_prep"] || { isLoading: false, arenaRun: null };
+  const { isLoading, arenaRun } = runState;
 
   // Side-history & UI States
   const [historyList, setHistoryList] = useState([]);
@@ -160,30 +162,17 @@ const InterviewPrepPage = () => {
     if (!selectedResumeId) return toast.error("Please upload or select a resume first.");
     if (!role.trim()) return toast.error("Please enter a target job role.");
 
-    setIsLoading(true);
-    setArenaRun(null);
-    setExpandedIndex(null);
-
-    try {
-      const data = await runArena({
-        feature: "interview_prep",
-        inputs: {
-          resumeId: selectedResumeId,
-          role,
-          jobDescription,
-          questionCount
-        },
-        model: selectedModel,
-        compareMode
-      });
-      setArenaRun(data.arenaRun);
-      toast.success("Interview Prep questions generated! 🚀");
-      fetchHistory();
-    } catch (err) {
-      toast.error(err?.response?.data?.message || "Generation failed.");
-    } finally {
-      setIsLoading(false);
-    }
+    await executeRun("interview_prep", {
+      feature: "interview_prep",
+      inputs: {
+        resumeId: selectedResumeId,
+        role,
+        jobDescription,
+        questionCount
+      },
+      model: selectedModel,
+      compareMode
+    });
   };
 
   // Delete History Item
@@ -555,7 +544,7 @@ const InterviewPrepPage = () => {
               </div>
               
               <div>
-                <label className="mb-2 block text-xs font-semibold text-slate-300 flex justify-between items-center">
+                <label className="mb-2 flex text-xs font-semibold text-slate-300 justify-between items-center">
                   <span>4. Number of Questions</span>
                   <span className="text-[#00D4AA]">{questionCount} questions</span>
                 </label>

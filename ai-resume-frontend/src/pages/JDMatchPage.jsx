@@ -10,7 +10,7 @@ import { Briefcase, ChevronDown, CheckCircle, XCircle, Target, Lightbulb, AlertC
 import DashboardLayout from "../components/layout/DashboardLayout";
 import ArenaWorkspace from "../components/ui/ArenaWorkspace";
 import { getAllResumes } from "../api/resumeApi";
-import { runArena } from "../api/arenaApi";
+import { useArena } from '../context/ArenaContext';
 import { useModel } from "../context/ModelContext";
 import toast from "react-hot-toast";
 
@@ -30,10 +30,11 @@ const JDMatchPage = () => {
   const [resumes, setResumes] = useState([]);
   const [selectedId, setSelectedId] = useState(preselectedId || "");
   const [jdText, setJdText] = useState("");
-
-  const [isLoading, setIsLoading] = useState(false);
   const [loadingList, setLoadingList] = useState(true);
-  const [arenaRun, setArenaRun] = useState(null);
+
+  const { activeRuns, executeRun } = useArena();
+  const runState = activeRuns["jd_match"] || { isLoading: false, arenaRun: null };
+  const { isLoading, arenaRun } = runState;
 
   const { selectedModel, compareMode } = useModel();
 
@@ -60,26 +61,15 @@ const JDMatchPage = () => {
       return;
     }
 
-    setArenaRun(null);
-    setIsLoading(true);
-
-    try {
-      const data = await runArena({
-        feature: "jd_match",
-        inputs: {
-          resumeId: selectedId,
-          jobDescription: jdText
-        },
-        model: selectedModel,
-        compareMode
-      });
-      setArenaRun(data.arenaRun);
-      toast.success("Match analysis complete! 🎯");
-    } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to analyze match");
-    } finally {
-      setIsLoading(false);
-    }
+    await executeRun("jd_match", {
+      feature: "jd_match",
+      inputs: {
+        resumeId: selectedId,
+        jobDescription: jdText
+      },
+      model: selectedModel,
+      compareMode
+    });
   };
 
   const renderResult = (output) => {

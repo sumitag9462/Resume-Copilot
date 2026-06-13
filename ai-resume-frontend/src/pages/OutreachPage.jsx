@@ -2,13 +2,13 @@ import { useState, useEffect } from 'react';
 import { Send, Building, Briefcase, MessageSquare, Copy, CheckCircle2, ChevronDown, AlertCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { generateOutreach } from '../api/outreachApi';
 import { getAllResumes } from '../api/resumeApi';
+import { useArena } from '../context/ArenaContext';
+import { useModel } from '../context/ModelContext';
 import { motion } from 'framer-motion';
 import DashboardLayout from '../components/layout/DashboardLayout';
 
 const OutreachPage = () => {
-  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     targetRole: '',
     companyName: '',
@@ -17,8 +17,13 @@ const OutreachPage = () => {
   const [resumes, setResumes] = useState([]);
   const [selectedResumeId, setSelectedResumeId] = useState("");
   const [loadingResumes, setLoadingResumes] = useState(true);
+  const [activeTab, setActiveTab] = useState("email");
 
-  const [result, setResult] = useState(null);
+  const { activeRuns, executeRun } = useArena();
+  const runState = activeRuns["outreach"] || { isLoading: false, arenaRun: null };
+  const { isLoading, arenaRun: result } = runState;
+  const { selectedModel, compareMode } = useModel();
+
   const [copiedSection, setCopiedSection] = useState(null);
 
   useEffect(() => {
@@ -44,19 +49,15 @@ const OutreachPage = () => {
       return;
     }
 
-    setIsLoading(true);
-    try {
-      const response = await generateOutreach({ ...formData, resumeId: selectedResumeId });
-      if (response.success && response.data) {
-        setResult(response.data);
-        toast.success('Outreach materials generated successfully!');
-      }
-    } catch (error) {
-      console.error(error);
-      toast.error(error.response?.data?.message || 'Failed to generate outreach.');
-    } finally {
-      setIsLoading(false);
-    }
+    await executeRun("outreach", {
+      feature: "outreach",
+      inputs: {
+        resumeId: selectedResumeId,
+        ...formData
+      },
+      model: selectedModel,
+      compareMode
+    });
   };
 
   const copyToClipboard = (text, section) => {

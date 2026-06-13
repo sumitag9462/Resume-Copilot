@@ -6,11 +6,11 @@
 import { useState, useEffect } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ScanText, ChevronDown, Zap, CheckCircle, XCircle, AlertTriangle, Lightbulb, BookOpen, Tag } from "lucide-react";
+import { ScanText, ChevronDown, Zap, CheckCircle, XCircle, AlertTriangle, Lightbulb, BookOpen, Tag, AlertCircle } from "lucide-react";
 import DashboardLayout from "../components/layout/DashboardLayout";
 import ArenaWorkspace from "../components/ui/ArenaWorkspace";
 import { getAllResumes } from "../api/resumeApi";
-import { runArena } from "../api/arenaApi";
+import { useArena } from "../context/ArenaContext";
 import { useModel } from "../context/ModelContext";
 import toast from "react-hot-toast";
 
@@ -19,11 +19,12 @@ const AnalyzerPage = () => {
   const preselectedId = searchParams.get("resumeId");
 
   const [resumes, setResumes] = useState([]);
-  const [selectedId, setSelectedId] = useState(preselectedId || "");
+  const [selectedResumeId, setSelectedResumeId] = useState(preselectedId || '');
+  const [loadingResumes, setLoadingResumes] = useState(true);
 
-  const [isLoading, setIsLoading] = useState(false);
-  const [loadingList, setLoadingList] = useState(true);
-  const [arenaRun, setArenaRun] = useState(null);
+  const { activeRuns, executeRun } = useArena();
+  const runState = activeRuns["ats_analysis"] || { isLoading: false, arenaRun: null };
+  const { isLoading, arenaRun } = runState;
 
   const { selectedModel, compareMode } = useModel();
 
@@ -32,39 +33,28 @@ const AnalyzerPage = () => {
       .then((d) => {
         setResumes(d.resumes || []);
         if (d.resumes?.length > 0 && !preselectedId) {
-          setSelectedId(d.resumes[0]._id);
+          setSelectedResumeId(d.resumes[0]._id);
         }
       })
       .catch(console.error)
-      .finally(() => setLoadingList(false));
+      .finally(() => setLoadingResumes(false));
   }, [preselectedId]);
 
   const handleAnalyze = async (e) => {
     e.preventDefault();
-    if (!selectedId) {
+    if (!selectedResumeId) {
       toast.error("Please select a resume");
       return;
     }
 
-    setArenaRun(null);
-    setIsLoading(true);
-
-    try {
-      const data = await runArena({
-        feature: "ats_analysis",
-        inputs: {
-          resumeId: selectedId
-        },
-        model: selectedModel,
-        compareMode
-      });
-      setArenaRun(data.arenaRun);
-      toast.success("ATS Audit complete! 🎉");
-    } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to analyze resume");
-    } finally {
-      setIsLoading(false);
-    }
+    await executeRun("ats_analysis", {
+      feature: 'ats_analysis',
+      inputs: {
+        resumeId: selectedResumeId
+      },
+      model: selectedModel,
+      compareMode
+    });
   };
 
   const renderResult = (output) => {
@@ -219,7 +209,7 @@ const AnalyzerPage = () => {
               <label className="mb-2 block text-xs font-semibold text-slate-300">
                 Choose Target Resume
               </label>
-              {loadingList ? (
+              {loadingResumes ? (
                 <div className="skeleton h-11 w-full rounded-xl" />
               ) : resumes.length === 0 ? (
                 <div className="flex items-center gap-3 bg-amber-500/10 border border-amber-500/20 rounded-xl px-4 py-3">
@@ -231,8 +221,8 @@ const AnalyzerPage = () => {
               ) : (
                 <div className="relative">
                   <select
-                    value={selectedId}
-                    onChange={(e) => setSelectedId(e.target.value)}
+                    value={selectedResumeId}
+                    onChange={(e) => setSelectedResumeId(e.target.value)}
                     className="input-base appearance-none pr-10 cursor-pointer"
                     required
                   >
@@ -248,7 +238,7 @@ const AnalyzerPage = () => {
 
             <button
               type="submit"
-              disabled={isLoading || !selectedId}
+              disabled={isLoading || !selectedResumeId}
               className="btn-primary w-full py-3 text-sm flex items-center justify-center gap-2"
             >
               {isLoading ? (

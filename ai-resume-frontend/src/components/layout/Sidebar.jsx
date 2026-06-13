@@ -17,17 +17,25 @@ import { useAuth } from '../../context/AuthContext'
 import toast from 'react-hot-toast'
 
 const navItems = [
+  // 1. Foundation & Upload
   { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { path: '/resumes', label: 'My Resumes', icon: Files },
-  { path: '/resume-boost', label: 'Resume Boost', icon: Sparkles },
-  { path: '/interview-prep', label: 'Interview Prep', icon: BrainCircuit },
+  
+  // 2. Evaluate Current Resume
   { path: '/analysis/1', label: 'ATS Analysis', icon: BarChart3 },
   { path: '/jd-match', label: 'JD Match', icon: Briefcase },
-  { path: '/cover-letter', label: 'Cover Letters', icon: Mail },
+  
+  // 3. Improve & Iterate
+  { path: '/resume-boost', label: 'Resume Boost', icon: Sparkles },
   { path: '/version-compare', label: 'Version Compare', icon: TrendingUp },
   { path: '/resume-comparison', label: 'Resume Comparison', icon: Split },
+  
+  // 4. Application Assets & Prep
+  { path: '/cover-letter', label: 'Cover Letters', icon: Mail },
   { path: '/outreach', label: 'Outreach', icon: Send },
+  { path: '/interview-prep', label: 'Interview Prep', icon: BrainCircuit },
 
+  // 5. Account
   { path: '/settings', label: 'Settings', icon: Settings },
 ]
 

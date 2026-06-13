@@ -47,8 +47,13 @@ const ResumeUploadZone = ({ onUpload, uploading = false }) => {
     if (f) handleFile(f)
   }
 
-  const handleUpload = () => {
-    if (file && onUpload) onUpload(file)
+  const handleUpload = async () => {
+    if (file && onUpload) {
+      const success = await onUpload(file)
+      if (success) {
+        clearFile()
+      }
+    }
   }
 
   const clearFile = () => { setFile(null); setError('') }

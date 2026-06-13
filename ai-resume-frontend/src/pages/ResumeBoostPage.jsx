@@ -20,8 +20,9 @@ import toast from "react-hot-toast";
 import DashboardLayout from "../components/layout/DashboardLayout";
 import ArenaWorkspace from "../components/ui/ArenaWorkspace";
 import { getAllResumes, uploadResume } from "../api/resumeApi";
-import { runArena, getArenaHistory, deleteArenaHistory } from "../api/arenaApi";
+import { getArenaHistory, deleteArenaHistory } from "../api/arenaApi";
 import { useModel } from "../context/ModelContext";
+import { useArena } from "../context/ArenaContext";
 import ResumePDFGenerator from "../components/ui/ResumePDFGenerator";
 
 const ResumeBoostPage = () => {
@@ -48,8 +49,10 @@ const ResumeBoostPage = () => {
   const [uploading, setUploading] = useState(false);
 
   // Active Session State
-  const [isLoading, setIsLoading] = useState(false);
-  const [arenaRun, setArenaRun] = useState(null);
+  const { activeRuns, executeRun } = useArena();
+  const activeFeatureId = activeTab === "boost" ? "resume_boost" : "resume_rebuilder";
+  const runState = activeRuns[activeFeatureId] || { isLoading: false, arenaRun: null };
+  const { isLoading, arenaRun } = runState;
 
   // Side-history & UI States
   const [historyList, setHistoryList] = useState([]);
@@ -166,29 +169,17 @@ const ResumeBoostPage = () => {
       return toast.error("Please enter a valid bullet point.");
     }
 
-    setIsLoading(true);
-    setArenaRun(null);
-
     const feature = activeTab === "boost" ? "resume_boost" : "resume_rebuilder";
-    const inputs = activeTab === "boost"
+    const inputs = activeTab === "boost" 
       ? { bulletText, targetRole: role }
       : { resumeId: selectedResumeId, targetRole: role, jobDescription };
 
-    try {
-      const data = await runArena({
-        feature,
-        inputs,
-        model: selectedModel,
-        compareMode
-      });
-      setArenaRun(data.arenaRun);
-      toast.success(activeTab === "boost" ? "Bullet improved! ✨" : "Resume rebuilt successfully! 🚀");
-      fetchHistory();
-    } catch (err) {
-      toast.error(err?.response?.data?.message || "Failed to boost");
-    } finally {
-      setIsLoading(false);
-    }
+    await executeRun(feature, {
+      feature,
+      inputs,
+      model: selectedModel,
+      compareMode
+    });
   };
 
   const handleDownloadPDF = (output, model) => {

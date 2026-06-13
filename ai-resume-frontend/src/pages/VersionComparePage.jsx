@@ -10,7 +10,7 @@ import { GitCompare, ChevronDown, CheckCircle, Lightbulb, AlertCircle, Sparkles 
 import DashboardLayout from "../components/layout/DashboardLayout";
 import ArenaWorkspace from "../components/ui/ArenaWorkspace";
 import { getAllResumes } from "../api/resumeApi";
-import { runArena } from "../api/arenaApi";
+import { useArena } from "../context/ArenaContext";
 import { useModel } from "../context/ModelContext";
 import toast from "react-hot-toast";
 
@@ -21,10 +21,12 @@ const VersionComparePage = () => {
   const [resumes, setResumes] = useState([]);
   const [selectedId, setSelectedId] = useState(preselectedId || "");
 
-  const [isLoading, setIsLoading] = useState(false);
   const [loadingList, setLoadingList] = useState(true);
-  const [arenaRun, setArenaRun] = useState(null);
 
+  const { activeRuns, executeRun } = useArena();
+  const runState = activeRuns["version_compare"] || { isLoading: false, arenaRun: null };
+  const { isLoading, arenaRun } = runState;
+  
   const { selectedModel, compareMode } = useModel();
 
   useEffect(() => {
@@ -46,24 +48,18 @@ const VersionComparePage = () => {
       return;
     }
 
-    setArenaRun(null);
-    setIsLoading(true);
-
     try {
-      const data = await runArena({
-        feature: "version_compare",
+      await executeRun("version_compare", {
+        feature: 'version_compare',
         inputs: {
           resumeId: selectedId
         },
         model: selectedModel,
         compareMode
       });
-      setArenaRun(data.arenaRun);
       toast.success("Version optimization audit complete! 🎯");
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to compare versions");
-    } finally {
-      setIsLoading(false);
     }
   };
 

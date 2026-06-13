@@ -10,7 +10,7 @@ import { FileText, ChevronDown, Sparkles, Building2, Tag, AlertCircle, CheckCirc
 import DashboardLayout from "../components/layout/DashboardLayout";
 import ArenaWorkspace from "../components/ui/ArenaWorkspace";
 import { getAllResumes } from "../api/resumeApi";
-import { runArena } from "../api/arenaApi";
+import { useArena } from "../context/ArenaContext";
 import { useModel } from "../context/ModelContext";
 import toast from "react-hot-toast";
 
@@ -61,9 +61,11 @@ const CoverLetterPage = () => {
   const [jdText, setJdText] = useState("");
   const [style, setStyle] = useState("professional");
 
-  const [isLoading, setIsLoading] = useState(false);
   const [loadingList, setLoadingList] = useState(true);
-  const [arenaRun, setArenaRun] = useState(null);
+  
+  const { activeRuns, executeRun } = useArena();
+  const runState = activeRuns["cover_letter"] || { isLoading: false, arenaRun: null };
+  const { isLoading, arenaRun } = runState;
 
   const { selectedModel, compareMode } = useModel();
 
@@ -93,29 +95,17 @@ const CoverLetterPage = () => {
       toast.error("Job description is too short");
       return;
     }
-
-    setArenaRun(null);
-    setIsLoading(true);
-
-    try {
-      const data = await runArena({
-        feature: "cover_letter",
-        inputs: {
-          resumeId: selectedId,
-          companyName: company,
-          jobDescription: jdText,
-          style
-        },
-        model: selectedModel,
-        compareMode
-      });
-      setArenaRun(data.arenaRun);
-      toast.success("Cover letters generated! ✉️");
-    } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to generate cover letters");
-    } finally {
-      setIsLoading(false);
-    }
+    await executeRun("cover_letter", {
+      feature: "cover_letter",
+      inputs: {
+        resumeId: selectedId,
+        companyName: company,
+        jobDescription: jdText,
+        style
+      },
+      model: selectedModel,
+      compareMode
+    });
   };
 
   const renderResult = (output) => {
