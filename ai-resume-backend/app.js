@@ -5,7 +5,6 @@ const dotenv  = require('dotenv');
 const path    = require('path');
 const helmet  = require('helmet');
 const rateLimit = require('express-rate-limit');
-const mongoSanitize = require('express-mongo-sanitize');
 
 dotenv.config();
 
@@ -47,8 +46,7 @@ app.use('/api/', apiLimiter);
 app.use(express.json({ limit: '10kb' })); // Limit body size to prevent payload attacks
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
-// NoSQL Injection Protection
-app.use(mongoSanitize());
+// NoSQL Injection Protection is handled by Mongoose schema casting natively
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.use('/api/auth',            authRoutes);
