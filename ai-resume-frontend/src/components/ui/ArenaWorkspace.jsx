@@ -3,7 +3,7 @@
 // The central cockpit for comparing multiple Gemini models, visualizing scores,
 // displaying custom badge awards (Winner, Fastest, etc.), and rendering comparisons.
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Cpu,
@@ -43,6 +43,16 @@ const ArenaWorkspace = ({
 }) => {
   const [activeTab, setActiveTab] = useState("winner"); // "winner", or modelKeys
   const [layoutMode, setLayoutMode] = useState("side-by-side"); // "side-by-side" or "tabs"
+  const workspaceRef = useRef(null);
+
+  // Automatically scroll to the workspace when results or errors are ready
+  useEffect(() => {
+    if (arenaRun && !isLoading && workspaceRef.current) {
+      setTimeout(() => {
+        workspaceRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
+    }
+  }, [arenaRun, isLoading]);
 
   if (isLoading) {
     return (
@@ -143,7 +153,7 @@ const ArenaWorkspace = ({
   );
 
   return (
-    <div className="space-y-8 page-enter">
+    <div ref={workspaceRef} className="space-y-8 page-enter scroll-mt-6">
       {/* ── SECTION 1: ARENA SCORECARD ── */}
       {compareMode && (
         <motion.section

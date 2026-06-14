@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Send, Building, Briefcase, MessageSquare, Copy, CheckCircle2, ChevronDown, AlertCircle, Rocket, Linkedin, Mail } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -28,10 +28,20 @@ const OutreachPage = () => {
 
   const { activeRuns, executeRun } = useArena();
   const runState = activeRuns["outreach"] || { isLoading: false, arenaRun: null };
-  const { isLoading, arenaRun: result } = runState;
+  const { isLoading, arenaRun } = runState;
+  const result = arenaRun?.results?.[0]?.output || null;
   const { selectedModel, compareMode } = useModel();
 
   const [copiedSection, setCopiedSection] = useState(null);
+  const resultsRef = useRef(null);
+
+  useEffect(() => {
+    if ((result || arenaRun?.results?.[0]?.error) && !isLoading && resultsRef.current) {
+      setTimeout(() => {
+        resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
+    }
+  }, [result, arenaRun, isLoading]);
 
   useEffect(() => {
     getAllResumes()
@@ -252,7 +262,7 @@ const OutreachPage = () => {
           </form>
 
           {/* Results Area */}
-          <div className="w-full">
+          <div className="w-full scroll-mt-6" ref={resultsRef}>
             <div className="min-h-[600px] flex flex-col w-full">
               <AnimatePresence mode="wait">
                 {isLoading ? (
@@ -263,6 +273,12 @@ const OutreachPage = () => {
                       <Send className="h-8 w-8 text-emerald-400 animate-pulse" />
                     </div>
                     <p className="mt-6 text-[14px] font-bold tracking-[0.2em] uppercase text-emerald-400">Drafting Campaigns...</p>
+                  </motion.div>
+                ) : arenaRun?.results?.[0]?.error ? (
+                  <motion.div key="error" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center justify-center p-12 text-center card border-rose-500/20 bg-rose-500/5 w-full">
+                    <AlertCircle className="h-10 w-10 text-rose-400 mb-3" />
+                    <p className="font-semibold text-lg text-rose-300">Input Validation Failed</p>
+                    <p className="text-sm text-rose-200/70 mt-2 max-w-md leading-relaxed">{arenaRun.results[0].error}</p>
                   </motion.div>
                 ) : result ? (
                   <motion.div key="results" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8 w-full">

@@ -29,7 +29,12 @@ export const ArenaProvider = ({ children }) => {
         ...prev,
         [featureId]: { isLoading: false, arenaRun: data.arenaRun }
       }));
-      toast.success("Generation completed! ✨");
+      
+      if (data.arenaRun?.results?.some(r => r.error)) {
+        toast.error("Request blocked. See workspace for details.");
+      } else {
+        toast.success("Generation completed! ✨");
+      }
     } catch (err) {
       // On error, clear loading
       setActiveRuns((prev) => ({

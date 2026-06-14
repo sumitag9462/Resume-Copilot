@@ -6,6 +6,7 @@
 const ArenaHistory = require("../models/ArenaHistory");
 const Resume = require("../models/Resume");
 const { executeArenaRun } = require("../services/ComparisonEngine");
+const { validateInputs } = require("../services/ValidationEngine");
 
 /**
  * Helper to retrieve a resume and assert user ownership.
@@ -97,6 +98,30 @@ const runArena = async (req, res, next) => {
       } catch (err) {
         return res.status(400).json({ success: false, message: err.message });
       }
+    }
+
+    // ── AI INPUT VALIDATION ──────────────────────────────────
+    console.log(`[Arena Controller] Validating inputs for feature '${feature}'...`);
+    const validation = await validateInputs(inputs);
+    if (!validation.isValid) {
+      console.warn(`[ValidationEngine] Rejected input: ${validation.reason}`);
+      return res.status(200).json({ 
+        success: true, 
+        fromCache: false,
+        arenaRun: {
+          feature,
+          selectedModel: "AI Validator",
+          compareMode: false,
+          results: [{
+            model: "AI Validator",
+            error: validation.reason,
+            executionTime: 0,
+            tokenUsage: {}
+          }],
+          winner: "AI Validator",
+          bestResults: {}
+        }
+      });
     }
 
     // ── EXECUTE MODELS ───────────────────────────────────────

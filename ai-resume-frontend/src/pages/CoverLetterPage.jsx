@@ -127,6 +127,20 @@ const CoverLetterPage = () => {
     );
   };
 
+  const handleDownloadPDF = (output, model) => {
+    const text = output.coverLetter || output.coverLetterContent || "No content available.";
+    const blob = new Blob([text], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `CoverLetter_${model}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast.success("Downloaded cover letter successfully!");
+  };
+
   const jdCharsLeft = Math.max(0, MIN_JD_LENGTH - jdText.trim().length);
   const isButtonEnabled = selectedId && company.trim() && jdText.trim().length >= MIN_JD_LENGTH;
 
@@ -319,7 +333,7 @@ const CoverLetterPage = () => {
                   isLoading={isLoading}
                   arenaRun={arenaRun}
                   onRegenerate={handleGenerate}
-                  renderResult={renderCoverLetterResult}
+                  renderResult={renderResult}
                   downloadHandler={handleDownloadPDF}
                 />
               )}</div>

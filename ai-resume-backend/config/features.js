@@ -479,6 +479,29 @@ Return ONLY a valid JSON object matching this schema:
   "factors": ["factor 1", "factor 2"]
 }`;
     }
+  },
+
+  // 17. Cold Outreach
+  "outreach": {
+    displayName: "Cold Outreach",
+    autoModel: "gemini-pro",
+    buildPrompt: (inputs) => {
+      const { resumeText, targetRole, companyName, tone } = inputs;
+      return `You are an expert technical recruiter and career coach. Draft a highly targeted cold email and a LinkedIn connection request for the candidate applying to "${companyName}" for the "${targetRole}" role.
+The tone of the messages should be "${tone || 'professional'}".
+
+Resume:
+"""
+${resumeText}
+"""
+
+Return ONLY a valid JSON object matching this schema:
+{
+  "emailSubject": "Catchy and relevant subject line",
+  "emailBody": "The full body of the cold email",
+  "linkedinMessage": "The LinkedIn connection message (strictly under 300 characters)"
+}`;
+    }
   }
 };
 
