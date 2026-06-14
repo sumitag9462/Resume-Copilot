@@ -35,3 +35,6 @@ coverage/
 # Developer scratch/debug scripts
 ai-resume-backend/scratch/
 ai-resume-frontend/scratch/
+
+# Ignore large video files
+*.mp4
