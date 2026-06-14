@@ -381,10 +381,10 @@ const InterviewPrepPage = () => {
       <div className="mx-auto w-full max-w-[1280px] page-enter">
         
         {/* Contextual Header */}
-        <div className="mb-8 flex flex-col justify-between gap-6 overflow-hidden rounded-3xl border border-white/[0.06] bg-[#0E101A] p-6 shadow-2xl sm:flex-row sm:items-center sm:p-8 relative">
+        <div className="mb-8 flex flex-col justify-between gap-6 overflow-hidden rounded-3xl border border-white/[0.06] bg-[#0E101A] p-6 shadow-2xl lg:flex-row lg:items-center sm:p-8 relative">
           <div className="absolute right-0 top-0 h-full w-1/2 bg-gradient-to-l from-[#7C5CFC]/10 to-transparent opacity-40" />
           
-          <div className="relative z-10">
+          <div className="relative z-10 flex-1">
             <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#7C5CFC]/20 bg-[#7C5CFC]/5 px-3 py-1">
               <BrainCircuit className="h-3.5 w-3.5 text-[#7C5CFC]" />
               <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#7C5CFC]">Interview Simulator</span>
@@ -394,6 +394,38 @@ const InterviewPrepPage = () => {
               Generate role-specific technical, behavioral, and resume-based questions to practice for your next interview.
             </p>
           </div>
+
+            <div className="relative z-10 hidden lg:block w-[450px] shrink-0">
+              <div className="relative overflow-hidden rounded-2xl border border-[#7C5CFC]/20 bg-[#0A0B0F]/80 p-6 backdrop-blur-md shadow-[0_0_30px_rgba(124,92,252,0.1)] transition-transform hover:-translate-y-1">
+                {/* Decorative background glow */}
+                <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-[#7C5CFC]/20 blur-3xl pointer-events-none"></div>
+                
+                <div className="relative flex items-start gap-4">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#7C5CFC]/20 to-accent-teal/20 border border-white/10 shadow-inner">
+                    <MessageSquareQuote className="h-5 w-5 text-[#7C5CFC] drop-shadow-[0_0_8px_rgba(124,92,252,0.8)]" />
+                  </div>
+                  
+                  <div>
+                    <h3 className="text-[13px] font-bold text-white tracking-wide">Mock Interview Hub</h3>
+                    <p className="mt-1.5 text-[11px] leading-relaxed text-slate-400">
+                      Role-specific technical and behavioral questions based on your resume.
+                    </p>
+                    
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      <span className="inline-flex items-center gap-1.5 rounded border border-white/5 bg-white/5 px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-slate-300">
+                        <span className="h-1.5 w-1.5 rounded-full bg-accent-violet shadow-[0_0_4px_#7C5CFC]"></span> Technical
+                      </span>
+                      <span className="inline-flex items-center gap-1.5 rounded border border-white/5 bg-white/5 px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-slate-300">
+                        <span className="h-1.5 w-1.5 rounded-full bg-accent-teal shadow-[0_0_4px_#00D4AA]"></span> Behavioral
+                      </span>
+                      <span className="inline-flex items-center gap-1.5 rounded border border-white/5 bg-white/5 px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-slate-300">
+                        <span className="h-1.5 w-1.5 rounded-full bg-amber-400 shadow-[0_0_4px_#FBBF24]"></span> Targeted
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
         </div>
 
         {/* 60/40 Responsive Workspace */}
@@ -515,18 +547,7 @@ const InterviewPrepPage = () => {
           {/* Results Area */}
           <div className="w-full">
             <div className="min-w-0 space-y-6 w-full">
-              {!arenaRun && !isLoading ? (
-                <EmptyState
-                  icon={MessageSquareQuote}
-                  title="Interview Questions Will Appear Here"
-                  subtitle="Role-specific technical and behavioral questions generated from your resume."
-                  chips={[
-                    { label: "Technical", color: "violet" },
-                    { label: "Behavioral", color: "teal" },
-                    { label: "Role-Specific", color: "amber" }
-                  ]}
-                />
-              ) : (
+              {(arenaRun || isLoading) && (
                 <ArenaWorkspace
                   isLoading={isLoading}
                   arenaRun={arenaRun}

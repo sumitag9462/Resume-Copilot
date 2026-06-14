@@ -15,6 +15,7 @@ import {
 import DashboardLayout from '../components/layout/DashboardLayout'
 import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
+import { userApi } from '../api/userApi'
 
 // ── Toggle switch ─────────────────────────────────────────────
 const Toggle = ({ checked, onChange, label, desc }) => (
@@ -61,7 +62,7 @@ const SelectField = ({ label, value, onChange, options }) => (
 )
 
 const SettingsPage = () => {
-  const { user, login, token } = useAuth()
+  const { user, updateUser } = useAuth()
   const [activeTab, setActiveTab] = useState('profile')
 
   // ── Profile state ──────────────────────────────────────────
@@ -77,20 +78,20 @@ const SettingsPage = () => {
   const [savingPwd,    setSavingPwd]    = useState(false)
 
   // ── AI Preferences state ───────────────────────────────────
-  const [coverTone,   setCoverTone]   = useState('professional')
-  const [atsKeywords, setAtsKeywords] = useState('balanced')
+  const [coverTone,   setCoverTone]   = useState(user?.settings?.ai?.coverTone || 'professional')
+  const [atsKeywords, setAtsKeywords] = useState(user?.settings?.ai?.atsKeywords || 'balanced')
   const [aiPrefs, setAiPrefs] = useState({
-    autoSuggest: true,
-    showConfidence: true,
-    strictAts: false,
+    autoSuggest: user?.settings?.ai?.autoSuggest ?? true,
+    showConfidence: user?.settings?.ai?.showConfidence ?? true,
+    strictAts: user?.settings?.ai?.strictAts ?? false,
   })
 
   // ── Notification state ─────────────────────────────────────
   const [notifs, setNotifs] = useState({
-    atsComplete:   true,
-    weeklyDigest:  false,
-    matchAlerts:   true,
-    coverReady:    true,
+    atsComplete:   user?.settings?.notifications?.atsComplete ?? true,
+    matchAlerts:   user?.settings?.notifications?.matchAlerts ?? true,
+    coverReady:    user?.settings?.notifications?.coverReady ?? true,
+    weeklyDigest:  user?.settings?.notifications?.weeklyDigest ?? false,
   })
 
   // ── Handlers ───────────────────────────────────────────────
@@ -99,11 +100,15 @@ const SettingsPage = () => {
     if (!name.trim()) { toast.error('Name cannot be empty'); return }
     setSaving(true)
     try {
-      const updatedUser = { ...user, name: name.trim() }
-      login(token, updatedUser)
-      toast.success('Profile updated successfully!')
+      const res = await userApi.updateProfile({ name: name.trim() });
+      if (res.success) {
+        updateUser(res.user);
+        toast.success('Profile updated successfully!')
+      } else {
+        toast.error(res.error || 'Failed to update profile')
+      }
     } catch {
-      toast.error('Failed to update profile')
+      toast.error('An error occurred while updating profile')
     } finally {
       setSaving(false)
     }
@@ -115,18 +120,51 @@ const SettingsPage = () => {
     if (newPwd !== confirmPwd) { toast.error('Passwords do not match'); return }
     setSavingPwd(true)
     try {
-      await new Promise((r) => setTimeout(r, 900))  // simulate API
-      toast.success('Password changed successfully')
-      setCurrentPwd(''); setNewPwd(''); setConfirmPwd('')
+      const res = await userApi.updatePassword({ currentPassword: currentPwd, newPassword: newPwd });
+      if (res.success) {
+        toast.success('Password changed successfully')
+        setCurrentPwd(''); setNewPwd(''); setConfirmPwd('')
+      } else {
+        toast.error(res.error || 'Failed to change password')
+      }
     } catch {
-      toast.error('Incorrect current password')
+      toast.error('An error occurred while updating password')
     } finally {
       setSavingPwd(false)
     }
   }
 
-  const handleSaveAiPrefs = () => {
-    toast.success('AI preferences saved!')
+  const handleSaveAiPrefs = async () => {
+    try {
+      const newSettings = {
+        coverTone,
+        atsKeywords,
+        ...aiPrefs
+      };
+      const res = await userApi.updateAiSettings(newSettings);
+      if (res.success) {
+        updateUser({ settings: res.settings });
+        toast.success('AI preferences saved!')
+      } else {
+        toast.error(res.error || 'Failed to update AI preferences')
+      }
+    } catch {
+      toast.error('An error occurred while saving AI preferences')
+    }
+  }
+
+  const handleSaveNotifications = async () => {
+    try {
+      const res = await userApi.updateNotificationSettings(notifs);
+      if (res.success) {
+        updateUser({ settings: res.settings });
+        toast.success('Notification preferences saved!')
+      } else {
+        toast.error(res.error || 'Failed to update notification preferences')
+      }
+    } catch {
+      toast.error('An error occurred while saving notification preferences')
+    }
   }
 
   const handleDeleteAccount = () => {
@@ -411,7 +449,7 @@ const SettingsPage = () => {
                     />
                     
                     <div className="pt-6 border-t border-white/[0.06]">
-                      <button onClick={() => toast.success('Notification preferences saved!')} className="btn-primary">
+                      <button onClick={handleSaveNotifications} className="btn-primary">
                         Update Notifications
                       </button>
                     </div>

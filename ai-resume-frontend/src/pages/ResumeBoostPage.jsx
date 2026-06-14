@@ -324,26 +324,37 @@ const ResumeBoostPage = () => {
             </p>
           </div>
 
-          {!arenaRun && !isLoading && (
-            <div className="relative z-10 hidden lg:block border-l border-white/[0.06] pl-8">
-              <div className="flex items-start gap-5">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-accent-violet/10 border border-accent-violet/20">
-                  <Zap className="h-6 w-6 text-accent-violet" />
-                </div>
-                <div>
-                  <h3 className="text-[14px] font-bold text-white">Ready to Boost Your Resume</h3>
-                  <p className="mt-1 text-[12px] text-slate-400 max-w-[250px] leading-relaxed">
-                    Select a resume and we'll rewrite your bullet points with stronger action verbs and quantified impact.
-                  </p>
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    <span className="inline-flex items-center rounded-md border border-accent-violet/20 bg-accent-violet/10 px-2 py-1 text-[10px] font-medium text-accent-violet">Stronger Bullets</span>
-                    <span className="inline-flex items-center rounded-md border border-accent-teal/20 bg-accent-teal/10 px-2 py-1 text-[10px] font-medium text-accent-teal">Action Verbs</span>
-                    <span className="inline-flex items-center rounded-md border border-amber-500/20 bg-amber-500/10 px-2 py-1 text-[10px] font-medium text-amber-500">Impact Metrics</span>
+            <div className="relative z-10 hidden lg:block w-[450px] shrink-0">
+              <div className="relative overflow-hidden rounded-2xl border border-accent-violet/20 bg-[#0A0B0F]/80 p-6 backdrop-blur-md shadow-[0_0_30px_rgba(124,111,247,0.1)] transition-transform hover:-translate-y-1">
+                {/* Decorative background glow */}
+                <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-accent-violet/20 blur-3xl pointer-events-none"></div>
+                
+                <div className="relative flex items-start gap-4">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-accent-violet/20 to-accent-teal/20 border border-white/10 shadow-inner">
+                    <Zap className="h-5 w-5 text-accent-violet drop-shadow-[0_0_8px_rgba(124,111,247,0.8)]" />
+                  </div>
+                  
+                  <div>
+                    <h3 className="text-[13px] font-bold text-white tracking-wide">Ready to Boost Your Resume</h3>
+                    <p className="mt-1.5 text-[11px] leading-relaxed text-slate-400">
+                      Instantly rewrite bullets with action verbs, metrics, and targeted keywords.
+                    </p>
+                    
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      <span className="inline-flex items-center gap-1.5 rounded border border-white/5 bg-white/5 px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-slate-300">
+                        <span className="h-1.5 w-1.5 rounded-full bg-accent-violet shadow-[0_0_4px_#7C5CFC]"></span> Bullets
+                      </span>
+                      <span className="inline-flex items-center gap-1.5 rounded border border-white/5 bg-white/5 px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-slate-300">
+                        <span className="h-1.5 w-1.5 rounded-full bg-accent-teal shadow-[0_0_4px_#00D4AA]"></span> Verbs
+                      </span>
+                      <span className="inline-flex items-center gap-1.5 rounded border border-white/5 bg-white/5 px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-slate-300">
+                        <span className="h-1.5 w-1.5 rounded-full bg-amber-400 shadow-[0_0_4px_#FBBF24]"></span> Metrics
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          )}
         </div>
 
         {/* Full-width Layout */}

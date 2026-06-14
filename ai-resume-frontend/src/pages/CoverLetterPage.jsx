@@ -135,10 +135,10 @@ const CoverLetterPage = () => {
       <div className="mx-auto w-full max-w-[1280px] page-enter">
         
         {/* Contextual Header */}
-        <div className="mb-8 flex flex-col justify-between gap-6 overflow-hidden rounded-3xl border border-white/[0.06] bg-[#0E101A] p-6 shadow-2xl sm:flex-row sm:items-center sm:p-8 relative">
+        <div className="mb-8 flex flex-col justify-between gap-6 overflow-hidden rounded-3xl border border-white/[0.06] bg-[#0E101A] p-6 shadow-2xl lg:flex-row lg:items-center sm:p-8 relative">
           <div className="absolute right-0 top-0 h-full w-1/2 bg-gradient-to-l from-accent-teal/10 to-transparent opacity-40" />
           
-          <div className="relative z-10">
+          <div className="relative z-10 flex-1">
             <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-accent-teal/20 bg-accent-teal/5 px-3 py-1">
               <PenTool className="h-3.5 w-3.5 text-accent-teal" />
               <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-accent-teal">Document Generator</span>
@@ -148,6 +148,38 @@ const CoverLetterPage = () => {
               Generate highly personalized, recruiter-ready cover letters customized exactly to your target job description.
             </p>
           </div>
+
+            <div className="relative z-10 hidden lg:block w-[450px] shrink-0">
+              <div className="relative overflow-hidden rounded-2xl border border-accent-teal/20 bg-[#0A0B0F]/80 p-6 backdrop-blur-md shadow-[0_0_30px_rgba(0,212,170,0.1)] transition-transform hover:-translate-y-1">
+                {/* Decorative background glow */}
+                <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-accent-teal/20 blur-3xl pointer-events-none"></div>
+                
+                <div className="relative flex items-start gap-4">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-accent-teal/20 to-[#7C5CFC]/20 border border-white/10 shadow-inner">
+                    <PenTool className="h-5 w-5 text-accent-teal drop-shadow-[0_0_8px_rgba(0,212,170,0.8)]" />
+                  </div>
+                  
+                  <div>
+                    <h3 className="text-[13px] font-bold text-white tracking-wide">Dynamic Letter Generator</h3>
+                    <p className="mt-1.5 text-[11px] leading-relaxed text-slate-400">
+                      Provide your resume, company name, and job description to generate a highly personalized cover letter.
+                    </p>
+                    
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      <span className="inline-flex items-center gap-1.5 rounded border border-white/5 bg-white/5 px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-slate-300">
+                        <span className="h-1.5 w-1.5 rounded-full bg-accent-violet shadow-[0_0_4px_#7C5CFC]"></span> Professional
+                      </span>
+                      <span className="inline-flex items-center gap-1.5 rounded border border-white/5 bg-white/5 px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-slate-300">
+                        <span className="h-1.5 w-1.5 rounded-full bg-accent-teal shadow-[0_0_4px_#00D4AA]"></span> Startup
+                      </span>
+                      <span className="inline-flex items-center gap-1.5 rounded border border-white/5 bg-white/5 px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-slate-300">
+                        <span className="h-1.5 w-1.5 rounded-full bg-amber-400 shadow-[0_0_4px_#FBBF24]"></span> Creative
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
         </div>
 
         {/* Full-width Layout */}
@@ -282,26 +314,15 @@ const CoverLetterPage = () => {
 
           {/* Results Area */}
           <div className="w-full">
-            {!arenaRun && !isLoading ? (
-              <EmptyState
-                icon={PenTool}
-                title="Cover Letter Will Appear Here"
-                subtitle="Provide your resume, company name, and job description to generate a highly personalized cover letter."
-                chips={[
-                  { label: "Professional", color: "violet" },
-                  { label: "Startup", color: "teal" },
-                  { label: "Creative", color: "amber" }
-                ]}
-              />
-            ) : (
-              <ArenaWorkspace
-                isLoading={isLoading}
-                arenaRun={arenaRun}
-                onRegenerate={handleGenerate}
-                renderResult={renderResult}
-              />
-            )}
-          </div>
+              {(arenaRun || isLoading) && (
+                <ArenaWorkspace
+                  isLoading={isLoading}
+                  arenaRun={arenaRun}
+                  onRegenerate={handleGenerate}
+                  renderResult={renderCoverLetterResult}
+                  downloadHandler={handleDownloadPDF}
+                />
+              )}</div>
         </div>
       </div>
     </DashboardLayout>

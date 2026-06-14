@@ -191,7 +191,7 @@ const JDMatchPage = () => {
         <div className="mb-8 flex flex-col justify-between gap-6 overflow-hidden rounded-3xl border border-white/[0.06] bg-[#0E101A] p-6 shadow-2xl sm:flex-row sm:items-center sm:p-8 relative">
           <div className="absolute right-0 top-0 h-full w-1/2 bg-gradient-to-l from-[#8FB3FF]/10 to-transparent opacity-40" />
           
-          <div className="relative z-10">
+          <div className="relative z-10 flex-1">
             <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#8FB3FF]/20 bg-[#8FB3FF]/5 px-3 py-1">
               <Target className="h-3.5 w-3.5 text-[#8FB3FF]" />
               <span className="text-[10px] font-bold uppercase tracking-widest text-[#8FB3FF]">Applicant Tracking</span>
@@ -201,6 +201,38 @@ const JDMatchPage = () => {
               Cross-reference your resume with job requirements, mapping skills gap, keywords matches, and generating optimization plans.
             </p>
           </div>
+
+            <div className="relative z-10 hidden lg:block w-[450px] shrink-0">
+              <div className="relative overflow-hidden rounded-2xl border border-[#8FB3FF]/20 bg-[#0A0B0F]/80 p-6 backdrop-blur-md shadow-[0_0_40px_rgba(143,179,255,0.15)] transition-transform hover:-translate-y-1">
+                {/* Decorative background glow */}
+                <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-[#8FB3FF]/20 blur-3xl pointer-events-none"></div>
+                
+                <div className="relative flex items-start gap-4">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#8FB3FF]/20 to-accent-violet/20 border border-white/10 shadow-inner">
+                    <Target className="h-5 w-5 text-[#8FB3FF] drop-shadow-[0_0_8px_rgba(143,179,255,0.8)]" />
+                  </div>
+                  
+                  <div>
+                    <h3 className="text-[13px] font-bold text-white tracking-wide">Match Results Will Appear Here</h3>
+                    <p className="mt-1.5 text-[11px] leading-relaxed text-slate-400">
+                      Paste a job description and run the analysis to see your match score, keyword gaps, and optimization roadmap.
+                    </p>
+                    
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      <span className="inline-flex items-center gap-1.5 rounded border border-white/5 bg-white/5 px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-slate-300">
+                        <span className="h-1.5 w-1.5 rounded-full bg-accent-violet shadow-[0_0_4px_#7C5CFC]"></span> Match Score
+                      </span>
+                      <span className="inline-flex items-center gap-1.5 rounded border border-white/5 bg-white/5 px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-slate-300">
+                        <span className="h-1.5 w-1.5 rounded-full bg-rose-500 shadow-[0_0_4px_#F43F5E]"></span> Missing Keywords
+                      </span>
+                      <span className="inline-flex items-center gap-1.5 rounded border border-white/5 bg-white/5 px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-slate-300">
+                        <span className="h-1.5 w-1.5 rounded-full bg-accent-teal shadow-[0_0_4px_#00D4AA]"></span> Optimization Tips
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
         </div>
          {/* Full-width Layout */}
         <div className="flex flex-col gap-8">
@@ -302,18 +334,7 @@ const JDMatchPage = () => {
 
           {/* Results Area */}
           <div className="w-full">
-            {!arenaRun && !isLoading ? (
-              <EmptyState
-                icon={Target}
-                title="Match Results Will Appear Here"
-                subtitle="Paste a job description and run the analysis to see your match score, keyword gaps, and optimization roadmap."
-                chips={[
-                  { label:'Match Score', color:'violet' },
-                  { label:'Missing Keywords', color:'red' },
-                  { label:'Optimization Tips', color:'teal' }
-                ]}
-              />
-            ) : (
+            {(arenaRun || isLoading) && (
               <ArenaWorkspace
                 isLoading={isLoading}
                 arenaRun={arenaRun}

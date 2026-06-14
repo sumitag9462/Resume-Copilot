@@ -8,6 +8,21 @@ const userSchema = new mongoose.Schema({
     mobile:   { type: String },
     place:    { type: String },
     photo:    { type: String, default: '' },
+    settings: {
+        ai: {
+            coverTone:      { type: String, default: 'professional' },
+            atsKeywords:    { type: String, default: 'balanced' },
+            autoSuggest:    { type: Boolean, default: true },
+            showConfidence: { type: Boolean, default: true },
+            strictAts:      { type: Boolean, default: false }
+        },
+        notifications: {
+            atsComplete:  { type: Boolean, default: true },
+            matchAlerts:  { type: Boolean, default: true },
+            coverReady:   { type: Boolean, default: true },
+            weeklyDigest: { type: Boolean, default: false }
+        }
+    }
 }, { timestamps: true });
 
 // Method to verify password match

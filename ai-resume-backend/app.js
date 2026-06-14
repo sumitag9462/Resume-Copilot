@@ -16,6 +16,7 @@ const interviewRoutes       = require('./routes/interviewPrepRoutes');
 const weakLanguageRoutes    = require('./routes/weakLanguageRoutes');
 const arenaRoutes           = require('./routes/arenaRoutes');
 const outreachRoutes        = require('./routes/outreachRoutes');
+const userRoutes            = require('./routes/userRoutes');
 const errorHandler          = require('./middleware/errorHandler');
 
 const app = express();
@@ -72,6 +73,7 @@ app.use('/api/interview',       interviewRoutes);
 app.use('/api/weak-language',   weakLanguageRoutes);
 app.use('/api/arena',           arenaRoutes);
 app.use('/api/outreach',        outreachRoutes);
+app.use('/api/user',            userRoutes);
 
 app.get('/', (req, res) => {
   res.json({ message: 'Resume Copilot API is running' });

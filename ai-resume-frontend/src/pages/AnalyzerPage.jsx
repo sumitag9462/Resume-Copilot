@@ -218,14 +218,37 @@ const AnalyzerPage = () => {
             </p>
           </div>
 
-          <div className="relative z-10 hidden shrink-0 items-center justify-center sm:flex">
-            {/* Visualizer graphic */}
-            <div className="relative flex h-20 w-20 items-center justify-center rounded-2xl bg-white/[0.02] border border-white/[0.06] shadow-inner">
-              <div className="absolute inset-0 rounded-2xl border border-accent-violet/20 animate-pulse" />
-              <Cpu className="h-8 w-8 text-slate-400" />
-              <div className="absolute top-1 right-1 h-2 w-2 rounded-full bg-accent-teal shadow-[0_0_8px_rgba(46,203,173,1)]" />
+            <div className="relative z-10 hidden lg:block w-[450px] shrink-0">
+              <div className="relative overflow-hidden rounded-2xl border border-accent-violet/20 bg-[#0A0B0F]/80 p-6 backdrop-blur-md shadow-[0_0_40px_rgba(124,111,247,0.15)] transition-transform hover:-translate-y-1">
+                {/* Decorative background glow */}
+                <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-accent-violet/20 blur-3xl pointer-events-none"></div>
+                
+                <div className="relative flex items-start gap-4">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-accent-violet/20 to-accent-teal/20 border border-white/10 shadow-inner">
+                    <BarChart2 className="h-5 w-5 text-accent-violet drop-shadow-[0_0_8px_rgba(124,111,247,0.8)]" />
+                  </div>
+                  
+                  <div>
+                    <h3 className="text-[13px] font-bold text-white tracking-wide">Upload Your Resume to Begin</h3>
+                    <p className="mt-1.5 text-[11px] leading-relaxed text-slate-400">
+                      ATS score, keyword analysis, and improvement suggestions will appear here.
+                    </p>
+                    
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      <span className="inline-flex items-center gap-1.5 rounded border border-white/5 bg-white/5 px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-slate-300">
+                        <span className="h-1.5 w-1.5 rounded-full bg-accent-violet shadow-[0_0_4px_#7C5CFC]"></span> ATS Score
+                      </span>
+                      <span className="inline-flex items-center gap-1.5 rounded border border-white/5 bg-white/5 px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-slate-300">
+                        <span className="h-1.5 w-1.5 rounded-full bg-accent-teal shadow-[0_0_4px_#00D4AA]"></span> Keyword Gaps
+                      </span>
+                      <span className="inline-flex items-center gap-1.5 rounded border border-white/5 bg-white/5 px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-slate-300">
+                        <span className="h-1.5 w-1.5 rounded-full bg-amber-400 shadow-[0_0_4px_#FBBF24]"></span> Section Ratings
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
         </div>
 
         {/* Full-width Layout */}
@@ -293,18 +316,7 @@ const AnalyzerPage = () => {
 
           {/* Results Area */}
           <div className="w-full">
-            {!arenaRun && !isLoading ? (
-              <EmptyState
-                icon={BarChart2}
-                title="Upload Your Resume to Begin"
-                subtitle="ATS score, keyword analysis, and improvement suggestions will appear here."
-                chips={[
-                  { label:'ATS Score', color:'violet' },
-                  { label:'Keyword Gaps', color:'teal' },
-                  { label:'Section Ratings', color:'amber' }
-                ]}
-              />
-            ) : (
+            {(arenaRun || isLoading) && (
               <ArenaWorkspace
                 isLoading={isLoading}
                 arenaRun={arenaRun}
