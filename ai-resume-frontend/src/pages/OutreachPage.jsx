@@ -94,133 +94,133 @@ const OutreachPage = () => {
           </div>
         </div>
 
-        {/* 60/40 Responsive Workspace */}
-        <WorkspaceLayout
-          rightEmpty={!result && !isLoading}
-          left={
-            <form onSubmit={handleGenerate} className="card p-6 sm:p-8 space-y-8">
-              <div className="border-b border-white/[0.06] pb-4">
-                <h2 className="text-[15px] font-bold text-white">Target Parameters</h2>
-                <p className="text-[12px] text-slate-400 mt-1">Configure your target persona for tailored messaging.</p>
-              </div>
+        {/* Full-width Layout */}
+        <div className="flex flex-col gap-8">
+          {/* Top Control Form */}
+          <form onSubmit={handleGenerate} className="card p-6 sm:p-8 space-y-8">
+            <div className="border-b border-white/[0.06] pb-4">
+              <h2 className="text-[15px] font-bold text-white">Target Parameters</h2>
+              <p className="text-[12px] text-slate-400 mt-1">Configure your target persona for tailored messaging.</p>
+            </div>
 
-              <div className="grid gap-6 sm:grid-cols-2">
-                {/* Target Role */}
-                <div>
-                  <label className="mb-2 block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
-                    1. Target Role
-                  </label>
-                  <div className="relative group">
-                    <Briefcase className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500 transition-colors group-focus-within:text-emerald-400" />
-                    <input
-                      type="text"
-                      className="input-base pl-11 text-[14px] w-full"
-                      placeholder="e.g. Senior Frontend Engineer"
-                      value={formData.targetRole}
-                      onChange={(e) => setFormData({ ...formData, targetRole: e.target.value })}
-                      required
-                    />
-                  </div>
-                </div>
-
-                {/* Target Company */}
-                <div>
-                  <label className="mb-2 block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
-                    2. Target Company
-                  </label>
-                  <div className="relative group">
-                    <Building className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500 transition-colors group-focus-within:text-emerald-400" />
-                    <input
-                      type="text"
-                      className="input-base pl-11 text-[14px] w-full"
-                      placeholder="e.g. Stripe, Google..."
-                      value={formData.companyName}
-                      onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
-                      required
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Base Resume */}
+            <div className="grid gap-6 sm:grid-cols-2">
+              {/* Target Role */}
               <div>
                 <label className="mb-2 block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
-                  3. Select Base Profile
+                  1. Target Role
                 </label>
-                {loadingResumes ? (
-                  <div className="skeleton h-[52px] w-full rounded-xl" />
-                ) : resumes.length === 0 ? (
-                  <div className="flex items-center gap-2 rounded-xl border border-amber-500/20 bg-amber-500/10 p-3">
-                    <AlertCircle className="h-4 w-4 shrink-0 text-amber-500" />
-                    <p className="text-[12px] text-amber-200">
-                      No resumes. <Link to="/resumes" className="font-bold underline">Upload one</Link>.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="relative">
-                    <select
-                      value={selectedResumeId}
-                      onChange={(e) => setSelectedResumeId(e.target.value)}
-                      className="input-base w-full appearance-none pr-10 text-[14px]"
-                      required
-                    >
-                      <option value="">Choose Base Profile...</option>
-                      {resumes.map((r) => (
-                        <option key={r._id} value={r._id}>{r.originalName}</option>
-                      ))}
-                    </select>
-                    <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
-                  </div>
-                )}
-              </div>
-
-              {/* Tone Selection */}
-              <div>
-                <label className="mb-3 block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
-                  4. Message Tone
-                </label>
-                <div className="grid gap-4 sm:grid-cols-3">
-                  {TONES.map((t) => (
-                    <button
-                      key={t.id}
-                      type="button"
-                      onClick={() => setFormData({ ...formData, tone: t.id })}
-                      className={`flex flex-col w-full rounded-2xl border p-4 text-center transition-all duration-200 ${
-                        formData.tone === t.id
-                          ? 'border-emerald-500/50 bg-emerald-500/10 shadow-lg'
-                          : 'border-white/[0.06] bg-[#0A0B0F] text-slate-400 hover:border-white/[0.15]'
-                      }`}
-                    >
-                      <p className={`text-[13px] font-bold ${formData.tone === t.id ? 'text-emerald-400' : ''}`}>{t.label}</p>
-                      <p className={`text-[11px] mt-1 ${formData.tone === t.id ? 'text-emerald-400/80' : 'text-slate-500'}`}>{t.desc}</p>
-                    </button>
-                  ))}
+                <div className="relative group">
+                  <Briefcase className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500 transition-colors group-focus-within:text-emerald-400" />
+                  <input
+                    type="text"
+                    className="input-base pl-11 text-[14px] w-full"
+                    placeholder="e.g. Senior Frontend Engineer"
+                    value={formData.targetRole}
+                    onChange={(e) => setFormData({ ...formData, targetRole: e.target.value })}
+                    required
+                  />
                 </div>
               </div>
 
-              {/* Generate Button */}
-              <div className="pt-4 border-t border-white/[0.06]">
-                <button
-                  type="submit"
-                  disabled={isLoading || resumes.length === 0 || !selectedResumeId}
-                  className={`btn-primary relative w-full h-[56px] text-[15px] overflow-hidden ${isLoading ? 'animate-pulse' : ''}`}
-                  style={!isLoading ? { backgroundImage: 'linear-gradient(to right, #00D4AA, #00A68A)' } : {}}
-                >
-                  {isLoading ? (
-                    <span className="flex items-center justify-center gap-2">
-                      <div className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                      Drafting Messages...
-                    </span>
-                  ) : (
-                    <span className="flex items-center justify-center gap-2">
-                      <Send className="h-5 w-5" /> Generate Campaign
-                    </span>
-                  )}
-                </button>
+              {/* Target Company */}
+              <div>
+                <label className="mb-2 block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
+                  2. Target Company
+                </label>
+                <div className="relative group">
+                  <Building className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500 transition-colors group-focus-within:text-emerald-400" />
+                  <input
+                    type="text"
+                    className="input-base pl-11 text-[14px] w-full"
+                    placeholder="e.g. Stripe, Google..."
+                    value={formData.companyName}
+                    onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
+                    required
+                  />
+                </div>
               </div>
-            </form>
-          }
-          right={
+            </div>
+
+            {/* Base Resume */}
+            <div>
+              <label className="mb-2 block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
+                3. Select Base Profile
+              </label>
+              {loadingResumes ? (
+                <div className="skeleton h-[52px] w-full rounded-xl" />
+              ) : resumes.length === 0 ? (
+                <div className="flex items-center gap-2 rounded-xl border border-amber-500/20 bg-amber-500/10 p-3">
+                  <AlertCircle className="h-4 w-4 shrink-0 text-amber-500" />
+                  <p className="text-[12px] text-amber-200">
+                    No resumes. <Link to="/resumes" className="font-bold underline">Upload one</Link>.
+                  </p>
+                </div>
+              ) : (
+                <div className="relative">
+                  <select
+                    value={selectedResumeId}
+                    onChange={(e) => setSelectedResumeId(e.target.value)}
+                    className="input-base w-full appearance-none pr-10 text-[14px]"
+                    required
+                  >
+                    <option value="">Choose Base Profile...</option>
+                    {resumes.map((r) => (
+                      <option key={r._id} value={r._id}>{r.originalName}</option>
+                    ))}
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+                </div>
+              )}
+            </div>
+
+            {/* Tone Selection */}
+            <div>
+              <label className="mb-3 block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
+                4. Message Tone
+              </label>
+              <div className="grid gap-4 sm:grid-cols-3">
+                {TONES.map((t) => (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => setFormData({ ...formData, tone: t.id })}
+                    className={`flex flex-col w-full rounded-2xl border p-4 text-center transition-all duration-200 ${
+                      formData.tone === t.id
+                        ? 'border-emerald-500/50 bg-emerald-500/10 shadow-lg'
+                        : 'border-white/[0.06] bg-[#0A0B0F] text-slate-400 hover:border-white/[0.15]'
+                    }`}
+                  >
+                    <p className={`text-[13px] font-bold ${formData.tone === t.id ? 'text-emerald-400' : ''}`}>{t.label}</p>
+                    <p className={`text-[11px] mt-1 ${formData.tone === t.id ? 'text-emerald-400/80' : 'text-slate-500'}`}>{t.desc}</p>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Generate Button */}
+            <div className="pt-4 border-t border-white/[0.06]">
+              <button
+                type="submit"
+                disabled={isLoading || resumes.length === 0 || !selectedResumeId}
+                className={`btn-primary relative w-full h-[56px] text-[15px] overflow-hidden ${isLoading ? 'animate-pulse' : ''}`}
+                style={!isLoading ? { backgroundImage: 'linear-gradient(to right, #00D4AA, #00A68A)' } : {}}
+              >
+                {isLoading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                    Drafting Messages...
+                  </span>
+                ) : (
+                  <span className="flex items-center justify-center gap-2">
+                    <Send className="h-5 w-5" /> Generate Campaign
+                  </span>
+                )}
+              </button>
+            </div>
+          </form>
+
+          {/* Results Area */}
+          <div className="w-full">
             <div className="min-h-[600px] flex flex-col w-full">
               <AnimatePresence mode="wait">
                 {!result && !isLoading ? (
@@ -310,8 +310,8 @@ const OutreachPage = () => {
                 ) : null}
               </AnimatePresence>
             </div>
-          }
-        />
+          </div>
+        </div>
       </div>
     </DashboardLayout>
   );

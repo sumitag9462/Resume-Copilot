@@ -43,7 +43,9 @@ api.interceptors.response.use(
       localStorage.removeItem('token')
       localStorage.removeItem('user')
       // Only redirect if not already on an auth page
-      if (!window.location.pathname.includes('/login') && !window.location.pathname.includes('/register')) {
+      const authPages = ['/login', '/register', '/forgot-password', '/reset-password']
+      const isAuthPage = authPages.some(p => window.location.pathname.includes(p))
+      if (!isAuthPage) {
         window.location.href = '/login'
       }
     }

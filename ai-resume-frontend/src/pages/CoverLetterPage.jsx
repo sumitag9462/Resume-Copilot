@@ -150,138 +150,139 @@ const CoverLetterPage = () => {
           </div>
         </div>
 
-        {/* 60/40 Responsive Workspace */}
-        <WorkspaceLayout
-          left={
-            <form onSubmit={handleGenerate} className="card p-6 sm:p-8 space-y-8">
-              <div className="border-b border-white/[0.06] pb-4">
-                <h2 className="text-[15px] font-bold text-white">Campaign Details</h2>
-                <p className="text-[12px] text-slate-400 mt-1">Configure your generation parameters.</p>
-              </div>
+        {/* Full-width Layout */}
+        <div className="flex flex-col gap-8">
+          {/* Top Control Form */}
+          <form onSubmit={handleGenerate} className="card p-6 sm:p-8 space-y-8">
+            <div className="border-b border-white/[0.06] pb-4">
+              <h2 className="text-[15px] font-bold text-white">Campaign Details</h2>
+              <p className="text-[12px] text-slate-400 mt-1">Configure your generation parameters.</p>
+            </div>
 
-              <div className="grid gap-6 sm:grid-cols-2">
-                {/* Step 1: Resume */}
-                <div>
-                  <label className="mb-2 block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
-                    1. Base Resume
-                  </label>
-                  {loadingList ? (
-                    <div className="skeleton h-[52px] w-full rounded-xl" />
-                  ) : resumes.length === 0 ? (
-                    <div className="flex items-center gap-2 rounded-xl border border-amber-500/20 bg-amber-500/10 p-3">
-                      <AlertCircle className="h-4 w-4 shrink-0 text-amber-500" />
-                      <p className="text-[12px] text-amber-200">
-                        No resumes. <Link to="/resumes" className="font-bold underline">Upload one</Link>.
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="relative">
-                      <select
-                        value={selectedId}
-                        onChange={(e) => setSelectedId(e.target.value)}
-                        className="input-base w-full appearance-none pr-10 text-[14px]"
-                        required
-                      >
-                        <option value="">Choose Resume...</option>
-                        {resumes.map((r) => (
-                          <option key={r._id} value={r._id}>{r.originalName}</option>
-                        ))}
-                      </select>
-                      <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
-                    </div>
-                  )}
-                </div>
-
-                {/* Step 2: Company */}
-                <div>
-                  <label className="mb-2 block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
-                    2. Target Company
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={company}
-                      onChange={(e) => setCompany(e.target.value)}
-                      placeholder="e.g. Swiggy, Uber..."
-                      className="input-base w-full pl-10 text-[14px]"
-                      required
-                    />
-                    <Building2 className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
-                  </div>
-                </div>
-              </div>
-
-              {/* Step 3: JD */}
+            <div className="grid gap-6 sm:grid-cols-2">
+              {/* Step 1: Resume */}
               <div>
                 <label className="mb-2 block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
-                  3. Job Description
+                  1. Base Resume
                 </label>
-                <textarea
-                  value={jdText}
-                  onChange={(e) => setJdText(e.target.value)}
-                  placeholder="Paste the JD here..."
-                  rows={8}
-                  className="input-base w-full resize-none text-[14px] leading-relaxed"
-                  required
-                />
-                <div className="mt-2 flex items-center justify-between text-[11px] font-bold">
-                  <p className="text-slate-500">{jdText.length} chars</p>
-                  {jdText.length > 0 && jdText.length < MIN_JD_LENGTH && (
-                    <p className="text-amber-500">{jdCharsLeft} more needed</p>
-                  )}
-                  {jdText.length >= MIN_JD_LENGTH && (
-                    <p className="flex items-center gap-1 text-emerald-400"><CheckCircle className="h-3.5 w-3.5" /> Ready</p>
-                  )}
-                </div>
-              </div>
-
-              {/* Step 4: Style */}
-              <div>
-                <label className="mb-3 block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
-                  4. Tone Profile
-                </label>
-                <div className="grid gap-4 sm:grid-cols-3">
-                  {STYLES.map((s) => (
-                    <button
-                      key={s.key}
-                      type="button"
-                      onClick={() => setStyle(s.key)}
-                      className={`flex flex-col items-center justify-center gap-2 rounded-2xl border p-4 text-center transition-all duration-200 ${
-                        style === s.key ? s.color + " shadow-lg" : s.inactive + " bg-[#0A0B0F]"
-                      }`}
+                {loadingList ? (
+                  <div className="skeleton h-[52px] w-full rounded-xl" />
+                ) : resumes.length === 0 ? (
+                  <div className="flex items-center gap-2 rounded-xl border border-amber-500/20 bg-amber-500/10 p-3">
+                    <AlertCircle className="h-4 w-4 shrink-0 text-amber-500" />
+                    <p className="text-[12px] text-amber-200">
+                      No resumes. <Link to="/resumes" className="font-bold underline">Upload one</Link>.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="relative">
+                    <select
+                      value={selectedId}
+                      onChange={(e) => setSelectedId(e.target.value)}
+                      className="input-base w-full appearance-none pr-10 text-[14px]"
+                      required
                     >
-                      <span className="text-2xl">{s.emoji}</span>
-                      <div>
-                        <p className="text-[13px] font-bold">{s.label}</p>
-                      </div>
-                    </button>
-                  ))}
-                </div>
+                      <option value="">Choose Resume...</option>
+                      {resumes.map((r) => (
+                        <option key={r._id} value={r._id}>{r.originalName}</option>
+                      ))}
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+                  </div>
+                )}
               </div>
 
-              {/* Submit */}
-              <div className="pt-4 border-t border-white/[0.06]">
-                <button
-                  type="submit"
-                  disabled={isLoading || !isButtonEnabled}
-                  className={`btn-primary relative w-full h-[56px] text-[15px] overflow-hidden ${isLoading ? 'animate-pulse' : ''}`}
-                >
-                  {isLoading ? (
-                    <span className="flex items-center justify-center gap-2">
-                      <div className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                      Generating...
-                    </span>
-                  ) : (
-                    <span className="flex items-center justify-center gap-2">
-                      Generate Cover Letter <ArrowRight className="h-5 w-5" />
-                    </span>
-                  )}
-                </button>
+              {/* Step 2: Company */}
+              <div>
+                <label className="mb-2 block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
+                  2. Target Company
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={company}
+                    onChange={(e) => setCompany(e.target.value)}
+                    placeholder="e.g. Swiggy, Uber..."
+                    className="input-base w-full pl-10 text-[14px]"
+                    required
+                  />
+                  <Building2 className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+                </div>
               </div>
-            </form>
-          }
-          right={
-            !arenaRun && !isLoading ? (
+            </div>
+
+            {/* Step 3: JD */}
+            <div>
+              <label className="mb-2 block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
+                3. Job Description
+              </label>
+              <textarea
+                value={jdText}
+                onChange={(e) => setJdText(e.target.value)}
+                placeholder="Paste the JD here..."
+                rows={8}
+                className="input-base w-full resize-none text-[14px] leading-relaxed"
+                required
+              />
+              <div className="mt-2 flex items-center justify-between text-[11px] font-bold">
+                <p className="text-slate-500">{jdText.length} chars</p>
+                {jdText.length > 0 && jdText.length < MIN_JD_LENGTH && (
+                  <p className="text-amber-500">{jdCharsLeft} more needed</p>
+                )}
+                {jdText.length >= MIN_JD_LENGTH && (
+                  <p className="flex items-center gap-1 text-emerald-400"><CheckCircle className="h-3.5 w-3.5" /> Ready</p>
+                )}
+              </div>
+            </div>
+
+            {/* Step 4: Style */}
+            <div>
+              <label className="mb-3 block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
+                4. Tone Profile
+              </label>
+              <div className="grid gap-4 sm:grid-cols-3">
+                {STYLES.map((s) => (
+                  <button
+                    key={s.key}
+                    type="button"
+                    onClick={() => setStyle(s.key)}
+                    className={`flex flex-col items-center justify-center gap-2 rounded-2xl border p-4 text-center transition-all duration-200 ${
+                      style === s.key ? s.color + " shadow-lg" : s.inactive + " bg-[#0A0B0F]"
+                    }`}
+                  >
+                    <span className="text-2xl">{s.emoji}</span>
+                    <div>
+                      <p className="text-[13px] font-bold">{s.label}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Submit */}
+            <div className="pt-4 border-t border-white/[0.06]">
+              <button
+                type="submit"
+                disabled={isLoading || !isButtonEnabled}
+                className={`btn-primary relative w-full h-[56px] text-[15px] overflow-hidden ${isLoading ? 'animate-pulse' : ''}`}
+              >
+                {isLoading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                    Generating...
+                  </span>
+                ) : (
+                  <span className="flex items-center justify-center gap-2">
+                    Generate Cover Letter <ArrowRight className="h-5 w-5" />
+                  </span>
+                )}
+              </button>
+            </div>
+          </form>
+
+          {/* Results Area */}
+          <div className="w-full">
+            {!arenaRun && !isLoading ? (
               <EmptyState
                 icon={PenTool}
                 title="Cover Letter Will Appear Here"
@@ -299,9 +300,9 @@ const CoverLetterPage = () => {
                 onRegenerate={handleGenerate}
                 renderResult={renderResult}
               />
-            )
-          }
-        />
+            )}
+          </div>
+        </div>
       </div>
     </DashboardLayout>
   );

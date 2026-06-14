@@ -1,4 +1,4 @@
-import apiClient from './apiClient';
+import apiClient from './axiosConfig';
 
 export const authApi = {
     login: async (email, password) => {

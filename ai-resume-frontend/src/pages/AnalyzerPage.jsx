@@ -19,11 +19,20 @@ const AnalyzerPage = () => {
   const [selectedResumeId, setSelectedResumeId] = useState(preselectedId || '');
   const [loadingResumes, setLoadingResumes] = useState(true);
 
-  const { activeRuns, executeRun } = useArena();
+  const { activeRuns, executeRun, clearRun } = useArena();
   const runState = activeRuns["ats_analysis"] || { isLoading: false, arenaRun: null };
   const { isLoading, arenaRun } = runState;
 
   const { selectedModel, compareMode } = useModel();
+
+  // Clear state when navigating away from this page
+  useEffect(() => {
+    return () => {
+      if (clearRun) {
+        clearRun("ats_analysis");
+      }
+    };
+  }, [clearRun]);
 
   useEffect(() => {
     getAllResumes()
@@ -219,72 +228,72 @@ const AnalyzerPage = () => {
           </div>
         </div>
 
-        {/* 60/40 Responsive 2-Column AI Workspace */}
-        <WorkspaceLayout
-          rightEmpty={!arenaRun && !isLoading}
-          left={
-            <form onSubmit={handleAnalyze} className="card p-6 sm:p-8 relative overflow-hidden">
-              {isLoading && (
-                <div className="absolute top-0 left-0 h-1 w-full overflow-hidden bg-white/[0.02]">
-                  <div className="h-full w-1/3 bg-gradient-to-r from-transparent via-accent-violet to-transparent animate-shimmer" />
-                </div>
-              )}
-              
-              <div className="space-y-6">
-                <div>
-                  <label className="mb-2 block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
-                    Select Target Resume
-                  </label>
-                  {loadingResumes ? (
-                    <div className="skeleton h-[52px] w-full rounded-xl" />
-                  ) : resumes.length === 0 ? (
-                    <div className="flex items-center gap-3 rounded-xl border border-amber-500/20 bg-amber-500/10 px-4 py-3">
-                      <AlertCircle className="h-4 w-4 shrink-0 text-amber-500" />
-                      <p className="text-[13px] text-amber-200">
-                        No resumes found. <Link to="/resumes" className="font-bold underline">Upload one first</Link>.
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="relative">
-                      <select
-                        value={selectedResumeId}
-                        onChange={(e) => setSelectedResumeId(e.target.value)}
-                        className="input-base w-full appearance-none pr-10 text-[14px]"
-                        required
-                      >
-                        <option value="">-- Choose Resume --</option>
-                        {resumes.map((r) => (
-                          <option key={r._id} value={r._id}>{r.originalName}</option>
-                        ))}
-                      </select>
-                      <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
-                    </div>
-                  )}
-                </div>
-
-                <div className="pt-2">
-                  <button
-                    type="submit"
-                    disabled={isLoading || !selectedResumeId}
-                    className={`btn-primary relative w-full h-[52px] overflow-hidden ${isLoading ? 'animate-pulse' : ''}`}
-                  >
-                    {isLoading ? (
-                      <span className="flex items-center gap-2">
-                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                        Analyzing...
-                      </span>
-                    ) : (
-                      <span className="flex items-center justify-center gap-2">
-                        <ScanText className="h-4 w-4" /> Run ATS Audit
-                      </span>
-                    )}
-                  </button>
-                </div>
+        {/* Full-width Layout */}
+        <div className="flex flex-col gap-8">
+          {/* Top Control Form */}
+          <form onSubmit={handleAnalyze} className="card p-6 sm:p-8 relative overflow-hidden">
+            {isLoading && (
+              <div className="absolute top-0 left-0 h-1 w-full overflow-hidden bg-white/[0.02]">
+                <div className="h-full w-1/3 bg-gradient-to-r from-transparent via-accent-violet to-transparent animate-shimmer" />
               </div>
-            </form>
-          }
-          right={
-            !arenaRun && !isLoading ? (
+            )}
+            
+            <div className="space-y-6">
+              <div>
+                <label className="mb-2 block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
+                  Select Target Resume
+                </label>
+                {loadingResumes ? (
+                  <div className="skeleton h-[52px] w-full rounded-xl" />
+                ) : resumes.length === 0 ? (
+                  <div className="flex items-center gap-3 rounded-xl border border-amber-500/20 bg-amber-500/10 px-4 py-3">
+                    <AlertCircle className="h-4 w-4 shrink-0 text-amber-500" />
+                    <p className="text-[13px] text-amber-200">
+                      No resumes found. <Link to="/resumes" className="font-bold underline">Upload one first</Link>.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="relative">
+                    <select
+                      value={selectedResumeId}
+                      onChange={(e) => setSelectedResumeId(e.target.value)}
+                      className="input-base w-full appearance-none pr-10 text-[14px]"
+                      required
+                    >
+                      <option value="">-- Choose Resume --</option>
+                      {resumes.map((r) => (
+                        <option key={r._id} value={r._id}>{r.originalName}</option>
+                      ))}
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+                  </div>
+                )}
+              </div>
+
+              <div className="pt-2">
+                <button
+                  type="submit"
+                  disabled={isLoading || !selectedResumeId}
+                  className={`btn-primary relative w-full h-[52px] overflow-hidden ${isLoading ? 'animate-pulse' : ''}`}
+                >
+                  {isLoading ? (
+                    <span className="flex items-center gap-2">
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                      Analyzing...
+                    </span>
+                  ) : (
+                    <span className="flex items-center justify-center gap-2">
+                      <ScanText className="h-4 w-4" /> Run ATS Audit
+                    </span>
+                  )}
+                </button>
+              </div>
+            </div>
+          </form>
+
+          {/* Results Area */}
+          <div className="w-full">
+            {!arenaRun && !isLoading ? (
               <EmptyState
                 icon={BarChart2}
                 title="Upload Your Resume to Begin"
@@ -302,9 +311,9 @@ const AnalyzerPage = () => {
                 onRegenerate={handleAnalyze}
                 renderResult={renderResult}
               />
-            )
-          }
-        />
+            )}
+          </div>
+        </div>
       </div>
     </DashboardLayout>
   );

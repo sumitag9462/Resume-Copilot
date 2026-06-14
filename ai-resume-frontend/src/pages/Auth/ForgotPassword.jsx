@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, ShieldCheck, ArrowRight, ArrowLeft } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
-import apiClient from '../../api/apiClient';
+import apiClient from '../../api/axiosConfig';
 import { FloatingInput, PrimaryButton, OtpInput, AuthLayout, CountdownTimer } from './AuthComponents';
 
 const ForgotPasswordPage = () => {

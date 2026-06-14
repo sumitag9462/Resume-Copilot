@@ -338,10 +338,106 @@ const getAnalysisById = async (req, res, next) => {
 };
 
 
+// ─────────────────────────────────────────────────────────────
+// @desc    Get dashboard statistics for user
+// @route   GET /api/analysis/dashboard/stats
+// @access  Private
+// ─────────────────────────────────────────────────────────────
+const getDashboardStats = async (req, res, next) => {
+  try {
+    const userId = req.user._id;
+
+    const totalResumes = await Resume.countDocuments({ user: userId });
+
+    // Find highest ATS score
+    const highestAts = await Analysis.findOne({ user: userId, type: 'ats_analysis' })
+      .sort({ atsScore: -1 })
+      .select('atsScore');
+    
+    const maxScore = highestAts ? highestAts.atsScore : 0;
+
+    // Calculate a dynamic Profile Strength based on max ATS score + resume count
+    const profileStrength = totalResumes > 0 
+      ? Math.min(100, Math.round((maxScore * 0.8) + (totalResumes * 5)))
+      : 0;
+
+    const totalCoverLetters = await Analysis.countDocuments({ user: userId, type: 'cover_letter' });
+
+    // Fetch the 5 most recent activities
+    const recentActivityRaw = await Analysis.find({ user: userId })
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .select('type createdAt atsScore matchScore companyName jobRole');
+
+    // Format activity for the frontend
+    const recentActivity = recentActivityRaw.map(activity => {
+      let title = 'Activity';
+      let desc = '';
+      let icon = 'ScanText';
+      let color = 'text-accent-teal';
+
+      if (activity.type === 'ats_analysis') {
+        title = 'ATS Analysis Complete';
+        desc = `Resume scored ${activity.atsScore}%`;
+        icon = 'ScanText';
+        color = 'text-accent-teal';
+      } else if (activity.type === 'jd_match') {
+        title = 'JD Match Complete';
+        desc = `Matched with score ${activity.matchScore || 0}%`;
+        icon = 'Briefcase';
+        color = 'text-warning';
+      } else if (activity.type === 'cover_letter') {
+        title = 'Cover Letter Generated';
+        desc = `Tailored for ${activity.jobRole || 'role'} at ${activity.companyName || 'company'}`;
+        icon = 'FileText';
+        color = 'text-accent-violet';
+      }
+
+      return {
+        id: activity._id,
+        type: activity.type,
+        title,
+        desc,
+        time: activity.createdAt,
+        icon,
+        color
+      };
+    });
+
+    // Score Trend Graph (last 5 scores)
+    const recentScores = await Analysis.find({ user: userId, type: 'ats_analysis' })
+      .sort({ createdAt: 1 })
+      .limit(5)
+      .select('atsScore createdAt');
+
+    const scoreTrend = recentScores.map((score, index) => ({
+      label: `Scan ${index + 1}`,
+      score: score.atsScore
+    }));
+
+    res.status(200).json({
+      success: true,
+      stats: {
+        atsScore: maxScore,
+        profileStrength,
+        totalResumes,
+        totalCoverLetters,
+        recentActivity,
+        scoreTrend
+      }
+    });
+
+  } catch (error) {
+    next(error);
+  }
+};
+
+
 module.exports = {
   runATSAnalysis,
   matchWithJob,
   createCoverLetter,
   getHistory,
   getAnalysisById,
+  getDashboardStats,
 };

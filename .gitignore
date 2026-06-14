@@ -31,3 +31,7 @@ pnpm-debug.log*
 
 # Test coverage
 coverage/
+
+# Developer scratch/debug scripts
+ai-resume-backend/scratch/
+ai-resume-frontend/scratch/

@@ -202,17 +202,22 @@ const JDMatchPage = () => {
             </p>
           </div>
         </div>
-
-        {/* 60/40 Responsive Workspace */}
-        <WorkspaceLayout
-          rightEmpty={!arenaRun && !isLoading}
-          left={
-            <form onSubmit={handleMatch} className="card p-6 sm:p-8 space-y-8">
-              <div className="border-b border-white/[0.06] pb-4">
-                <h2 className="text-[15px] font-bold text-white">Match Parameters</h2>
-                <p className="text-[12px] text-slate-400 mt-1">Configure your scan settings.</p>
+         {/* Full-width Layout */}
+        <div className="flex flex-col gap-8">
+          {/* Top Control Form */}
+          <form onSubmit={handleMatch} className="card p-6 sm:p-8 relative overflow-hidden">
+            {isLoading && (
+              <div className="absolute top-0 left-0 h-1 w-full overflow-hidden bg-white/[0.02]">
+                <div className="h-full w-1/3 bg-gradient-to-r from-transparent via-[#8FB3FF] to-transparent animate-shimmer" />
               </div>
+            )}
 
+            <div className="border-b border-white/[0.06] pb-4 mb-6">
+              <h2 className="text-[15px] font-bold text-white">Match Parameters</h2>
+              <p className="text-[12px] text-slate-400 mt-1">Configure your scan settings.</p>
+            </div>
+
+            <div className="grid gap-6 md:grid-cols-2">
               {/* Step 1: Resume */}
               <div>
                 <label className="mb-2 block text-[11px] font-bold uppercase tracking-widest text-slate-500">
@@ -245,54 +250,59 @@ const JDMatchPage = () => {
                 )}
               </div>
 
-              {/* Step 2: JD Text */}
-              <div>
-                <label className="mb-2 block text-[11px] font-bold uppercase tracking-widest text-slate-500">
-                  2. Job Description
-                </label>
-                <textarea
-                  value={jdText}
-                  onChange={(e) => setJdText(e.target.value)}
-                  placeholder="Paste the target JD here..."
-                  rows={10}
-                  className="input-base w-full resize-none text-[14px] leading-relaxed min-h-[200px]"
-                  required
-                />
-                <div className="mt-2 flex items-center justify-between text-[11px] font-bold">
-                  <p className="text-slate-500">{jdText.length} chars</p>
-                  {jdText.length > 0 && jdText.length < MIN_JD_LENGTH && (
-                    <p className="text-amber-500">{jdCharsLeft} more needed</p>
-                  )}
-                  {jdText.length >= MIN_JD_LENGTH && (
-                    <p className="flex items-center gap-1 text-[#8FB3FF]"><CheckCircle className="h-3.5 w-3.5" /> Ready</p>
-                  )}
-                </div>
-              </div>
+              {/* Submit Button (Moved here for better grid layout if desired, but let's keep it below JD Text) */}
+              <div className="hidden md:block"></div>
+            </div>
 
-              {/* Submit Button */}
-              <div className="pt-4 border-t border-white/[0.06]">
-                <button
-                  type="submit"
-                  disabled={isLoading || !isButtonEnabled}
-                  className={`btn-primary relative w-full h-[56px] text-[15px] overflow-hidden ${isLoading ? 'animate-pulse' : ''}`}
-                  style={!isLoading ? { backgroundImage: 'linear-gradient(to right, #5B8FFF, #3B6FD9)' } : {}}
-                >
-                  {isLoading ? (
-                    <span className="flex items-center justify-center gap-2">
-                      <div className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                      Scanning JD...
-                    </span>
-                  ) : (
-                    <span className="flex items-center justify-center gap-2">
-                      Run Match Analysis <ArrowRight className="h-5 w-5" />
-                    </span>
-                  )}
-                </button>
+            {/* Step 2: JD Text */}
+            <div className="mt-6">
+              <label className="mb-2 block text-[11px] font-bold uppercase tracking-widest text-slate-500">
+                2. Job Description
+              </label>
+              <textarea
+                value={jdText}
+                onChange={(e) => setJdText(e.target.value)}
+                placeholder="Paste the target JD here..."
+                rows={8}
+                className="input-base w-full resize-none text-[14px] leading-relaxed min-h-[160px]"
+                required
+              />
+              <div className="mt-2 flex items-center justify-between text-[11px] font-bold">
+                <p className="text-slate-500">{jdText.length} chars</p>
+                {jdText.length > 0 && jdText.length < MIN_JD_LENGTH && (
+                  <p className="text-amber-500">{jdCharsLeft} more needed</p>
+                )}
+                {jdText.length >= MIN_JD_LENGTH && (
+                  <p className="flex items-center gap-1 text-[#8FB3FF]"><CheckCircle className="h-3.5 w-3.5" /> Ready</p>
+                )}
               </div>
-            </form>
-          }
-          right={
-            !arenaRun && !isLoading ? (
+            </div>
+
+            {/* Submit Button */}
+            <div className="pt-6 mt-6 border-t border-white/[0.06]">
+              <button
+                type="submit"
+                disabled={isLoading || !isButtonEnabled}
+                className={`btn-primary relative w-full h-[56px] text-[15px] overflow-hidden ${isLoading ? 'animate-pulse' : ''}`}
+                style={!isLoading ? { backgroundImage: 'linear-gradient(to right, #5B8FFF, #3B6FD9)' } : {}}
+              >
+                {isLoading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                    Scanning JD...
+                  </span>
+                ) : (
+                  <span className="flex items-center justify-center gap-2">
+                    Run Match Analysis <ArrowRight className="h-5 w-5" />
+                  </span>
+                )}
+              </button>
+            </div>
+          </form>
+
+          {/* Results Area */}
+          <div className="w-full">
+            {!arenaRun && !isLoading ? (
               <EmptyState
                 icon={Target}
                 title="Match Results Will Appear Here"
@@ -310,9 +320,9 @@ const JDMatchPage = () => {
                 onRegenerate={handleMatch}
                 renderResult={renderResult}
               />
-            )
-          }
-        />
+            )}
+          </div>
+        </div>
       </div>
     </DashboardLayout>
   );

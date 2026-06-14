@@ -50,13 +50,9 @@ const InterviewPrepPage = () => {
   const [jobDescription, setJobDescription] = useState("");
   const [questionCount, setQuestionCount] = useState(3);
 
-  // File Upload State
-  const [dragOver, setDragOver] = useState(false);
-  const [uploadFile, setUploadFile] = useState(null);
-  const [uploading, setUploading] = useState(false);
 
   // Active Session State
-  const { activeRuns, executeRun } = useArena();
+  const { activeRuns, executeRun, clearRun } = useArena();
   const runState = activeRuns["interview_prep"] || { isLoading: false, arenaRun: null };
   const { isLoading, arenaRun } = runState;
 
@@ -116,56 +112,6 @@ const InterviewPrepPage = () => {
     }
   };
 
-  // Handle Drag & Drop
-  const handleDrag = (e) => {
-    e.preventDefault();
-    setDragOver(true);
-  };
-
-  const handleDragLeave = () => {
-    setDragOver(false);
-  };
-
-  const handleDrop = (e) => {
-    e.preventDefault();
-    setDragOver(false);
-    const file = e.dataTransfer.files[0];
-    if (file) validateAndSetFile(file);
-  };
-
-  const validateAndSetFile = (file) => {
-    const isDoc = file.type === "application/pdf" || 
-                  file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
-                  file.name.endsWith(".pdf") || 
-                  file.name.endsWith(".docx");
-
-    if (!isDoc) {
-      return toast.error("Only PDF or DOCX files are allowed.");
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      return toast.error("File size must be under 5MB.");
-    }
-    setUploadFile(file);
-  };
-
-  const handleUploadResume = async () => {
-    if (!uploadFile) return;
-    setUploading(true);
-    try {
-      const res = await uploadResume(uploadFile);
-      if (res.success) {
-        toast.success("Resume uploaded and parsed!");
-        setResumes((prev) => [res.resume, ...prev]);
-        setSelectedResumeId(res.resume._id);
-        setUploadFile(null);
-      }
-    } catch (err) {
-      toast.error(err?.response?.data?.message || "Failed to upload resume.");
-    } finally {
-      setUploading(false);
-    }
-  };
-
   // Generate Questions
   const handleGenerate = async (e) => {
     if (e) e.preventDefault();
@@ -195,7 +141,7 @@ const InterviewPrepPage = () => {
         toast.success("Prep history deleted.");
         setHistoryList((prev) => prev.filter((item) => item._id !== id));
         if (arenaRun?._id === id) {
-          executeRun("interview_prep", null);
+          clearRun("interview_prep");
           setExpandedIndex(null);
         }
       }
@@ -451,122 +397,123 @@ const InterviewPrepPage = () => {
         </div>
 
         {/* 60/40 Responsive Workspace */}
-        <WorkspaceLayout
-          rightEmpty={!arenaRun && !isLoading}
-          left={
-            <form onSubmit={handleGenerate} className="card p-6 sm:p-8 space-y-8">
-              <div className="border-b border-white/[0.06] pb-4">
-                <h2 className="text-[15px] font-bold text-white">Simulation Details</h2>
-                <p className="text-[12px] text-slate-400 mt-1">Configure your mock interview parameters.</p>
+        {/* Full-width Layout */}
+        <div className="flex flex-col gap-8">
+          {/* Top Control Form */}
+          <form onSubmit={handleGenerate} className="card p-6 sm:p-8 space-y-8">
+            <div className="border-b border-white/[0.06] pb-4">
+              <h2 className="text-[15px] font-bold text-white">Simulation Details</h2>
+              <p className="text-[12px] text-slate-400 mt-1">Configure your mock interview parameters.</p>
+            </div>
+
+            <div className="grid gap-6 sm:grid-cols-2">
+              {/* Target Role */}
+              <div>
+                <label className="mb-2 block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
+                  1. Target Role
+                </label>
+                <div className="relative group">
+                  <User className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500 transition-colors group-focus-within:text-[#7C5CFC]" />
+                  <input
+                    type="text"
+                    value={role}
+                    onChange={(e) => setRole(e.target.value)}
+                    placeholder="e.g. Frontend Engineer"
+                    className="input-base pl-11 text-[14px] w-full"
+                    required
+                  />
+                </div>
               </div>
 
-              <div className="grid gap-6 sm:grid-cols-2">
-                {/* Target Role */}
-                <div>
-                  <label className="mb-2 block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
-                    1. Target Role
-                  </label>
-                  <div className="relative group">
-                    <User className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500 transition-colors group-focus-within:text-[#7C5CFC]" />
-                    <input
-                      type="text"
-                      value={role}
-                      onChange={(e) => setRole(e.target.value)}
-                      placeholder="e.g. Frontend Engineer"
-                      className="input-base pl-11 text-[14px] w-full"
-                      required
-                    />
+              {/* Resume */}
+              <div>
+                <label className="mb-2 block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
+                  2. Base Resume
+                </label>
+                {resumes.length === 0 ? (
+                  <div className="flex items-center gap-2 rounded-xl border border-amber-500/20 bg-amber-500/10 p-3">
+                    <AlertCircle className="h-4 w-4 shrink-0 text-amber-500" />
+                    <p className="text-[12px] text-amber-200">
+                      No resumes. <Link to="/resumes" className="font-bold underline">Upload one</Link>.
+                    </p>
                   </div>
-                </div>
-
-                {/* Resume */}
-                <div>
-                  <label className="mb-2 block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
-                    2. Base Resume
-                  </label>
-                  {resumes.length === 0 ? (
-                    <div className="flex items-center gap-2 rounded-xl border border-amber-500/20 bg-amber-500/10 p-3">
-                      <AlertCircle className="h-4 w-4 shrink-0 text-amber-500" />
-                      <p className="text-[12px] text-amber-200">
-                        No resumes. <Link to="/resumes" className="font-bold underline">Upload one</Link>.
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="relative">
-                      <select
-                        value={selectedResumeId}
-                        onChange={(e) => setSelectedResumeId(e.target.value)}
-                        className="input-base w-full appearance-none pr-10 text-[14px]"
-                        required
-                      >
-                        <option value="">Choose Resume...</option>
-                        {resumes.map(r => (
-                          <option key={r._id} value={r._id}>{r.originalName}</option>
-                        ))}
-                      </select>
-                      <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
-                    </div>
-                  )}
-                </div>
+                ) : (
+                  <div className="relative">
+                    <select
+                      value={selectedResumeId}
+                      onChange={(e) => setSelectedResumeId(e.target.value)}
+                      className="input-base w-full appearance-none pr-10 text-[14px]"
+                      required
+                    >
+                      <option value="">Choose Resume...</option>
+                      {resumes.map(r => (
+                        <option key={r._id} value={r._id}>{r.originalName}</option>
+                      ))}
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+                  </div>
+                )}
               </div>
+            </div>
 
-              {/* JD */}
-              <div>
-                <label className="mb-2 flex items-center justify-between text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
-                  <span>3. Job Description</span>
-                  <span className="text-[9px] text-slate-600 border border-white/[0.08] px-1.5 py-0.5 rounded">OPTIONAL</span>
-                </label>
-                <textarea
-                  rows={6}
-                  value={jobDescription}
-                  onChange={(e) => setJobDescription(e.target.value)}
-                  placeholder="Paste JD to make questions highly specific..."
-                  className="input-base w-full text-[14px] resize-none leading-relaxed"
-                />
-              </div>
+            {/* JD */}
+            <div>
+              <label className="mb-2 flex items-center justify-between text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
+                <span>3. Job Description</span>
+                <span className="text-[9px] text-slate-600 border border-white/[0.08] px-1.5 py-0.5 rounded">OPTIONAL</span>
+              </label>
+              <textarea
+                rows={6}
+                value={jobDescription}
+                onChange={(e) => setJobDescription(e.target.value)}
+                placeholder="Paste JD to make questions highly specific..."
+                className="input-base w-full text-[14px] resize-none leading-relaxed"
+              />
+            </div>
 
-              {/* Count */}
-              <div>
-                <label className="mb-4 flex text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500 justify-between items-center">
-                  <span>4. Question Count</span>
-                  <span className="text-white bg-[#7C5CFC]/20 px-2 py-0.5 rounded text-[10px]">{questionCount} questions</span>
-                </label>
-                <input
-                  type="range"
-                  min="1"
-                  max="10"
-                  value={questionCount}
-                  onChange={(e) => setQuestionCount(Number(e.target.value))}
-                  className="w-full accent-[#7C5CFC] cursor-pointer h-2 bg-white/[0.08] rounded-full appearance-none outline-none"
-                />
-                <div className="flex justify-between text-[10px] font-bold text-slate-600 mt-2">
-                  <span>1 Question</span>
-                  <span>10 Max</span>
-                </div>
+            {/* Count */}
+            <div>
+              <label className="mb-4 flex text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500 justify-between items-center">
+                <span>4. Question Count</span>
+                <span className="text-white bg-[#7C5CFC]/20 px-2 py-0.5 rounded text-[10px]">{questionCount} questions</span>
+              </label>
+              <input
+                type="range"
+                min="1"
+                max="10"
+                value={questionCount}
+                onChange={(e) => setQuestionCount(Number(e.target.value))}
+                className="w-full accent-[#7C5CFC] cursor-pointer h-2 bg-white/[0.08] rounded-full appearance-none outline-none"
+              />
+              <div className="flex justify-between text-[10px] font-bold text-slate-600 mt-2">
+                <span>1 Question</span>
+                <span>10 Max</span>
               </div>
+            </div>
 
-              {/* Submit */}
-              <div className="pt-4 border-t border-white/[0.06]">
-                <button
-                  type="submit"
-                  disabled={isLoading || !selectedResumeId}
-                  className={`btn-primary relative w-full h-[56px] text-[15px] overflow-hidden ${isLoading ? 'animate-pulse' : ''}`}
-                >
-                  {isLoading ? (
-                    <span className="flex items-center justify-center gap-2">
-                      <div className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                      Simulating Interview...
-                    </span>
-                  ) : (
-                    <span className="flex items-center justify-center gap-2">
-                      <BrainCircuit className="h-5 w-5" /> Generate Mock Interview
-                    </span>
-                  )}
-                </button>
-              </div>
-            </form>
-          }
-          right={
+            {/* Submit */}
+            <div className="pt-4 border-t border-white/[0.06]">
+              <button
+                type="submit"
+                disabled={isLoading || !selectedResumeId}
+                className={`btn-primary relative w-full h-[56px] text-[15px] overflow-hidden ${isLoading ? 'animate-pulse' : ''}`}
+              >
+                {isLoading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                    Simulating Interview...
+                  </span>
+                ) : (
+                  <span className="flex items-center justify-center gap-2">
+                    <BrainCircuit className="h-5 w-5" /> Generate Mock Interview
+                  </span>
+                )}
+              </button>
+            </div>
+          </form>
+
+          {/* Results Area */}
+          <div className="w-full">
             <div className="min-w-0 space-y-6 w-full">
               {!arenaRun && !isLoading ? (
                 <EmptyState
@@ -628,10 +575,9 @@ const InterviewPrepPage = () => {
                   </div>
                 )}
               </div>
-              
             </div>
-          }
-        />
+          </div>
+        </div>
       </div>
     </DashboardLayout>
   );

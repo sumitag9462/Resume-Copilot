@@ -25,10 +25,15 @@ const {
   createCoverLetter,
   getHistory,
   getAnalysisById,
+  getDashboardStats,
 } = require('../controllers/analysisController');
 
 // All analysis routes require login
 router.use(protect);
+
+// ── DASHBOARD STATS ─────────────────────────────────────────
+// IMPORTANT: MUST come before /:id
+router.get('/dashboard/stats', getDashboardStats); // GET /api/analysis/dashboard/stats
 
 // ── ANALYSIS CREATION ROUTES ────────────────────────────────
 router.post('/resume/:id/ats', runATSAnalysis);   // LEGACY alias for POST /api/analysis/ats

@@ -23,9 +23,9 @@ if (missingEnv.length > 0) {
 }
 
 // Warn about missing but optional email config
-if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-  console.warn('\n⚠️  STARTUP WARNING: EMAIL_USER and/or EMAIL_PASS are not configured.');
-  console.warn('   Nodemailer emails will not be sent; OTP codes will fall back to stdout/terminal logs only.\n');
+if (!process.env.BREVO_API_KEY) {
+  console.warn('\n⚠️  STARTUP WARNING: BREVO_API_KEY is not configured.');
+  console.warn('   OTP emails will not be sent via Brevo; OTP codes will fall back to stdout/terminal logs only.\n');
 }
 
 const connectDB = require('./config/db');

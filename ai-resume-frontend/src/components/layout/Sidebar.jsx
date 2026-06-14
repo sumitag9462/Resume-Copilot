@@ -29,8 +29,8 @@ const navGroups = [
   {
     title: 'Evaluate',
     items: [
-      { path: '/analysis/1', label: 'ATS Analysis', icon: BarChart3 },
-      { path: '/jd-match', label: 'JD Match', icon: Briefcase },
+      { path: '/analyzer', label: 'ATS Analysis', icon: BarChart3 },
+      { path: '/jd-match', label: 'Job Description Match', icon: Briefcase },
     ]
   },
   {
@@ -101,7 +101,7 @@ const Sidebar = ({ isOpen, onClose }) => {
             </p>
             <div className="space-y-1">
               {group.items.map(({ path, label, icon: Icon }) => {
-                const active = pathname === path || (path === '/analysis/1' && pathname.startsWith('/analysis'))
+                const active = pathname === path
                 return (
                   <Link
                     key={path}

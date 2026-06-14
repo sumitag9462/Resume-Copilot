@@ -50,3 +50,10 @@ export const getAnalysisById = async (analysisId) => {
   const response = await api.get(`/analysis/${analysisId}`)
   return response.data
 }
+
+// GET /api/analysis/dashboard/stats
+// Returns aggregated dashboard stats for the user
+export const getDashboardStats = async () => {
+  const response = await api.get('/analysis/dashboard/stats')
+  return response.data
+}

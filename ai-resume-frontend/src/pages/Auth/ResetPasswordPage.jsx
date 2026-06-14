@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Lock, Sparkles, ArrowRight } from 'lucide-react';
-import apiClient from '../../api/apiClient';
+import apiClient from '../../api/axiosConfig';
 import { FloatingInput, PrimaryButton, AuthLayout, PasswordStrengthIndicator } from './AuthComponents';
 
 const ResetPasswordPage = () => {

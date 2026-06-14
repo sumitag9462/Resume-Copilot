@@ -82,10 +82,7 @@ const App = () => {
             path="/analyzer"
             element={<ProtectedRoute><AnalyzerPage /></ProtectedRoute>}
           />
-          <Route
-            path="/analysis/:id"
-            element={<ProtectedRoute><AnalyzerPage /></ProtectedRoute>}
-          />
+          
           <Route
             path="/jd-match"
             element={<ProtectedRoute><JDMatchPage /></ProtectedRoute>}

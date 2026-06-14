@@ -41,13 +41,10 @@ const ResumeBoostPage = () => {
     "Responsible for writing code and testing frontend features using React."
   );
 
-  // File Upload State
-  const [dragOver, setDragOver] = useState(false);
-  const [uploadFile, setUploadFile] = useState(null);
-  const [uploading, setUploading] = useState(false);
+
 
   // Active Session State
-  const { activeRuns, executeRun } = useArena();
+  const { activeRuns, executeRun, clearRun } = useArena();
   const activeFeatureId = activeTab === "boost" ? "resume_boost" : "resume_rebuilder";
   const runState = activeRuns[activeFeatureId] || { isLoading: false, arenaRun: null };
   const { isLoading, arenaRun } = runState;
@@ -103,59 +100,11 @@ const ResumeBoostPage = () => {
   // Toggle active sub-feature
   const handleToggleSubFeature = (tab) => {
     setActiveTab(tab);
-    executeRun(activeFeatureId, null); // Clear current run
+    clearRun(activeFeatureId); // Clear current run properly
     setHistoryList([]);
   };
 
-  // Handle Drag & Drop File Upload
-  const handleDrag = (e) => {
-    e.preventDefault();
-    setDragOver(true);
-  };
 
-  const handleDragLeave = () => {
-    setDragOver(false);
-  };
-
-  const handleDrop = (e) => {
-    e.preventDefault();
-    setDragOver(false);
-    const file = e.dataTransfer.files[0];
-    if (file) validateAndSetFile(file);
-  };
-
-  const validateAndSetFile = (file) => {
-    const isDoc = file.type === "application/pdf" ||
-      file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
-      file.name.endsWith(".pdf") ||
-      file.name.endsWith(".docx");
-
-    if (!isDoc) {
-      return toast.error("Only PDF or DOCX files are allowed.");
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      return toast.error("File size must be under 5MB.");
-    }
-    setUploadFile(file);
-  };
-
-  const handleUploadResume = async () => {
-    if (!uploadFile) return;
-    setUploading(true);
-    try {
-      const res = await uploadResume(uploadFile);
-      if (res.success) {
-        toast.success("Resume uploaded and parsed!");
-        setResumes((prev) => [res.resume, ...prev]);
-        setSelectedResumeId(res.resume._id);
-        setUploadFile(null);
-      }
-    } catch (err) {
-      toast.error(err?.response?.data?.message || "Failed to upload resume.");
-    } finally {
-      setUploading(false);
-    }
-  };
 
   // Submit Boost or Rebuilder
   const handleRun = async (e) => {
@@ -215,7 +164,7 @@ const ResumeBoostPage = () => {
         toast.success("Record deleted.");
         setHistoryList((prev) => prev.filter((item) => item._id !== id));
         if (arenaRun?._id === id) {
-          executeRun(activeFeatureId, null);
+          clearRun(activeFeatureId);
         }
       }
     } catch (err) {
@@ -361,10 +310,10 @@ const ResumeBoostPage = () => {
       <div className="mx-auto w-full max-w-[1280px] page-enter">
         
         {/* Contextual Header */}
-        <div className="mb-8 flex flex-col justify-between gap-6 overflow-hidden rounded-3xl border border-white/[0.06] bg-[#0E101A] p-6 shadow-2xl sm:flex-row sm:items-center sm:p-8 relative">
+        <div className="mb-8 flex flex-col justify-between gap-6 overflow-hidden rounded-3xl border border-white/[0.06] bg-[#0E101A] p-6 shadow-2xl lg:flex-row lg:items-center sm:p-8 relative">
           <div className="absolute right-0 top-0 h-full w-1/2 bg-gradient-to-l from-accent-teal/10 to-transparent opacity-40" />
           
-          <div className="relative z-10">
+          <div className="relative z-10 flex-1">
             <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-accent-teal/20 bg-accent-teal/10 px-3 py-1">
               <Sparkles className="h-3.5 w-3.5 text-accent-teal" />
               <span className="text-[10px] font-bold uppercase tracking-widest text-accent-teal">Content Optimization</span>
@@ -374,186 +323,155 @@ const ResumeBoostPage = () => {
               Enhance single bullet points or trigger complete professional resume rewrites across multiple AI models.
             </p>
           </div>
+
+          {!arenaRun && !isLoading && (
+            <div className="relative z-10 hidden lg:block border-l border-white/[0.06] pl-8">
+              <div className="flex items-start gap-5">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-accent-violet/10 border border-accent-violet/20">
+                  <Zap className="h-6 w-6 text-accent-violet" />
+                </div>
+                <div>
+                  <h3 className="text-[14px] font-bold text-white">Ready to Boost Your Resume</h3>
+                  <p className="mt-1 text-[12px] text-slate-400 max-w-[250px] leading-relaxed">
+                    Select a resume and we'll rewrite your bullet points with stronger action verbs and quantified impact.
+                  </p>
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    <span className="inline-flex items-center rounded-md border border-accent-violet/20 bg-accent-violet/10 px-2 py-1 text-[10px] font-medium text-accent-violet">Stronger Bullets</span>
+                    <span className="inline-flex items-center rounded-md border border-accent-teal/20 bg-accent-teal/10 px-2 py-1 text-[10px] font-medium text-accent-teal">Action Verbs</span>
+                    <span className="inline-flex items-center rounded-md border border-amber-500/20 bg-amber-500/10 px-2 py-1 text-[10px] font-medium text-amber-500">Impact Metrics</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* 60/40 Responsive Workspace */}
-        <WorkspaceLayout
-          rightEmpty={!arenaRun && !isLoading}
-          left={
-            <div className="card p-0 overflow-hidden">
-              <div className="flex border-b border-white/[0.06] bg-[#0A0B0F]">
-                <button
-                  onClick={() => handleToggleSubFeature("boost")}
-                  className={`flex-1 flex items-center justify-center gap-2 py-4 px-4 text-[13px] font-bold border-b-2 transition-colors ${activeTab === "boost" ? "border-accent-teal text-white bg-white/[0.02]" : "border-transparent text-slate-500 hover:text-slate-300 hover:bg-white/[0.01]"
-                    }`}
-                >
-                  <Sparkles className="h-4 w-4" /> Boost Bullet Point
-                </button>
-                <button
-                  onClick={() => handleToggleSubFeature("rebuilder")}
-                  className={`flex-1 flex items-center justify-center gap-2 py-4 px-4 text-[13px] font-bold border-b-2 transition-colors ${activeTab === "rebuilder" ? "border-accent-violet-light text-white bg-white/[0.02]" : "border-transparent text-slate-500 hover:text-slate-300 hover:bg-white/[0.01]"
-                    }`}
-                >
-                  <Wand2 className="h-4 w-4" /> Full Rebuild
-                </button>
-              </div>
+        {/* Full-width Layout */}
+        <div className="flex flex-col gap-8">
+          {/* Top Control Form */}
+          <div className="card p-0 overflow-hidden">
+            <div className="flex border-b border-white/[0.06] bg-[#0A0B0F]">
+              <button
+                onClick={() => handleToggleSubFeature("boost")}
+                className={`flex-1 flex items-center justify-center gap-2 py-4 px-4 text-[13px] font-bold border-b-2 transition-colors ${activeTab === "boost" ? "border-accent-teal text-white bg-white/[0.02]" : "border-transparent text-slate-500 hover:text-slate-300 hover:bg-white/[0.01]"
+                  }`}
+              >
+                <Sparkles className="h-4 w-4" /> Boost Bullet Point
+              </button>
+              <button
+                onClick={() => handleToggleSubFeature("rebuilder")}
+                className={`flex-1 flex items-center justify-center gap-2 py-4 px-4 text-[13px] font-bold border-b-2 transition-colors ${activeTab === "rebuilder" ? "border-accent-violet-light text-white bg-white/[0.02]" : "border-transparent text-slate-500 hover:text-slate-300 hover:bg-white/[0.01]"
+                  }`}
+              >
+                <Wand2 className="h-4 w-4" /> Full Rebuild
+              </button>
+            </div>
 
-              <div className="p-6 sm:p-8">
-                {activeTab === "rebuilder" && (
-                  <div className="mb-8">
-                    <h3 className="mb-3 text-[11px] font-bold uppercase tracking-widest text-slate-500 flex items-center gap-2">
-                      <Upload className="h-4 w-4 text-accent-violet-light" /> Upload New Resume (Optional)
-                    </h3>
-                    <div
-                      onDragOver={handleDrag}
-                      onDragLeave={handleDragLeave}
-                      onDrop={handleDrop}
-                      className={`relative rounded-2xl border-2 border-dashed p-6 text-center cursor-pointer transition-colors ${dragOver ? "border-accent-violet-light bg-accent-violet/5" : "border-white/[0.08] hover:border-white/[0.15] bg-[#0A0B0F]"
-                        }`}
-                    >
-                      <Upload className="mx-auto h-6 w-6 text-slate-600 mb-3" />
-                      <p className="text-[12px] font-bold text-slate-400">Drag files here or click to browse</p>
-                      <p className="text-[10px] text-slate-500 mt-1">PDF or DOCX up to 5MB</p>
-                      <input
-                        type="file"
-                        onChange={(e) => validateAndSetFile(e.target.files[0])}
-                        className="hidden"
-                        id="dropzone-file"
+            <div className="p-6 sm:p-8">
+              <form onSubmit={handleRun} className="space-y-6">
+                {activeTab === "boost" ? (
+                  <>
+                    <div>
+                      <label className="mb-2 block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">1. Original Bullet Point</label>
+                      <textarea
+                        rows={4}
+                        value={bulletText}
+                        onChange={(e) => setBulletText(e.target.value)}
+                        placeholder="Paste single bullet point here (e.g. was coding React features)..."
+                        className="input-base text-[13px] resize-none leading-relaxed"
+                        required
                       />
-                      <label htmlFor="dropzone-file" className="absolute inset-0 cursor-pointer" />
                     </div>
-                    {uploadFile && (
-                      <div className="mt-3 space-y-3">
-                        <div className="flex items-center justify-between text-[12px] bg-white/[0.04] border border-white/[0.06] rounded-xl p-3">
-                          <span className="truncate max-w-[200px] text-white font-bold">{uploadFile.name}</span>
-                          <button onClick={() => setUploadFile(null)} className="text-rose-400 hover:bg-rose-400/10 p-1 rounded-md transition-colors"><X className="h-4 w-4" /></button>
-                        </div>
-                        <button
-                          onClick={handleUploadResume}
-                          disabled={uploading}
-                          className="btn-primary w-full py-2.5 text-[13px] flex justify-center items-center gap-2"
-                        >
-                          {uploading ? "Uploading..." : "Parse File"}
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                <form onSubmit={handleRun} className="space-y-6">
-                  {activeTab === "boost" ? (
-                    <>
+                    <div>
+                      <label className="mb-2 flex justify-between items-center text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
+                        <span>2. Target Role</span>
+                        <span className="text-[9px] border border-white/[0.08] px-1.5 py-0.5 rounded text-slate-600">OPTIONAL</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={role}
+                        onChange={(e) => setRole(e.target.value)}
+                        placeholder="e.g. Senior Frontend Engineer"
+                        className="input-base text-[14px]"
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="grid gap-6 sm:grid-cols-2">
                       <div>
-                        <label className="mb-2 block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">1. Original Bullet Point</label>
-                        <textarea
-                          rows={4}
-                          value={bulletText}
-                          onChange={(e) => setBulletText(e.target.value)}
-                          placeholder="Paste single bullet point here (e.g. was coding React features)..."
-                          className="input-base text-[13px] resize-none leading-relaxed"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <label className="mb-2 flex justify-between items-center text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
-                          <span>2. Target Role</span>
-                          <span className="text-[9px] border border-white/[0.08] px-1.5 py-0.5 rounded text-slate-600">OPTIONAL</span>
-                        </label>
+                        <label className="mb-2 block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">1. Target Job Role</label>
                         <input
                           type="text"
                           value={role}
                           onChange={(e) => setRole(e.target.value)}
-                          placeholder="e.g. Senior Frontend Engineer"
+                          placeholder="e.g. SDE II, DevOps Architect..."
                           className="input-base text-[14px]"
+                          required
                         />
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <div className="grid gap-6 sm:grid-cols-2">
-                        <div>
-                          <label className="mb-2 block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">1. Target Job Role</label>
-                          <input
-                            type="text"
-                            value={role}
-                            onChange={(e) => setRole(e.target.value)}
-                            placeholder="e.g. SDE II, DevOps Architect..."
-                            className="input-base text-[14px]"
-                            required
-                          />
-                        </div>
-                        <div>
-                          <label className="mb-2 block text-[11px] font-bold uppercase tracking-[0.2em] text-[#8FB3FF]">2. Base Resume</label>
-                          <div className="relative">
-                            <select
-                              value={selectedResumeId}
-                              onChange={(e) => setSelectedResumeId(e.target.value)}
-                              className="input-base w-full appearance-none pr-10 text-[14px] cursor-pointer"
-                              required
-                            >
-                              <option value="">-- Choose Resume --</option>
-                              {resumes.map(r => (
-                                <option key={r._id} value={r._id}>{r.originalName}</option>
-                              ))}
-                            </select>
-                            <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
-                          </div>
-                        </div>
                       </div>
                       <div>
-                        <label className="mb-2 flex justify-between items-center text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
-                          <span>3. Target Job Description</span>
-                          <span className="text-[9px] border border-white/[0.08] px-1.5 py-0.5 rounded text-[#8FB3FF]">RECOMMENDED</span>
-                        </label>
-                        <textarea
-                          rows={6}
-                          value={jobDescription}
-                          onChange={(e) => setJobDescription(e.target.value)}
-                          placeholder="Paste the target JD here to rewrite the resume professionally..."
-                          className="input-base text-[13px] resize-none leading-relaxed"
-                        />
+                        <label className="mb-2 block text-[11px] font-bold uppercase tracking-[0.2em] text-[#8FB3FF]">2. Base Resume</label>
+                        <div className="relative">
+                          <select
+                            value={selectedResumeId}
+                            onChange={(e) => setSelectedResumeId(e.target.value)}
+                            className="input-base w-full appearance-none pr-10 text-[14px] cursor-pointer"
+                            required
+                          >
+                            <option value="">-- Choose Resume --</option>
+                            {resumes.map(r => (
+                              <option key={r._id} value={r._id}>{r.originalName}</option>
+                            ))}
+                          </select>
+                          <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+                        </div>
                       </div>
-                    </>
-                  )}
+                    </div>
+                    <div>
+                      <label className="mb-2 flex justify-between items-center text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
+                        <span>3. Target Job Description</span>
+                        <span className="text-[9px] border border-white/[0.08] px-1.5 py-0.5 rounded text-[#8FB3FF]">RECOMMENDED</span>
+                      </label>
+                      <textarea
+                        rows={6}
+                        value={jobDescription}
+                        onChange={(e) => setJobDescription(e.target.value)}
+                        placeholder="Paste the target JD here to rewrite the resume professionally..."
+                        className="input-base text-[13px] resize-none leading-relaxed"
+                      />
+                    </div>
+                  </>
+                )}
 
-                  <div className="pt-4 border-t border-white/[0.06]">
-                    <button
-                      type="submit"
-                      disabled={isLoading}
-                      className={`btn-primary relative w-full h-[52px] overflow-hidden ${isLoading ? 'animate-pulse' : ''}`}
-                      style={!isLoading && activeTab === "boost" ? { backgroundImage: 'linear-gradient(to right, #00D4AA, #00A68A)' } : {}}
-                    >
-                      {isLoading ? (
-                         <span className="flex items-center gap-2">
-                           <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                           Running enhancements...
-                         </span>
-                      ) : (
-                        <span className="flex items-center gap-2">
-                          <Wand2 className="h-4 w-4" />
-                          {activeTab === "boost" ? "Boost Bullet Point" : "Rebuild Entire Resume"}
-                        </span>
-                      )}
-                    </button>
-                  </div>
-                </form>
-              </div>
+                <div className="pt-4 border-t border-white/[0.06]">
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className={`btn-primary relative w-full h-[52px] overflow-hidden ${isLoading ? 'animate-pulse' : ''}`}
+                    style={!isLoading && activeTab === "boost" ? { backgroundImage: 'linear-gradient(to right, #00D4AA, #00A68A)' } : {}}
+                  >
+                    {isLoading ? (
+                       <span className="flex items-center gap-2">
+                         <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                         Running enhancements...
+                       </span>
+                    ) : (
+                      <span className="flex items-center gap-2">
+                        <Wand2 className="h-4 w-4" />
+                        {activeTab === "boost" ? "Boost Bullet Point" : "Rebuild Entire Resume"}
+                      </span>
+                    )}
+                  </button>
+                </div>
+              </form>
             </div>
-          }
-          right={
+          </div>
+
+          {/* Results Area */}
+          <div className="w-full">
             <div className="min-w-0 space-y-6 w-full">
-              {!arenaRun && !isLoading ? (
-                <EmptyState
-                  icon={Zap}
-                  title="Ready to Boost Your Resume"
-                  subtitle="Select a resume and we'll rewrite your bullet points with stronger action verbs and quantified impact."
-                  chips={[
-                    { label: "Stronger Bullets", color: "violet" },
-                    { label: "Action Verbs", color: "teal" },
-                    { label: "Impact Metrics", color: "amber" }
-                  ]}
-                />
-              ) : (
+              {(arenaRun || isLoading) && (
                 <ArenaWorkspace
                   isLoading={isLoading}
                   arenaRun={arenaRun}
@@ -609,8 +527,8 @@ const ResumeBoostPage = () => {
                 markdownContent={pdfContent} 
               />
             </div>
-          }
-        />
+          </div>
+        </div>
       </div>
     </DashboardLayout>
   );

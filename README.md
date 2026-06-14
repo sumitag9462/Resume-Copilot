@@ -71,10 +71,16 @@ cp .env.example .env
 
 Open the `.env` file and configure your credentials:
 ```env
-PORT=5000
-MONGODB_URI=your_mongodb_connection_uri
+# Required
+MONGO_URI=your_mongodb_connection_uri
 JWT_SECRET=your_jwt_secret_key
 GEMINI_API_KEY=your_google_gemini_api_key
+
+# Optional — OTP emails (falls back to terminal logging if not set)
+BREVO_API_KEY=your_brevo_api_key
+EMAIL_FROM=your_verified_email@example.com
+
+PORT=5000
 ```
 
 ### 3. Running Locally
