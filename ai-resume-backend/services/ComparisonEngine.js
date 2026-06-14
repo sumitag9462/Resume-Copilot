@@ -3,13 +3,11 @@
 // Handles parallel execution of Gemini models, maps them, captures timing/tokens,
 // and invokes the scoring engine to evaluate results.
 
-const { GoogleGenerativeAI } = require("@google/generative-ai");
 const { MODELS } = require("../config/models");
 const { FEATURES } = require("../config/features");
 const { getRouteModel } = require("./ModelRouter");
 const { evaluateArenaRun } = require("./ScoringEngine");
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const { getGenAIInstance } = require("./KeyManager");
 
 /**
  * Executes a prompt on a single Gemini model with timing and token usage.
@@ -32,7 +30,7 @@ const runModelQuery = async (feature, inputs, modelKey, prompt) => {
   try {
     // ⚠️ SPECIFIC INSTANTIATION PATTERN TO PREVENT 256 TOKEN LIMIT BUG
     // Configure responseMimeType and maxOutputTokens inside getGenerativeModel
-    let modelInstance = genAI.getGenerativeModel({
+    let modelInstance = getGenAIInstance().getGenerativeModel({
       model: apiModelName,
       generationConfig: {
         temperature: 0.1, // low temperature for consistent schema adherence
@@ -64,7 +62,7 @@ const runModelQuery = async (feature, inputs, modelKey, prompt) => {
           // fallback to the lighter model immediately to preserve UX rather than failing.
           if (err.message?.includes("429") || err.message?.includes("Quota exceeded")) {
              console.warn(`[Arena Engine] Rate limit hit for ${modelKey}. Switching to fallback model gemini-2.5-flash-lite.`);
-             modelInstance = genAI.getGenerativeModel({
+             modelInstance = getGenAIInstance().getGenerativeModel({
                model: "gemini-2.5-flash-lite",
                generationConfig: { temperature: 0.1, maxOutputTokens: 8192 }
              });
@@ -117,11 +115,19 @@ const runModelQuery = async (feature, inputs, modelKey, prompt) => {
   } catch (error) {
     const duration = Date.now() - startTime;
     console.error(`[Arena Engine] Error running model ${modelKey}:`, error.message);
+    
+    let errorMessage = error.message || "Failed execution";
+    if (errorMessage.includes("429") || errorMessage.includes("Quota") || errorMessage.includes("Too Many Requests")) {
+      errorMessage = "We are currently experiencing high traffic. Please wait a few moments and try again.";
+    } else if (errorMessage.includes("503") || errorMessage.includes("Service Unavailable")) {
+      errorMessage = "The AI service is temporarily down. Please try again later.";
+    }
+
     return {
       model: modelKey,
       output: null,
       executionTime: duration,
-      error: error.message || "Failed execution",
+      error: errorMessage,
       tokenUsage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 }
     };
   }

@@ -1,6 +1,4 @@
-const { GoogleGenerativeAI } = require('@google/generative-ai');
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+// GoogleGenerativeAI imported within aiHelper if needed.
 
 /**
  * Service to generate cold emails and LinkedIn messages using Gemini AI

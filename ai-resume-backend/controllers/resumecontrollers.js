@@ -165,6 +165,17 @@ const deleteResume = async (req, res, next) => {
     // Delete the MongoDB document
     await resume.deleteOne();
 
+    // Also delete any dependent data (Analysis, ArenaHistory)
+    const Analysis = require('../models/Analysis');
+    const ArenaHistory = require('../models/ArenaHistory');
+    
+    try {
+      await Analysis.deleteMany({ resume: resume._id });
+      await ArenaHistory.deleteMany({ resume: resume._id });
+    } catch (cleanupErr) {
+      console.error("Cleanup error during resume deletion:", cleanupErr);
+    }
+
     res.status(200).json({
       success: true,
       message: 'Resume deleted successfully'

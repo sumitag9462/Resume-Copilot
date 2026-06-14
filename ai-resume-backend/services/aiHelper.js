@@ -1,6 +1,4 @@
-const { GoogleGenerativeAI } = require("@google/generative-ai");
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const { getGenAIInstance } = require("./KeyManager");
 
 /**
  * Generates content using Gemini API with built-in retries and fallback models.
@@ -29,7 +27,7 @@ const generateContentWithFallback = async (prompt, generationConfig = {}) => {
       try {
         console.log(`[AI Helper] Querying ${modelName} (attempt ${attempt}/${maxRetries})...`);
         
-        const model = genAI.getGenerativeModel({
+        const model = getGenAIInstance().getGenerativeModel({
           model: modelName,
           generationConfig: {
             temperature: 0.7,

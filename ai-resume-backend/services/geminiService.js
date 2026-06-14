@@ -20,10 +20,7 @@
 //   blocks, our parseJSON helper strips them before parsing.
 // ============================================================
 
-const { GoogleGenerativeAI } = require('@google/generative-ai');
-
-// Initialize the Gemini client with our API key
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const { getGenAIInstance } = require('./KeyManager');
 
 // --- MODEL PRIORITY LIST (all free tier) ---
 const FREE_GEMINI_MODELS = [
@@ -55,7 +52,7 @@ const generateAndParse = async (prompt) => {
     let delayMs = 2000;
     
     // Explicitly initialize model here for each iteration
-    const model = genAI.getGenerativeModel({
+    const model = getGenAIInstance().getGenerativeModel({
       model: modelName,
       generationConfig: {
         responseMimeType: 'application/json',

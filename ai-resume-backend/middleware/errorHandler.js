@@ -55,6 +55,14 @@ const errorHandler = (err, req, res, next) => {
     statusCode = 400;
   }
 
+  // Log error to a file for debugging
+  try {
+    require('fs').appendFileSync(
+      require('path').join(__dirname, '../error.log'),
+      `[${new Date().toISOString()}] ${req.method} ${req.originalUrl} - Status: ${statusCode} - ${message}\n${err.stack}\n\n`
+    );
+  } catch (e) {}
+
   // Send consistent error response
   res.status(statusCode).json({
     success: false,
