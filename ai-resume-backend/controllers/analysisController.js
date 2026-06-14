@@ -21,6 +21,7 @@
 // ============================================================
 
 const Analysis  = require('../models/Analysis');
+const ArenaHistory = require('../models/ArenaHistory');
 const Resume    = require('../models/Resume');
 const {
   analyzeResume,
@@ -349,25 +350,28 @@ const getDashboardStats = async (req, res, next) => {
 
     const totalResumes = await Resume.countDocuments({ user: userId });
 
-    // Find highest ATS score
-    const highestAts = await Analysis.findOne({ user: userId, type: 'ats_analysis' })
-      .sort({ atsScore: -1 })
-      .select('atsScore');
-    
-    const maxScore = highestAts ? highestAts.atsScore : 0;
+    // Find highest ATS score from ArenaHistory
+    const atsRuns = await ArenaHistory.find({ userId, feature: 'ats_analysis' });
+    let maxScore = 0;
+    atsRuns.forEach(run => {
+      run.results.forEach(result => {
+        if (result.scores && result.scores.ats > maxScore) {
+          maxScore = result.scores.ats;
+        }
+      });
+    });
 
     // Calculate a dynamic Profile Strength based on max ATS score + resume count
     const profileStrength = totalResumes > 0 
       ? Math.min(100, Math.round((maxScore * 0.8) + (totalResumes * 5)))
       : 0;
 
-    const totalCoverLetters = await Analysis.countDocuments({ user: userId, type: 'cover_letter' });
+    const totalCoverLetters = await ArenaHistory.countDocuments({ userId, feature: 'cover_letter' });
 
-    // Fetch the 5 most recent activities
-    const recentActivityRaw = await Analysis.find({ user: userId })
+    // Fetch the 5 most recent activities from ArenaHistory
+    const recentActivityRaw = await ArenaHistory.find({ userId })
       .sort({ createdAt: -1 })
-      .limit(5)
-      .select('type createdAt atsScore matchScore companyName jobRole');
+      .limit(5);
 
     // Format activity for the frontend
     const recentActivity = recentActivityRaw.map(activity => {
@@ -375,27 +379,40 @@ const getDashboardStats = async (req, res, next) => {
       let desc = '';
       let icon = 'ScanText';
       let color = 'text-accent-teal';
+      
+      const winnerModel = activity.winner || activity.results[0]?.model;
+      const winnerResult = activity.results.find(r => r.model === winnerModel) || activity.results[0];
 
-      if (activity.type === 'ats_analysis') {
+      if (activity.feature === 'ats_analysis') {
         title = 'ATS Analysis Complete';
-        desc = `Resume scored ${activity.atsScore}%`;
+        desc = `Resume scored ${winnerResult?.scores?.ats || 0}%`;
         icon = 'ScanText';
         color = 'text-accent-teal';
-      } else if (activity.type === 'jd_match') {
+      } else if (activity.feature === 'jd_match') {
         title = 'JD Match Complete';
-        desc = `Matched with score ${activity.matchScore || 0}%`;
+        desc = `Matched with score ${winnerResult?.output?.matchScore || 0}%`;
         icon = 'Briefcase';
         color = 'text-warning';
-      } else if (activity.type === 'cover_letter') {
+      } else if (activity.feature === 'cover_letter') {
         title = 'Cover Letter Generated';
-        desc = `Tailored for ${activity.jobRole || 'role'} at ${activity.companyName || 'company'}`;
+        desc = `Tailored for ${activity.input?.role || 'role'} at ${activity.input?.companyName || 'company'}`;
         icon = 'FileText';
+        color = 'text-accent-violet';
+      } else if (activity.feature === 'outreach') {
+        title = 'Cold Outreach Drafted';
+        desc = `Message for ${activity.input?.role || 'role'} at ${activity.input?.companyName || 'company'}`;
+        icon = 'Send';
+        color = 'text-blue-400';
+      } else if (activity.feature === 'interview_prep') {
+        title = 'Interview Prep Session';
+        desc = `Prepared for ${activity.input?.targetRole || 'role'} role`;
+        icon = 'BrainCircuit';
         color = 'text-accent-violet';
       }
 
       return {
         id: activity._id,
-        type: activity.type,
+        type: activity.feature,
         title,
         desc,
         time: activity.createdAt,
@@ -404,16 +421,19 @@ const getDashboardStats = async (req, res, next) => {
       };
     });
 
-    // Score Trend Graph (last 5 scores)
-    const recentScores = await Analysis.find({ user: userId, type: 'ats_analysis' })
+    // Score Trend Graph (last 5 scores from ArenaHistory)
+    const recentScores = await ArenaHistory.find({ userId, feature: 'ats_analysis' })
       .sort({ createdAt: 1 })
-      .limit(5)
-      .select('atsScore createdAt');
+      .limit(5);
 
-    const scoreTrend = recentScores.map((score, index) => ({
-      label: `Scan ${index + 1}`,
-      score: score.atsScore
-    }));
+    const scoreTrend = recentScores.map((run, index) => {
+      const winnerModel = run.winner || run.results[0]?.model;
+      const winnerResult = run.results.find(r => r.model === winnerModel) || run.results[0];
+      return {
+        label: `Scan ${index + 1}`,
+        score: winnerResult?.scores?.ats || 0
+      };
+    });
 
     res.status(200).json({
       success: true,
