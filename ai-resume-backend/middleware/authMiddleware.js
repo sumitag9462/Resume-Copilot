@@ -12,7 +12,7 @@ const protect = async (req, res, next) => {
       // Check if token has been revoked (logged out)
       const isBlocked = await TokenBlocklist.findOne({ token });
       if (isBlocked) {
-          return res.status(401).json({ message: 'Not authorized, token revoked' });
+          return res.status(401).json({ success: false, message: 'Not authorized, token revoked' });
       }
 
       // Verify token
@@ -20,15 +20,15 @@ const protect = async (req, res, next) => {
       req.user = await User.findById(decoded.userId).select('-password');
       
       if (!req.user) {
-        return res.status(401).json({ message: 'Not authorized, user not found' });
+        return res.status(401).json({ success: false, message: 'Not authorized, user not found' });
       }
       next();
     } catch (error) {
       console.error('Token verification failed:', error.message);
-      return res.status(401).json({ message: 'Not authorized, token failed' });
+      return res.status(401).json({ success: false, message: 'Invalid token or has expired' });
     }
   } else {
-    return res.status(401).json({ message: 'Not authorized, no token' });
+    return res.status(401).json({ success: false, message: 'Not authorized, no token' });
   }
 };
 

@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const nodemailer = require('nodemailer');
+const axios = require('axios');
 const crypto = require('crypto');
 const User = require('../models/User');
 const OTP = require('../models/OTP');
@@ -9,39 +9,41 @@ const generateToken = (userId, name) => {
     return jwt.sign({ userId, name }, process.env.JWT_SECRET, { expiresIn: '30d' });
 };
 
-// Nodemailer SMTP Transporter
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: { 
-        user: process.env.EMAIL_USER, 
-        pass: process.env.EMAIL_PASS 
-    },
-    connectionTimeout: 5000, // 5 seconds
-    greetingTimeout: 5000,
-    socketTimeout: 5000,
-});
-
-// Helper: Sends email OTP, or prints to terminal if SMTP not configured
+// Helper: Sends email OTP using Brevo API, or prints to terminal if not configured/failed
 const sendOtpEmail = async (email, otp, subject, title) => {
-    if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+    if (process.env.BREVO_API_KEY) {
         try {
-            await transporter.sendMail({
-                from: `YourAppName <${process.env.EMAIL_USER}>`,
-                to: email,
-                subject: subject,
-                html: `<div style="font-family:sans-serif;text-align:center;padding:20px">
-                         <h2>${title}</h2>
-                         <p>Your one-time password is:</p>
-                         <p style="font-size:24px;font-weight:bold;letter-spacing:5px;margin:20px 0;background:#f0f0f0;padding:10px;border-radius:5px">${otp}</p>
-                         <p>This code will expire in 5 minutes.</p>
-                       </div>`,
-            });
+            const response = await axios.post(
+                'https://api.brevo.com/v3/smtp/email',
+                {
+                    sender: {
+                        name: 'Resume Copilot',
+                        email: process.env.EMAIL_FROM || 'agrawalsumit067@gmail.com'
+                    },
+                    to: [{ email: email }],
+                    subject: subject,
+                    htmlContent: `<div style="font-family:sans-serif;text-align:center;padding:20px">
+                             <h2>${title}</h2>
+                             <p>Your one-time password is:</p>
+                             <p style="font-size:24px;font-weight:bold;letter-spacing:5px;margin:20px 0;background:#f0f0f0;padding:10px;border-radius:5px">${otp}</p>
+                             <p>This code will expire in 5 minutes.</p>
+                           </div>`
+                },
+                {
+                    headers: {
+                        'api-key': process.env.BREVO_API_KEY,
+                        'Content-Type': 'application/json',
+                        'accept': 'application/json'
+                    }
+                }
+            );
+            
             return true;
         } catch (mailError) {
-            console.error('SMTP Mail error, printing OTP to terminal:', mailError.message);
+            console.error('Brevo API error, printing OTP to terminal:', mailError.response?.data || mailError.message);
         }
     }
-    // Fallback console log for local development
+    // Fallback console log for local development or if email fails
     console.log(`\n==================================================\n⚠️  EMAIL NOT SENT! DEV OTP for ${email}: ${otp}\n==================================================\n`);
     return false;
 };
@@ -50,19 +52,24 @@ const sendOtpEmail = async (email, otp, subject, title) => {
 const requestEmailOtp = async (req, res) => {
     try {
         const { email } = req.body;
-        if (!email) return res.status(400).json({ message: 'Email is required.' });
+        if (!email) return res.status(400).json({ success: false, message: 'Email is required.' });
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({ success: false, message: 'Invalid email format' });
+        }
 
         const userExists = await User.findOne({ email });
-        if (userExists) return res.status(400).json({ message: 'User with this email already exists.' });
+        if (userExists) return res.status(400).json({ success: false, message: 'An account with this email already exists.' });
 
         const otp = crypto.randomInt(100000, 999999).toString();
         await OTP.create({ email, otp });
         await sendOtpEmail(email, otp, 'Your Verification Code', 'Verification Code');
 
-        res.status(200).json({ message: 'Verification code generated.' });
+        res.status(200).json({ success: true, message: 'Verification code generated.' });
     } catch (error) {
         console.error('Error sending OTP:', error);
-        res.status(500).json({ message: 'Error sending verification code.' });
+        res.status(500).json({ success: false, message: 'Error sending verification code.' });
     }
 };
 

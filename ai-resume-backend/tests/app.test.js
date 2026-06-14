@@ -50,6 +50,7 @@ const app = require('../app');
 const User = require('../models/User');
 const Resume = require('../models/Resume');
 const Analysis = require('../models/Analysis');
+const OTP = require('../models/OTP');
 
 const samplePdfPath = path.join(__dirname, 'fixtures', 'sample.pdf');
 
@@ -69,7 +70,8 @@ afterEach(async () => {
   await Promise.all([
     User.deleteMany({}),
     Resume.deleteMany({}),
-    Analysis.deleteMany({})
+    Analysis.deleteMany({}),
+    OTP.deleteMany({})
   ]);
 
   const uploadDir = path.join(__dirname, '..', 'uploads', 'resumes');
@@ -81,41 +83,52 @@ afterEach(async () => {
 });
 
 const registerAndLogin = async () => {
-  const email = 'test@example.com'
-  const password = 'password'
+  const email = 'test@example.com';
+  const password = 'password';
 
-  const registerRes = await request(app)
+  // Step 1: Send registration OTP
+  await request(app)
     .post('/api/auth/register')
-    .send({ name: 'Test User', email, password });
+    .send({ email });
 
-  expect(registerRes.status).toBe(201)
-  expect(registerRes.body.success).toBe(true)
-  expect(registerRes.body.token).toBeDefined()
+  // Fetch generated OTP from database
+  const otpRecord = await OTP.findOne({ email }).sort({ createdAt: -1 });
+  const otp = otpRecord.otp;
 
-  return registerRes.body.token
+  // Step 2: Verify OTP to create account
+  await request(app)
+    .post('/api/auth/verify-otp')
+    .send({ name: 'Test User', email, password, otp });
+
+  // Step 3: Login to obtain token
+  const loginRes = await request(app)
+    .post('/api/auth/login')
+    .send({ email, password });
+
+  return loginRes.body.token;
 };
 
 describe('AI Resume Backend', () => {
   test('GET / responds with API running message', async () => {
     const response = await request(app).get('/');
     expect(response.status).toBe(200);
-    expect(response.body).toEqual({ message: '✅ Resume Copilot API is running!' });
+    expect(response.body).toEqual({ message: 'Resume Copilot API is running' });
   });
 
-  test('POST /api/auth/register returns 400 for missing fields', async () => {
+  test('POST /api/auth/register returns 400 for missing email', async () => {
     const response = await request(app)
       .post('/api/auth/register')
-      .send({ email: 'missing@test.com' });
+      .send({});
 
     expect(response.status).toBe(400);
     expect(response.body.success).toBe(false);
-    expect(response.body.message).toMatch(/Please provide name, email, and password/);
+    expect(response.body.message).toMatch(/Email is required/);
   });
 
   test('POST /api/auth/register returns 400 for invalid email format', async () => {
     const response = await request(app)
       .post('/api/auth/register')
-      .send({ name: 'Test User', email: 'invalid-email', password: 'password' });
+      .send({ email: 'invalid-email' });
 
     expect(response.status).toBe(400);
     expect(response.body.success).toBe(false);
@@ -123,45 +136,61 @@ describe('AI Resume Backend', () => {
   });
 
   test('POST /api/auth/register returns 400 for duplicate email', async () => {
-    await request(app)
-      .post('/api/auth/register')
-      .send({ name: 'Test User', email: 'test@example.com', password: 'password' });
+    // Manually create a user first
+    await User.create({ name: 'Test User', email: 'test@example.com', password: 'password' });
 
     const duplicateRes = await request(app)
       .post('/api/auth/register')
-      .send({ name: 'Test User 2', email: 'test@example.com', password: 'password2' });
+      .send({ email: 'test@example.com' });
 
     expect(duplicateRes.status).toBe(400);
     expect(duplicateRes.body.success).toBe(false);
     expect(duplicateRes.body.message).toMatch(/An account with this email already exists/);
   });
 
-  test('POST /api/auth/register returns a token and /api/auth/me returns user', async () => {
-    const email = 'test@example.com'
-    const password = 'password'
+  test('POST /api/auth/register sends OTP and /api/auth/verify-otp registers user', async () => {
+    const email = 'test@example.com';
+    const password = 'password';
 
     const registerRes = await request(app)
       .post('/api/auth/register')
-      .send({ name: 'Test User', email, password })
+      .send({ email });
 
-    expect(registerRes.status).toBe(201)
-    expect(registerRes.body.success).toBe(true)
-    expect(registerRes.body.token).toBeDefined()
+    expect(registerRes.status).toBe(200);
+    expect(registerRes.body.success).toBe(true);
 
-    const token = registerRes.body.token
+    const otpRecord = await OTP.findOne({ email }).sort({ createdAt: -1 });
+    expect(otpRecord).toBeDefined();
+
+    const verifyRes = await request(app)
+      .post('/api/auth/verify-otp')
+      .send({ name: 'Test User', email, password, otp: otpRecord.otp });
+
+    expect(verifyRes.status).toBe(201);
+    expect(verifyRes.body.success).toBe(true);
+
+    // Now test login works
+    const loginRes = await request(app)
+      .post('/api/auth/login')
+      .send({ email, password });
+
+    expect(loginRes.status).toBe(200);
+    expect(loginRes.body.success).toBe(true);
+    expect(loginRes.body.token).toBeDefined();
+
+    const token = loginRes.body.token;
 
     const meRes = await request(app)
       .get('/api/auth/me')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Authorization', `Bearer ${token}`);
 
-    expect(meRes.status).toBe(200)
-    expect(meRes.body.user.email).toBe(email)
+    expect(meRes.status).toBe(200);
+    expect(meRes.body.email).toBe(email);
   });
 
   test('POST /api/auth/login returns 401 for invalid credentials', async () => {
-    await request(app)
-      .post('/api/auth/register')
-      .send({ name: 'Test User', email: 'wrong@test.com', password: 'password' });
+    // Manually create a user first
+    await User.create({ name: 'Test User', email: 'wrong@test.com', password: 'password' });
 
     const response = await request(app)
       .post('/api/auth/login')
