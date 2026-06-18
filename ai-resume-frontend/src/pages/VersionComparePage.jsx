@@ -1,15 +1,15 @@
 import { useState, useEffect } from "react";
 import { useSearchParams, Link } from "react-router-dom";
-import { motion } from "framer-motion";
-import { GitCompare, ChevronDown, CheckCircle, Lightbulb, AlertCircle, Sparkles, ArrowRight } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { GitCompare, ChevronDown, CheckCircle, Lightbulb, AlertCircle, Sparkles, ArrowRight, Cpu, Layers } from "lucide-react";
 import DashboardLayout from "../components/layout/DashboardLayout";
 import ArenaWorkspace from "../components/ui/ArenaWorkspace";
-import WorkspaceLayout from "../components/layout/WorkspaceLayout";
-import EmptyState from "../components/ui/EmptyState";
 import { getAllResumes } from "../api/resumeApi";
 import { useArena } from "../context/ArenaContext";
 import { useModel } from "../context/ModelContext";
 import toast from "react-hot-toast";
+import GlassCard from "../components/ui/GlassCard";
+import GradientButton from "../components/ui/GradientButton";
 
 const VersionComparePage = () => {
   const [searchParams] = useSearchParams();
@@ -20,11 +20,17 @@ const VersionComparePage = () => {
 
   const [loadingList, setLoadingList] = useState(true);
 
-  const { activeRuns, executeRun } = useArena();
+  const { activeRuns, executeRun, clearRun } = useArena();
   const runState = activeRuns["version_compare"] || { isLoading: false, arenaRun: null };
   const { isLoading, arenaRun } = runState;
   
   const { selectedModel, compareMode } = useModel();
+
+  useEffect(() => {
+    return () => {
+      if (clearRun) clearRun("version_compare");
+    };
+  }, [clearRun]);
 
   useEffect(() => {
     getAllResumes()
@@ -65,40 +71,51 @@ const VersionComparePage = () => {
 
     return (
       <div className="space-y-6">
-        <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-2">
+        {/* Top Analytics */}
+        <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
           {[
-            { label: "ATS Score", val: output.atsScore, color: "text-[#7C5CFC]" },
-            { label: "Readability", val: output.readability, color: "text-[#00D4AA]" },
-            { label: "Length", val: output.length, color: "text-[#8FB3FF]" },
-            { label: "Recruiter", val: output.recruiterScore, color: "text-[#A78BFA]" },
-            { label: "Keywords", val: output.keywordDensity, color: "text-amber-400" }
-          ].map((sc) => (
-            <div key={sc.label} className="rounded-xl border border-white/[0.06] bg-[#0A0B0F] p-4 text-center transition-colors hover:border-white/[0.15]">
-              <span className="text-[10px] uppercase font-bold tracking-widest text-slate-500">{sc.label}</span>
-              <p className={`text-2xl font-black mt-1 ${sc.color}`}>{sc.val}<span className="text-[12px] text-slate-500 ml-1">/100</span></p>
-            </div>
+            { label: "ATS Score", val: output.atsScore, color: "text-[#7C5CFC]", border: "border-[#7C5CFC]" },
+            { label: "Readability", val: output.readability, color: "text-accent-teal", border: "border-accent-teal" },
+            { label: "Length", val: output.length, color: "text-[#8FB3FF]", border: "border-[#8FB3FF]" },
+            { label: "Recruiter", val: output.recruiterScore, color: "text-[#A78BFA]", border: "border-[#A78BFA]" },
+            { label: "Keywords", val: output.keywordDensity, color: "text-amber-400", border: "border-amber-400" }
+          ].map((sc, i) => (
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.1 }}
+              key={sc.label}
+            >
+              <GlassCard className={`p-5 text-center transition-all hover:-translate-y-1 hover:shadow-lg border-b-4 ${sc.border}/50`}>
+                <span className="text-[10px] uppercase font-bold tracking-[0.2em] text-slate-500">{sc.label}</span>
+                <p className={`text-3xl font-black font-display mt-2 ${sc.color} drop-shadow-sm`}>{sc.val}<span className="text-xs text-slate-500 ml-1">/100</span></p>
+              </GlassCard>
+            </motion.div>
           ))}
         </div>
 
-        <div className="card p-5 border-l-2 border-l-[#8FB3FF]">
-          <h5 className="text-[11px] font-bold uppercase tracking-widest text-[#8FB3FF] mb-2">Model Optimization Opinion</h5>
-          <p className="text-[13px] text-slate-300 leading-relaxed whitespace-pre-wrap">
-            {output.explanation}
-          </p>
-        </div>
+        {/* Detailed Insights */}
+        <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
+          <GlassCard className="p-8 border-l-2 border-l-[#8FB3FF] relative overflow-hidden group">
+            <div className="absolute -right-20 -bottom-20 w-48 h-48 bg-[#8FB3FF]/10 blur-[60px] rounded-full pointer-events-none transition-transform duration-500 group-hover:scale-150" />
+            <h5 className="flex items-center gap-2 text-[12px] font-bold uppercase tracking-[0.2em] text-[#8FB3FF] mb-4 relative z-10">
+              <Sparkles className="w-5 h-5" /> Model Optimization Opinion
+            </h5>
+            <p className="text-sm text-slate-300 leading-relaxed whitespace-pre-wrap relative z-10">
+              {output.explanation}
+            </p>
+          </GlassCard>
 
-        <div className="card p-5 border border-[#00D4AA]/20 bg-[#00D4AA]/5">
-          <div className="flex items-start gap-4">
-            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-[#00D4AA]/10 text-[#00D4AA]">
-              <CheckCircle className="h-5 w-5" />
+          <GlassCard className="p-8 border border-accent-teal/20 bg-accent-teal/5 relative overflow-hidden group">
+            <div className="absolute inset-0 bg-gradient-to-br from-accent-teal/0 to-accent-teal/10 pointer-events-none" />
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-accent-teal/10 text-accent-teal mb-5 border border-accent-teal/20 relative z-10">
+              <CheckCircle className="h-6 w-6" />
             </div>
-            <div>
-              <p className="font-bold text-white text-[14px]">Optimization Tip</p>
-              <p className="mt-1 text-[13px] text-slate-300 leading-relaxed">
-                Check this model's suggestions inside the Rebuilder tab. This will help you resolve the exact keyword gaps and length constraints highlighted above.
-              </p>
-            </div>
-          </div>
+            <p className="font-display font-bold text-white text-lg mb-2 relative z-10">Next Steps</p>
+            <p className="text-sm text-slate-300 leading-relaxed relative z-10">
+              Check this model's suggestions inside the Rebuilder tab. This will help you resolve the exact keyword gaps and length constraints highlighted above.
+            </p>
+          </GlassCard>
         </div>
       </div>
     );
@@ -106,122 +123,104 @@ const VersionComparePage = () => {
 
   return (
     <DashboardLayout>
-      <div className="mx-auto w-full max-w-[1280px] page-enter">
+      <div className="mx-auto w-full max-w-[1280px]">
         
-        {/* Contextual Header */}
-        <div className="mb-8 flex flex-col justify-between gap-6 overflow-hidden rounded-3xl border border-white/[0.06] bg-[#0E101A] p-6 shadow-2xl sm:flex-row sm:items-center sm:p-8 relative">
-          <div className="absolute right-0 top-0 h-full w-1/2 bg-gradient-to-l from-[#8FB3FF]/10 to-transparent opacity-40" />
+        {/* Premium Header */}
+        <GlassCard animated className="mb-8 p-8 overflow-hidden relative">
+          <div className="absolute -right-10 -top-10 h-64 w-64 rounded-full bg-[#8FB3FF]/20 blur-[100px] pointer-events-none" />
           
-          <div className="relative z-10 flex-1">
-            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#8FB3FF]/20 bg-[#8FB3FF]/5 px-3 py-1">
-              <Sparkles className="h-3.5 w-3.5 text-[#8FB3FF]" />
-              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#8FB3FF]">Model Optimization</span>
+          <div className="flex flex-col lg:flex-row gap-8 items-start lg:items-center justify-between relative z-10">
+            <div className="flex-1">
+              <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#8FB3FF]/20 bg-[#8FB3FF]/10 px-3 py-1.5 shadow-inner">
+                <Layers className="h-4 w-4 text-[#8FB3FF]" />
+                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#8FB3FF]">Model Optimization</span>
+              </div>
+              <h1 className="font-display text-4xl font-bold tracking-tight text-white mb-3">
+                Version Audits
+              </h1>
+              <p className="text-sm text-slate-400 max-w-xl leading-relaxed">
+                Audit optimization metrics for your resume, identifying how different LLMs evaluate readability, length, and keyword density.
+              </p>
             </div>
-            <h1 className="font-display text-3xl font-bold tracking-tight text-white">Version Audits</h1>
-            <p className="mt-2 text-[14px] text-slate-400 max-w-lg">
-              Audit optimization metrics for your resume, identifying how different Gemini models evaluate readability, length, and keyword density.
-            </p>
+
+            <div className="hidden lg:flex gap-3">
+              <div className="rounded-2xl border border-white/5 bg-white/5 p-4 backdrop-blur-md min-w-[140px]">
+                <Cpu className="w-5 h-5 text-[#8FB3FF] mb-2" />
+                <p className="text-xs font-bold text-white">Multi-Model</p>
+                <p className="text-[10px] text-slate-400 mt-1">Cross-Validation</p>
+              </div>
+            </div>
           </div>
+        </GlassCard>
 
-            <div className="relative z-10 hidden lg:block w-[450px] shrink-0">
-              <div className="relative overflow-hidden rounded-2xl border border-[#8FB3FF]/20 bg-[#0A0B0F]/80 p-6 backdrop-blur-md shadow-[0_0_40px_rgba(143,179,255,0.15)] transition-transform hover:-translate-y-1">
-                {/* Decorative background glow */}
-                <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-[#8FB3FF]/20 blur-3xl pointer-events-none"></div>
-                
-                <div className="relative flex items-start gap-4">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#8FB3FF]/20 to-accent-violet/20 border border-white/10 shadow-inner">
-                    <GitCompare className="h-5 w-5 text-[#8FB3FF] drop-shadow-[0_0_8px_rgba(143,179,255,0.8)]" />
-                  </div>
-                  
-                  <div>
-                    <h3 className="text-[13px] font-bold text-white tracking-wide">Audit Results Will Appear Here</h3>
-                    <p className="mt-1.5 text-[11px] leading-relaxed text-slate-400">
-                      Audit optimization metrics for your resume, identifying how different Gemini models evaluate readability, length, and keyword density.
-                    </p>
-                    
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      <span className="inline-flex items-center gap-1.5 rounded border border-white/5 bg-white/5 px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-slate-300">
-                        <span className="h-1.5 w-1.5 rounded-full bg-accent-violet shadow-[0_0_4px_#7C5CFC]"></span> ATS Score
-                      </span>
-                      <span className="inline-flex items-center gap-1.5 rounded border border-white/5 bg-white/5 px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-slate-300">
-                        <span className="h-1.5 w-1.5 rounded-full bg-accent-teal shadow-[0_0_4px_#00D4AA]"></span> Readability
-                      </span>
-                      <span className="inline-flex items-center gap-1.5 rounded border border-white/5 bg-white/5 px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-slate-300">
-                        <span className="h-1.5 w-1.5 rounded-full bg-amber-400 shadow-[0_0_4px_#FBBF24]"></span> Length
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-        </div>
-
-        {/* Full-width Layout */}
-        <div className="flex flex-col gap-8">
-          <div className="space-y-6">
-            <form onSubmit={handleCompare} className="card p-6 sm:p-8 space-y-8">
-              <div className="border-b border-white/[0.06] pb-4">
-                <h2 className="text-[15px] font-bold text-white">Audit Setup</h2>
-                <p className="text-[12px] text-slate-400 mt-1">Select the profile you want to evaluate.</p>
-              </div>
-
-              <div>
-                <label className="mb-2 block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
-                  Target Resume
-                </label>
-                {loadingList ? (
-                  <div className="skeleton h-[52px] w-full rounded-xl" />
-                ) : resumes.length === 0 ? (
-                  <div className="flex items-center gap-2 rounded-xl border border-amber-500/20 bg-amber-500/10 p-3">
-                    <AlertCircle className="h-4 w-4 shrink-0 text-amber-500" />
-                    <p className="text-[12px] text-amber-200">
-                      No resumes found. <Link to="/resumes" className="font-bold underline">Upload one first</Link>.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="relative">
-                    <select
-                      value={selectedId}
-                      onChange={(e) => setSelectedId(e.target.value)}
-                      className="input-base w-full appearance-none pr-10 cursor-pointer text-[14px]"
-                      required
-                    >
-                      <option value="">-- Choose Resume --</option>
-                      {resumes.map((r) => (
-                        <option key={r._id} value={r._id}>{r.originalName}</option>
-                      ))}
-                    </select>
-                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+        <div className="grid grid-cols-1 xl:grid-cols-[380px_1fr] gap-8 items-start">
+          
+          {/* Settings Sidebar */}
+          <div className="flex flex-col gap-6 sticky top-24">
+            <form onSubmit={handleCompare}>
+              <GlassCard animated delay={0.1} className="p-8 relative overflow-hidden h-full flex flex-col">
+                {isLoading && (
+                  <div className="absolute top-0 left-0 h-1 w-full overflow-hidden bg-white/[0.02]">
+                    <div className="h-full w-1/3 bg-gradient-to-r from-transparent via-[#8FB3FF] to-transparent animate-shimmer" />
                   </div>
                 )}
-              </div>
 
-              <div className="pt-4 border-t border-white/[0.06]">
-                <button
+                <div className="mb-8">
+                  <h2 className="text-xl font-display font-bold text-white">Audit Setup</h2>
+                  <p className="text-xs text-slate-400 mt-1">Select the profile you want to evaluate.</p>
+                </div>
+
+                <div className="mb-8">
+                  <label className="mb-3 block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
+                    Target Resume
+                  </label>
+                  {loadingList ? (
+                    <div className="skeleton h-[56px] w-full rounded-2xl" />
+                  ) : resumes.length === 0 ? (
+                    <div className="flex h-[56px] items-center gap-3 rounded-2xl border border-amber-500/20 bg-amber-500/10 px-4">
+                      <AlertCircle className="h-4 w-4 shrink-0 text-amber-500" />
+                      <p className="text-[13px] text-amber-200">
+                        No resumes. <Link to="/resumes" className="font-bold underline hover:text-amber-100">Upload one</Link>.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="relative">
+                      <select
+                        value={selectedId}
+                        onChange={(e) => setSelectedId(e.target.value)}
+                        className="w-full h-[56px] appearance-none rounded-2xl border border-white/10 bg-white/5 px-4 pr-10 text-[14px] text-white outline-none transition-all focus:border-[#8FB3FF]/50 focus:ring-1 focus:ring-[#8FB3FF]/50"
+                        required
+                      >
+                        <option value="" className="bg-[#111318]">-- Choose Resume --</option>
+                        {resumes.map((r) => (
+                          <option key={r._id} value={r._id} className="bg-[#111318]">{r.originalName}</option>
+                        ))}
+                      </select>
+                      <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+                    </div>
+                  )}
+                </div>
+
+                <GradientButton
                   type="submit"
                   disabled={isLoading || !selectedId}
-                  className={`btn-primary relative w-full h-[56px] text-[15px] overflow-hidden ${isLoading ? 'animate-pulse' : ''}`}
+                  className="w-full h-[56px] text-base"
                 >
                   {isLoading ? (
                     <span className="flex items-center justify-center gap-2">
-                      <div className="w-5 h-5 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                      <div className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
                       Auditing Profile...
                     </span>
                   ) : (
                     <span className="flex items-center justify-center gap-2">
-                      <GitCompare className="w-5 h-5" /> Run Profile Audit <ArrowRight className="w-5 h-5" />
+                      <GitCompare className="h-5 w-5" /> Run Profile Audit
                     </span>
                   )}
-                </button>
-              </div>
+                </GradientButton>
+              </GlassCard>
             </form>
 
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.05 }}
-              className="card p-6 sm:p-8"
-            >
+            <GlassCard animated delay={0.2} className="p-8">
               <h3 className="font-bold text-[14px] text-white flex items-center gap-2 mb-4">
                 <GitCompare className="h-4 w-4 text-[#8FB3FF]" />
                 Optimization Metrics
@@ -229,25 +228,52 @@ const VersionComparePage = () => {
               <p className="text-[13px] text-slate-400 leading-relaxed mb-4">
                 Understand model benchmarks:
               </p>
-              <div className="space-y-3 text-[13px] leading-relaxed text-slate-300">
-                <p className="flex gap-2 items-start"><span className="text-[#8FB3FF]">✓</span> <strong>Lite</strong> isolates readability and keyword density scores.</p>
-                <p className="flex gap-2 items-start"><span className="text-[#8FB3FF]">✓</span> <strong>Flash</strong> gauges alignment of projects, skills, and target job titles.</p>
-                <p className="flex gap-2 items-start"><span className="text-[#8FB3FF]">✓</span> <strong>Pro</strong> highlights formatting critique and gives advanced career suggestions.</p>
+              <div className="space-y-4 text-[13px] leading-relaxed text-slate-300">
+                <p className="flex gap-3 items-start"><span className="text-[#8FB3FF] flex-shrink-0">✓</span> <strong>Lite</strong> isolates readability and keyword density scores.</p>
+                <p className="flex gap-3 items-start"><span className="text-[#8FB3FF] flex-shrink-0">✓</span> <strong>Flash</strong> gauges alignment of projects, skills, and target job titles.</p>
+                <p className="flex gap-3 items-start"><span className="text-[#8FB3FF] flex-shrink-0">✓</span> <strong>Pro</strong> highlights formatting critique and gives advanced career suggestions.</p>
               </div>
-            </motion.div>
+            </GlassCard>
           </div>
 
-          <div className="min-w-0 w-full">
-            {(arenaRun || isLoading) && (
-              <ArenaWorkspace
-                isLoading={isLoading}
-                arenaRun={arenaRun}
-                onRegenerate={handleCompare}
-                renderResult={renderResult}
-              />
-            )}
+          {/* Results Workspace */}
+          <div className="min-h-[600px] flex flex-col w-full">
+            <AnimatePresence mode="wait">
+              {!(arenaRun || isLoading) ? (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="flex-1 flex flex-col items-center justify-center text-center p-12 border border-dashed border-white/10 rounded-3xl bg-white/[0.01]"
+                >
+                  <div className="flex h-20 w-20 items-center justify-center rounded-3xl bg-[#8FB3FF]/10 mb-6 border border-[#8FB3FF]/20 shadow-[0_0_30px_rgba(143,179,255,0.15)]">
+                    <Layers className="h-8 w-8 text-[#8FB3FF]" />
+                  </div>
+                  <h3 className="text-xl font-display font-bold text-white mb-2">Awaiting Parameters</h3>
+                  <p className="text-sm text-slate-400 max-w-sm mx-auto">
+                    Select a resume from the left panel and click "Run Profile Audit" to generate insights.
+                  </p>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="results"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <ArenaWorkspace
+                    isLoading={isLoading}
+                    arenaRun={arenaRun}
+                    onRegenerate={handleCompare}
+                    renderResult={renderResult}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
+
       </div>
     </DashboardLayout>
   );

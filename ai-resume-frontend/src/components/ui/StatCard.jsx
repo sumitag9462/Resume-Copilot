@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { gsap } from 'gsap';
+import GlassCard from './GlassCard';
 
 const StatCard = ({ 
   icon: Icon,
@@ -41,14 +42,13 @@ const StatCard = ({
     'text-secondary';
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -2 }}
-      transition={{ duration: 0.3 }}
-      className="card p-5 cursor-default"
+    <GlassCard 
+      animated 
+      hoverEffect
+      className="p-5 cursor-default group"
     >
-      <div className="flex items-start justify-between mb-4">
+      <div className="absolute -right-10 -top-10 w-32 h-32 bg-white/5 rounded-full blur-2xl transition-transform duration-500 group-hover:scale-150" />
+      <div className="relative z-10 flex items-start justify-between mb-4">
         <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${iconBg[iconColor]}`}>
           <Icon size={18} strokeWidth={1.8} />
         </div>
@@ -59,13 +59,15 @@ const StatCard = ({
         )}
       </div>
       
-      <div ref={valueRef} className="text-2xl font-bold text-primary font-heading mb-1">
-        {displayed}{suffix}
+      <div className="relative z-10">
+        <div ref={valueRef} className="text-3xl font-bold text-white font-display mb-1 drop-shadow-md">
+          {displayed}{suffix}
+        </div>
+        <div className="text-xs text-slate-400 uppercase tracking-wider font-bold">
+          {label}
+        </div>
       </div>
-      <div className="text-xs text-secondary font-body">
-        {label}
-      </div>
-    </motion.div>
+    </GlassCard>
   );
 };
 

@@ -25,7 +25,7 @@ const { getGenAIInstance } = require('./KeyManager');
 // --- MODEL PRIORITY LIST (all free tier) ---
 const FREE_GEMINI_MODELS = [
   'gemini-2.5-flash',        // Primary: fastest + most capable free model
-  'gemini-2.5-flash-lite'    // Fallback: lighter model
+  'gemini-2.5-flash-lite'      // Fallback: lighter model
 ];
 
 // ── HELPER: Safely parse JSON from AI response ─────────────

@@ -31,8 +31,8 @@ const MODELS = {
     description: "Our recommended default model. Balanced speed, reasoning, and accuracy."
   },
   "gemini-flash-latest": {
-    apiName: "gemini-2.5-flash-lite", // Maps to working 2.5 flash lite
-    displayName: "Gemini Flash Lite Latest",
+    apiName: "gemini-2.5-flash", // Maps to working flash
+    displayName: "Gemini Flash Latest",
     accuracy: 4.5,
     speed: "Fast",
     cost: "Balanced",
@@ -44,8 +44,8 @@ const MODELS = {
     description: "Alternative flash model offering stable performance."
   },
   "gemini-pro": {
-    apiName: "gemini-2.5-flash", // Maps to Gemini 2.5 Flash for speed, reliability, and free tier compatibility
-    displayName: "Gemini Pro (via Flash)",
+    apiName: "gemini-2.5-pro", // Maps to Gemini 2.5 Pro
+    displayName: "Gemini Pro",
     accuracy: 5,
     speed: "Very Fast",
     cost: "Premium",
@@ -54,7 +54,7 @@ const MODELS = {
     atsQuality: "Excellent",
     recruiterQuality: "Excellent",
     confidence: 90,
-    description: "Mapped to Gemini 2.5 Flash (free tier compatible). Same speed and quality as Flash."
+    description: "Mapped to Gemini 2.5 Pro. Highest quality reasoning."
   }
 };
 

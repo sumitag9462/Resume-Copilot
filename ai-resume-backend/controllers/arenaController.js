@@ -60,7 +60,9 @@ const runArena = async (req, res, next) => {
         return true;
       };
 
-      const match = candidates.find(c => deepEqual(c.input, inputs));
+      const match = candidates.find(c => 
+        deepEqual(c.input, inputs) && !c.results.every(r => r.error)
+      );
 
       if (match) {
         console.log(`[Arena Controller] Cache HIT for feature '${feature}'`);
@@ -128,17 +130,33 @@ const runArena = async (req, res, next) => {
     console.log(`[Arena Controller] Cache MISS. Running feature '${feature}'...`);
     const runResult = await executeArenaRun(feature, executionInputs, model, compareMode);
 
-    // ── SAVE TO DATABASE ─────────────────────────────────────
-    const historyRecord = await ArenaHistory.create({
-      userId: req.user._id,
-      feature,
-      input: inputs, // Save pristine inputs (no bloated text)
-      selectedModel: model,
-      compareMode,
-      results: runResult.results,
-      winner: runResult.winner,
-      bestResults: runResult.bestResults
-    });
+    // ── SAVE TO DATABASE (Only if not completely failed) ─────────────────
+    const hasSuccessfulResult = runResult.results.some(r => !r.error);
+    
+    let historyRecord;
+    
+    if (hasSuccessfulResult) {
+      historyRecord = await ArenaHistory.create({
+        userId: req.user._id,
+        feature,
+        input: inputs, // Save pristine inputs (no bloated text)
+        selectedModel: model,
+        compareMode,
+        results: runResult.results,
+        winner: runResult.winner,
+        bestResults: runResult.bestResults
+      });
+    } else {
+      // Do not save to DB, just return the error object so the user can retry
+      historyRecord = {
+        feature,
+        selectedModel: model,
+        compareMode,
+        results: runResult.results,
+        winner: runResult.winner,
+        bestResults: runResult.bestResults
+      };
+    }
 
     return res.status(201).json({
       success: true,

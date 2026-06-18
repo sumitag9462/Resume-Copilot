@@ -1,19 +1,21 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Files, Trash2, ScanText, Briefcase, FileText, Clock, UploadCloud, HardDrive, AlertCircle } from 'lucide-react'
+import { Files, Trash2, ScanText, Briefcase, FileText, Clock, UploadCloud, HardDrive, AlertCircle, Plus, ChevronRight, CheckCircle2, File, X } from 'lucide-react'
 import DashboardLayout from '../components/layout/DashboardLayout'
 import ResumeUploadZone from '../components/resume/ResumeUploadZone'
 import { getAllResumes, uploadResume, deleteResume } from '../api/resumeApi'
 import toast from 'react-hot-toast'
+import GlassCard from '../components/ui/GlassCard'
+import GradientButton from '../components/ui/GradientButton'
 
 const ResumesPage = () => {
   const [resumes,   setResumes]   = useState([])
   const [loading,   setLoading]   = useState(true)
   const [uploading, setUploading] = useState(false)
-  const [deleting,  setDeleting]  = useState(null)  // stores the _id being deleted
+  const [deleting,  setDeleting]  = useState(null)
+  const [showUpload, setShowUpload] = useState(false)
 
-  // Fetch resumes on mount
   const fetchResumes = async () => {
     try {
       const data = await getAllResumes()
@@ -27,13 +29,13 @@ const ResumesPage = () => {
 
   useEffect(() => { fetchResumes() }, [])
 
-  // Upload handler
   const handleUpload = async (file) => {
     setUploading(true)
     try {
       const data = await uploadResume(file)
       toast.success('Resume uploaded successfully! ✅')
       setResumes((prev) => [data.resume, ...prev])
+      setShowUpload(false)
       return true
     } catch (err) {
       toast.error(err.response?.data?.message || 'Upload failed. Please try again.')
@@ -43,7 +45,6 @@ const ResumesPage = () => {
     }
   }
 
-  // Delete handler
   const handleDelete = async (id, name) => {
     if (!window.confirm(`Delete "${name}"? This cannot be undone.`)) return
     setDeleting(id)
@@ -60,157 +61,179 @@ const ResumesPage = () => {
 
   return (
     <DashboardLayout>
-      <div className="mx-auto w-full max-w-[1000px] page-enter">
+      <div className="mx-auto w-full max-w-[1200px] flex flex-col gap-8">
 
-        {/* Premium Contextual Header */}
-        <div className="mb-8 flex flex-col justify-between gap-6 sm:flex-row sm:items-end">
+        {/* Premium Header */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 relative z-10">
           <div>
-            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-accent-violet/20 bg-accent-violet/5 px-3 py-1">
-              <UploadCloud className="h-3.5 w-3.5 text-accent-violet-light" />
-              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-accent-violet-light">Document Hub</span>
+            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 backdrop-blur-md">
+              <Files className="h-3.5 w-3.5 text-accent-violet-light" />
+              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-300">Document Hub</span>
             </div>
-            <h1 className="font-display text-3xl font-bold tracking-tight text-white">My Resumes</h1>
-            <p className="mt-2 text-[14px] text-slate-400">Upload, manage, and analyze your master and targeted resumes.</p>
+            <h1 className="font-display text-4xl lg:text-5xl font-bold tracking-tight text-white mb-2">
+              My Resumes
+            </h1>
+            <p className="text-sm text-slate-400 max-w-lg leading-relaxed">
+              Upload, manage, and analyze your master and targeted resumes. Create multiple versions tailored to specific roles.
+            </p>
           </div>
 
-          <div className="flex shrink-0 items-center gap-4 rounded-2xl border border-white/[0.06] bg-[#0E101A] p-4 shadow-sm">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/[0.04]">
-              <HardDrive className="h-5 w-5 text-slate-400" />
-            </div>
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Storage Used</p>
-              <p className="text-[14px] font-bold text-white">{resumes.length} / <span className="text-slate-400">Unlimited</span></p>
-            </div>
+          <div className="flex items-center gap-4">
+            <GlassCard className="flex items-center gap-4 px-5 py-3 rounded-2xl">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/[0.04] border border-white/[0.05]">
+                <HardDrive className="h-4 w-4 text-accent-teal" />
+              </div>
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 mb-0.5">Storage</p>
+                <p className="text-[14px] font-bold text-white leading-none">{resumes.length} / <span className="text-slate-500">Unlimited</span></p>
+              </div>
+            </GlassCard>
+            
+            <GradientButton onClick={() => setShowUpload(!showUpload)} className="h-14 px-6 rounded-2xl">
+              {showUpload ? <X className="h-5 w-5" /> : <Plus className="h-5 w-5" />}
+              {showUpload ? 'Cancel Upload' : 'Upload Resume'}
+            </GradientButton>
           </div>
         </div>
 
-        {/* Upload Zone */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="card mb-10 overflow-hidden">
-          <div className="flex items-center justify-between border-b border-white/[0.06] bg-[#0A0B0F] px-6 py-4">
-            <h2 className="flex items-center gap-2 text-[13px] font-bold uppercase tracking-[0.1em] text-slate-300">
-              <span className="h-4 w-1.5 rounded-full bg-gradient-to-b from-accent-violet to-accent-teal" />
-              Upload New Resume
-            </h2>
-          </div>
-          <div className="p-6">
-            <ResumeUploadZone onUpload={handleUpload} uploading={uploading} />
-          </div>
-        </motion.div>
+        {/* Upload Zone (Collapsible) */}
+        <AnimatePresence>
+          {(showUpload || resumes.length === 0) && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden z-10 relative"
+            >
+              <GlassCard className="p-8 lg:p-12 border border-accent-violet/30 shadow-[0_0_50px_rgba(124,111,247,0.15)] relative overflow-hidden group">
+                <div className="absolute inset-0 bg-[url('/noise.png')] opacity-10 mix-blend-overlay pointer-events-none" />
+                <div className="absolute -top-40 -right-40 w-80 h-80 bg-accent-violet/20 blur-[100px] rounded-full pointer-events-none transition-transform duration-700 group-hover:scale-150 group-hover:bg-accent-violet/30" />
+                <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-accent-teal/20 blur-[100px] rounded-full pointer-events-none transition-transform duration-700 group-hover:scale-150 group-hover:bg-accent-teal/30" />
+                
+                <div className="relative z-10">
+                  <div className="text-center mb-8">
+                    <h2 className="text-2xl font-display font-bold text-white mb-2">Upload Center</h2>
+                    <p className="text-sm text-slate-400">Drag and drop your PDF or DOCX file to begin AI analysis.</p>
+                  </div>
+                  <ResumeUploadZone onUpload={handleUpload} uploading={uploading} />
+                </div>
+              </GlassCard>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-        {/* Resumes List */}
-        <div>
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-[12px] font-bold uppercase tracking-[0.2em] text-slate-500">
-              Uploaded Documents
-              {!loading && resumes.length > 0 && (
-                <span className="ml-2 inline-flex items-center justify-center rounded-full bg-white/[0.06] px-2 py-0.5 text-[10px] text-white">
-                  {resumes.length}
-                </span>
-              )}
+        {/* Resumes Grid */}
+        <div className="relative z-10">
+          <div className="mb-6 flex items-center justify-between">
+            <h2 className="text-[12px] font-bold uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-accent-violet animate-pulse" />
+              Document Library
             </h2>
           </div>
 
           {loading ? (
-            <div className="space-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="card flex items-center gap-4 p-5">
-                  <div className="skeleton h-12 w-12 rounded-xl" />
-                  <div className="flex-1 space-y-2">
-                    <div className="skeleton h-3.5 w-64 rounded" />
-                    <div className="skeleton h-2.5 w-40 rounded" />
+                <GlassCard key={i} className="p-6 h-64 flex flex-col justify-between">
+                  <div className="skeleton h-12 w-12 rounded-xl mb-4" />
+                  <div className="space-y-3">
+                    <div className="skeleton h-4 w-[80%] rounded" />
+                    <div className="skeleton h-3 w-[40%] rounded" />
                   </div>
-                  <div className="skeleton h-8 w-24 rounded-lg" />
-                </div>
+                  <div className="flex gap-2 mt-6">
+                    <div className="skeleton h-8 w-20 rounded-lg" />
+                    <div className="skeleton h-8 w-20 rounded-lg" />
+                  </div>
+                </GlassCard>
               ))}
             </div>
-          ) : resumes.length === 0 ? (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="card flex flex-col items-center justify-center border border-dashed border-white/[0.1] bg-white/[0.01] px-6 py-16 text-center">
-              <div className="mb-5 flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-accent-violet/10 to-accent-teal/10 shadow-[0_0_30px_rgba(124,111,247,0.15)] ring-1 ring-white/[0.05]">
-                <Files className="h-8 w-8 text-accent-violet-light" />
-              </div>
-              <h3 className="font-display text-lg font-bold text-white">No resumes uploaded yet</h3>
-              <p className="mt-2 max-w-sm text-[13px] leading-relaxed text-slate-400">
-                Upload your master resume to start generating cover letters, matching with jobs, and getting AI-powered ATS insights.
-              </p>
-            </motion.div>
+          ) : resumes.length === 0 && !showUpload ? (
+             null // Empty state handled by the auto-showing upload zone above
           ) : (
-            <div className="space-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <AnimatePresence>
-                {resumes.map((resume) => (
+                {resumes.map((resume, index) => (
                   <motion.div
                     key={resume._id}
                     layout
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.98, transition: { duration: 0.2 } }}
-                    className={`card group relative overflow-hidden p-5 transition-all duration-300 ${
-                      deleting === resume._id ? 'pointer-events-none opacity-50' : 'hover:-translate-y-0.5 hover:border-accent-violet/30 hover:shadow-[0_8px_30px_rgba(0,0,0,0.5)]'
-                    }`}
+                    initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
+                    transition={{ delay: index * 0.05, duration: 0.4 }}
                   >
-                    <div className="absolute inset-0 bg-gradient-to-r from-accent-violet/5 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-                    
-                    <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-center">
-                      {/* Icon */}
-                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-white/[0.06] bg-[#0A0B0F] transition-colors group-hover:border-accent-violet/30 group-hover:bg-accent-violet/10">
-                        <Files className="h-5 w-5 text-slate-400 transition-colors group-hover:text-accent-violet-light" />
+                    <GlassCard 
+                      hoverEffect
+                      className={`h-[280px] flex flex-col p-6 group cursor-default transition-all duration-300 ${
+                        deleting === resume._id ? 'pointer-events-none opacity-50 scale-95' : ''
+                      }`}
+                    >
+                      {/* Document Wireframe Background Graphic */}
+                      <div className="absolute right-0 top-0 w-32 h-32 opacity-5 pointer-events-none overflow-hidden rounded-tr-3xl">
+                        <File className="w-48 h-48 -mt-8 -mr-8 text-white rotate-12 transition-transform duration-500 group-hover:rotate-6 group-hover:scale-110" />
                       </div>
 
-                      {/* Info */}
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-[15px] font-bold text-white">{resume.originalName}</p>
-                        <div className="mt-1 flex flex-wrap items-center gap-3">
-                          <span className="flex items-center gap-1.5 text-[12px] font-medium text-slate-400">
+                      <div className="flex justify-between items-start mb-auto relative z-10">
+                        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-white/[0.08] bg-white/[0.02] shadow-inner transition-colors duration-500 group-hover:border-accent-violet/50 group-hover:bg-accent-violet/10 group-hover:shadow-[0_0_20px_rgba(124,111,247,0.2)]">
+                          <Files className="h-6 w-6 text-slate-400 transition-colors duration-500 group-hover:text-accent-violet-light" />
+                        </div>
+                        <div className="flex flex-col items-end gap-2">
+                           <button
+                            onClick={() => handleDelete(resume._id, resume.originalName)}
+                            disabled={deleting === resume._id}
+                            className="flex h-8 w-8 items-center justify-center rounded-xl border border-transparent text-slate-500 opacity-0 transition-all group-hover:opacity-100 hover:bg-red-500/20 hover:text-red-400 hover:border-red-500/30"
+                            title="Delete resume"
+                          >
+                            {deleting === resume._id
+                              ? <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-red-400/30 border-t-red-500" />
+                              : <Trash2 className="h-3.5 w-3.5" />
+                            }
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="relative z-10 mt-6">
+                        <p className="truncate text-lg font-display font-bold text-white transition-colors group-hover:text-accent-violet-light">{resume.originalName}</p>
+                        <div className="mt-2 flex flex-wrap items-center gap-2">
+                          <span className="flex items-center gap-1.5 rounded-lg bg-white/[0.04] px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 border border-white/[0.05]">
                             <Clock className="h-3 w-3" />
-                            {new Date(resume.createdAt).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
+                            {new Date(resume.createdAt).toLocaleDateString()}
                           </span>
-                          <span className="rounded bg-white/[0.06] px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                            {resume.fileType}
+                          <span className="rounded-lg bg-white/[0.04] px-2 py-1 text-[10px] font-bold uppercase tracking-widest text-slate-400 border border-white/[0.05]">
+                            {resume.fileType.replace('.', '')}
                           </span>
                         </div>
                       </div>
 
-                      {/* Actions */}
-                      <div className="flex shrink-0 flex-wrap items-center gap-2">
+                      {/* Hover Quick Actions */}
+                      <div className="relative z-10 mt-6 flex gap-2 overflow-x-auto scrollbar-hide pb-1 -mx-2 px-2">
                         <Link
                           to={`/analyzer?resumeId=${resume._id}`}
-                          className="inline-flex items-center gap-1.5 rounded-lg border border-accent-teal/20 bg-accent-teal/10 px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-accent-teal transition-colors hover:border-accent-teal/40 hover:bg-accent-teal/20"
+                          className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-slate-300 transition-all hover:border-accent-teal/50 hover:bg-accent-teal/20 hover:text-accent-teal-light shadow-sm"
                         >
                           <ScanText className="h-3.5 w-3.5" /> Analyze
                         </Link>
                         <Link
                           to={`/jd-match?resumeId=${resume._id}`}
-                          className="inline-flex items-center gap-1.5 rounded-lg border border-accent-violet/20 bg-accent-violet/10 px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-accent-violet transition-colors hover:border-accent-violet/40 hover:bg-accent-violet/20"
+                          className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-slate-300 transition-all hover:border-accent-violet/50 hover:bg-accent-violet/20 hover:text-accent-violet-light shadow-sm"
                         >
                           <Briefcase className="h-3.5 w-3.5" /> Match
                         </Link>
                         <Link
                           to={`/cover-letter?resumeId=${resume._id}`}
-                          className="hidden items-center gap-1.5 rounded-lg border border-amber-500/20 bg-amber-500/10 px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-amber-500 transition-colors hover:border-amber-500/40 hover:bg-amber-500/20 md:inline-flex"
+                          className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-slate-300 transition-all hover:border-amber-500/50 hover:bg-amber-500/20 hover:text-amber-300 shadow-sm"
                         >
                           <FileText className="h-3.5 w-3.5" /> Letter
                         </Link>
-                        
-                        <div className="h-8 w-px bg-white/[0.08] mx-1 hidden sm:block" />
-                        
-                        <button
-                          onClick={() => handleDelete(resume._id, resume.originalName)}
-                          disabled={deleting === resume._id}
-                          className="flex h-[34px] w-[34px] items-center justify-center rounded-lg border border-transparent text-slate-500 transition-colors hover:border-red-500/30 hover:bg-red-500/10 hover:text-red-400"
-                          title="Delete resume"
-                        >
-                          {deleting === resume._id
-                            ? <div className="h-4 w-4 animate-spin rounded-full border-2 border-red-400/30 border-t-red-500" />
-                            : <Trash2 className="h-4 w-4" />
-                          }
-                        </button>
                       </div>
-                    </div>
+
+                    </GlassCard>
                   </motion.div>
                 ))}
               </AnimatePresence>
             </div>
           )}
         </div>
+
       </div>
     </DashboardLayout>
   )

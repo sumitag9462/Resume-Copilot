@@ -58,10 +58,10 @@ const runModelQuery = async (feature, inputs, modelKey, prompt) => {
           err.message?.includes("overloaded");
 
         if (isTemporary && attempt < maxRetries) {
-          // If the error specifically mentions a long wait time (e.g. 429 Quota Exceeded),
+          // If the error specifically mentions a long wait time (e.g. 429 Quota Exceeded) or 503 High Demand,
           // fallback to the lighter model immediately to preserve UX rather than failing.
-          if (err.message?.includes("429") || err.message?.includes("Quota exceeded")) {
-             console.warn(`[Arena Engine] Rate limit hit for ${modelKey}. Switching to fallback model gemini-2.5-flash-lite.`);
+          if (err.message?.includes("429") || err.message?.includes("Quota exceeded") || err.message?.includes("503") || err.message?.includes("high demand")) {
+             console.warn(`[Arena Engine] Model ${modelKey} overloaded. Switching to fallback model gemini-2.5-flash-lite.`);
              modelInstance = getGenAIInstance().getGenerativeModel({
                model: "gemini-2.5-flash-lite",
                generationConfig: { temperature: 0.1, maxOutputTokens: 8192 }
