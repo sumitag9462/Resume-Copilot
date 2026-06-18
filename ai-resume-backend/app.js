@@ -18,6 +18,8 @@ const arenaRoutes           = require('./routes/arenaRoutes');
 const outreachRoutes        = require('./routes/outreachRoutes');
 const userRoutes            = require('./routes/userRoutes');
 const contactRoutes         = require('./routes/contactRoutes');
+const voiceInterviewRoutes  = require('./routes/voiceInterviewRoutes');
+const copilotRoutes         = require('./routes/copilotRoutes');
 const errorHandler          = require('./middleware/errorHandler');
 
 const app = express();
@@ -60,8 +62,8 @@ const apiLimiter = rateLimit({
 });
 app.use('/api/', apiLimiter);
 
-app.use(express.json({ limit: '10kb' })); // Limit body size to prevent payload attacks
-app.use(express.urlencoded({ extended: true, limit: '10kb' }));
+app.use(express.json({ limit: '50kb' })); // Larger limit for resume text in copilot
+app.use(express.urlencoded({ extended: true, limit: '50kb' }));
 
 // NoSQL Injection Protection is handled by Mongoose schema casting natively
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -76,6 +78,8 @@ app.use('/api/arena',           arenaRoutes);
 app.use('/api/outreach',        outreachRoutes);
 app.use('/api/user',            userRoutes);
 app.use('/api/contact',         contactRoutes);
+app.use('/api/voice-interview', voiceInterviewRoutes);
+app.use('/api/copilot',         copilotRoutes);
 
 app.get('/', (req, res) => {
   res.json({ message: 'Resume Copilot API is running' });

@@ -8,6 +8,7 @@ import {
   Briefcase,
   FileText,
   Files,
+  Mic,
   ScanText,
   Sparkles,
   TrendingUp,
@@ -218,6 +219,7 @@ const DashboardPage = () => {
               <QuickAction to="/jd-match" icon={Briefcase} title="JD Matcher" desc="Compare your profile against specific job requirements." delay={0.4} />
               <QuickAction to="/cover-letter" icon={FileText} title="Cover Letters" desc="Generate AI cover letters tailored to your target role." delay={0.45} />
               <QuickAction to="/interview-prep" icon={BrainCircuit} title="Interview Prep" desc="Practice with AI-generated role-specific questions." delay={0.5} />
+              <QuickAction to="/voice-interview" icon={Mic} title="AI Interview" desc="Real-time voice interview with adaptive AI evaluation." delay={0.55} />
             </div>
           </div>
 

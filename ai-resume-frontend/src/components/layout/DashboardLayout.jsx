@@ -5,7 +5,7 @@ import Topbar from './Topbar';
 import { AnimatePresence, motion } from 'framer-motion';
 import AmbientMouseLight from '../landing/AmbientMouseLight';
 
-const DashboardLayout = ({ children, title = 'Dashboard' }) => {
+const DashboardLayout = ({ children, title = 'Dashboard', fullScreen = false }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
 
@@ -27,11 +27,12 @@ const DashboardLayout = ({ children, title = 'Dashboard' }) => {
 
       <Sidebar isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />
       
-      <div className="relative z-10 flex h-screen flex-col transition-all duration-300 w-full min-w-0">
-        <Topbar title={title} onMenuClick={() => setIsMobileMenuOpen(true)} />
+      <div className="relative z-10 flex flex-1 h-screen flex-col transition-all duration-300 min-w-0">
+        {!fullScreen && <Topbar title={title} onMenuClick={() => setIsMobileMenuOpen(true)} />}
         
-        <main className="flex-1 overflow-y-auto overflow-x-hidden p-6 lg:p-10 lg:pt-8 scrollbar-hide">
-          <div className="mx-auto w-full max-w-[1400px]">
+        {/* On fullScreen mode, remove all padding and max-width to allow edge-to-edge layouts */}
+        <main className={`flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide ${fullScreen ? 'p-0' : 'p-6 lg:p-10 lg:pt-8'}`}>
+          <div className={`mx-auto w-full h-full ${fullScreen ? 'max-w-none' : 'max-w-[1400px]'}`}>
             <AnimatePresence mode="wait">
               <motion.div
                 key={location.pathname}
@@ -39,7 +40,7 @@ const DashboardLayout = ({ children, title = 'Dashboard' }) => {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -15, scale: 0.99 }}
                 transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                className="w-full"
+                className="w-full h-full"
               >
                 {children}
               </motion.div>

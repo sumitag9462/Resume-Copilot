@@ -45,6 +45,8 @@ import VersionComparePage   from './pages/VersionComparePage'
 import SettingsPage         from './pages/SettingsPage'
 import OutreachPage         from './pages/OutreachPage'
 import ResumeComparisonPage from './pages/ResumeComparisonPage'
+import CopilotPage          from './pages/CopilotPage'
+import VoiceInterviewPage  from './pages/VoiceInterviewPage'
 
 const App = () => {
   const location = useLocation();
@@ -62,6 +64,10 @@ const App = () => {
           <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
 
           {/* ── PROTECTED ROUTES ──────────────────────────────── */}
+          <Route
+            path="/copilot"
+            element={<ProtectedRoute><CopilotPage /></ProtectedRoute>}
+          />
           <Route
             path="/dashboard"
             element={<ProtectedRoute><DashboardPage /></ProtectedRoute>}
@@ -106,6 +112,10 @@ const App = () => {
           <Route
             path="/resume-comparison"
             element={<ProtectedRoute><ResumeComparisonPage /></ProtectedRoute>}
+          />
+          <Route
+            path="/voice-interview"
+            element={<ProtectedRoute><VoiceInterviewPage /></ProtectedRoute>}
           />
 
 

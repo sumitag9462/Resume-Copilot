@@ -14,7 +14,8 @@ import {
   Split,
   X,
   CreditCard,
-  HardDrive
+  HardDrive,
+  Mic
 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import toast from 'react-hot-toast'
@@ -24,6 +25,7 @@ const navGroups = [
   {
     title: 'Foundation',
     items: [
+      { path: '/copilot', label: 'AI Copilot', icon: Sparkles },
       { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
       { path: '/resumes', label: 'My Resumes', icon: Files },
     ]
@@ -49,6 +51,7 @@ const navGroups = [
       { path: '/cover-letter', label: 'Cover Letters', icon: Mail },
       { path: '/outreach', label: 'Cold Outreach', icon: Send },
       { path: '/interview-prep', label: 'Interview Prep', icon: BrainCircuit },
+      { path: '/voice-interview', label: 'AI Voice Interview', icon: Mic },
     ]
   },
   {
