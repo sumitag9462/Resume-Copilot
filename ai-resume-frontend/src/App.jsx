@@ -35,6 +35,7 @@ import ResetPasswordPage    from './pages/Auth/ResetPasswordPage'
 // Protected pages
 import DashboardPage        from './pages/DashboardPage'
 import ResumesPage          from './pages/ResumesPage'
+import BuilderPage          from './pages/BuilderPage'
 import ResumeBoostPage      from './pages/ResumeBoostPage'
 import InterviewPrepPage    from './pages/InterviewPrepPage'
 import AnalyzerPage         from './pages/AnalyzerPage'
@@ -73,6 +74,10 @@ const App = () => {
           <Route
             path="/resumes"
             element={<ProtectedRoute><ResumesPage /></ProtectedRoute>}
+          />
+          <Route
+            path="/builder"
+            element={<ProtectedRoute><BuilderPage /></ProtectedRoute>}
           />
           <Route
             path="/resume-boost"
