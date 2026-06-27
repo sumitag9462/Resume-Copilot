@@ -1,12 +1,14 @@
 import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
+import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion';
 
 const MAX_CONNECTIONS = 600;
 
 export default function HeroBackground3D({ count = 80 }) {
   const pointsRef = useRef();
   const linesRef = useRef();
+  const prefersReducedMotion = usePrefersReducedMotion();
   
   // Create random positions and velocities for particles
   const [positions, velocities] = useMemo(() => {
@@ -34,7 +36,7 @@ export default function HeroBackground3D({ count = 80 }) {
   const colorSecondary = new THREE.Color('#00D4AA'); // Cyan
 
   useFrame(() => {
-    if (document.hidden) return;
+    if (prefersReducedMotion || document.hidden) return;
     if (!pointsRef.current || !linesRef.current) return;
 
     const posAttr = pointsRef.current.geometry.attributes.position;
