@@ -2,7 +2,9 @@ import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
-export default function HeroBackground3D({ count = 150 }) {
+const MAX_CONNECTIONS = 600;
+
+export default function HeroBackground3D({ count = 80 }) {
   const pointsRef = useRef();
   const linesRef = useRef();
   
@@ -25,14 +27,14 @@ export default function HeroBackground3D({ count = 150 }) {
     return [pos, vel];
   }, [count]);
 
-  const maxConnections = count * count;
-  const linePositions = useMemo(() => new Float32Array(maxConnections * 6), [maxConnections]);
-  const lineColors = useMemo(() => new Float32Array(maxConnections * 6), [maxConnections]);
+  const linePositions = useMemo(() => new Float32Array(MAX_CONNECTIONS * 6), []);
+  const lineColors = useMemo(() => new Float32Array(MAX_CONNECTIONS * 6), []);
 
   const colorPrimary = new THREE.Color('#7C5CFC'); // Purple
   const colorSecondary = new THREE.Color('#00D4AA'); // Cyan
 
   useFrame(() => {
+    if (document.hidden) return;
     if (!pointsRef.current || !linesRef.current) return;
 
     const posAttr = pointsRef.current.geometry.attributes.position;
@@ -87,8 +89,10 @@ export default function HeroBackground3D({ count = 150 }) {
           lineColors[colorpos++] = color2.b;
 
           numConnected++;
+          if (numConnected >= MAX_CONNECTIONS) break;
         }
       }
+      if (numConnected >= MAX_CONNECTIONS) break;
     }
 
     linesRef.current.geometry.setDrawRange(0, numConnected * 2);
