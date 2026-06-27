@@ -21,8 +21,7 @@ const RegisterPage = () => {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleRequestOtp = async (e) => {
-        e.preventDefault();
+    const requestOtp = async () => {
         setIsLoading(true);
         setError('');
         setMessage('');
@@ -35,6 +34,11 @@ const RegisterPage = () => {
         } finally {
             setIsLoading(false);
         }
+    };
+
+    const handleRequestOtp = (e) => {
+        e.preventDefault();
+        requestOtp();
     };
 
     const handleVerifyAndRegister = async (e) => {
@@ -141,7 +145,7 @@ const RegisterPage = () => {
                             </PrimaryButton>
                         </div>
                         
-                        <CountdownTimer initialSeconds={60} onResend={handleRequestOtp} />
+                        <CountdownTimer initialSeconds={60} onResend={requestOtp} />
 
                         <button  
                             type="button" 
