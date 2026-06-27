@@ -4,7 +4,6 @@ import gsap from 'gsap';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Sparkles, Check, Cpu, FileText, Target, Award } from 'lucide-react';
 import { Canvas } from '@react-three/fiber';
-import { Environment, Float, PresentationControls } from '@react-three/drei';
 import HeroBackground3D from './HeroBackground3D';
 import MagneticButton from './MagneticButton';
 

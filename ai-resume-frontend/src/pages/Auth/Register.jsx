@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, MapPin, Phone, Sparkles, ArrowRight, Github, Edit2 } from 'lucide-react';
+import { Mail, MapPin, Phone, Sparkles, ArrowRight, Edit2 } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import apiClient from '../../api/axiosConfig';
 import { FloatingInput, PrimaryButton, OtpInput, AuthLayout, CountdownTimer, PasswordStrengthIndicator } from './AuthComponents';

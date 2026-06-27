@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, Sparkles, ArrowRight, Github } from 'lucide-react';
+import { Mail, Sparkles, ArrowRight } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { FloatingInput, PrimaryButton, AuthLayout } from './AuthComponents';
