@@ -16,7 +16,7 @@ const titles = {
   '/resume-comparison': 'Resume Comparison',
   '/settings': 'Settings',
   '/outreach': 'Cold Outreach',
-  '/voice-interview': 'AI Voice Interview',
+
 }
 
 const Topbar = ({ onMenuClick }) => {

@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const axios = require('axios');
 const crypto = require('crypto');
+const nodemailer = require('nodemailer');
 const User = require('../models/User');
 const OTP = require('../models/OTP');
 const TokenBlocklist = require('../models/TokenBlocklist');
@@ -40,9 +41,40 @@ const sendOtpEmail = async (email, otp, subject, title) => {
             
             return true;
         } catch (mailError) {
-            console.error('Brevo API error, printing OTP to terminal:', mailError.response?.data || mailError.message);
+            console.error('Brevo API error, falling back to nodemailer:', mailError.response?.data || mailError.message);
         }
     }
+    
+    // Fallback to Nodemailer if Brevo is not configured or failed
+    if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+        try {
+            const transporter = nodemailer.createTransport({
+                host: process.env.EMAIL_HOST || 'smtp.gmail.com',
+                port: process.env.EMAIL_PORT || 465,
+                secure: process.env.EMAIL_SECURE === 'true',
+                auth: {
+                    user: process.env.EMAIL_USER,
+                    pass: process.env.EMAIL_PASS
+                }
+            });
+
+            await transporter.sendMail({
+                from: `"Resume Copilot" <${process.env.EMAIL_USER}>`,
+                to: email,
+                subject: subject,
+                html: `<div style="font-family:sans-serif;text-align:center;padding:20px">
+                         <h2>${title}</h2>
+                         <p>Your one-time password is:</p>
+                         <p style="font-size:24px;font-weight:bold;letter-spacing:5px;margin:20px 0;background:#f0f0f0;padding:10px;border-radius:5px">${otp}</p>
+                         <p>This code will expire in 5 minutes.</p>
+                       </div>`
+            });
+            return true;
+        } catch (mailError) {
+            console.error('Nodemailer error, printing OTP to terminal:', mailError.message);
+        }
+    }
+
     // Fallback console log for local development or if email fails
     console.log(`\n==================================================\n⚠️  EMAIL NOT SENT! DEV OTP for ${email}: ${otp}\n==================================================\n`);
     return false;
@@ -89,7 +121,14 @@ const verifyEmailOtp = async (req, res) => {
         const newUser = await User.create({ name, email, password, mobile, place });
         await OTP.deleteMany({ email }); // Delete verified OTPs
 
-        res.status(201).json({ success: true, message: 'Registration successful! Please log in.' });
+        const token = generateToken(newUser._id, newUser.name);
+
+        res.status(201).json({ 
+            success: true, 
+            message: 'Registration successful! Loading workspace...',
+            token,
+            user: { id: newUser._id, name: newUser.name, email: newUser.email, photo: newUser.photo || '' }
+        });
     } catch (error) {
         console.error('Error verifying OTP:', error);
         res.status(500).json({ message: 'Server error during registration.' });

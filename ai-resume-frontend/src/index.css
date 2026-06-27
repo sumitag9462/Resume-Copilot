@@ -568,7 +568,10 @@ body::before {
 }
 
 /* ── Scrollbar ──────────────────────────────── */
-::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar { 
+  width: 4px; 
+  height: 4px; 
+}
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { 
   background: rgba(124,111,247,0.3);
@@ -576,6 +579,15 @@ body::before {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(124,111,247,0.5);
+}
+
+/* ── Hide Scrollbar Utility ─────────────────── */
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
 }
 
 /* ── Reduced motion ─────────────────────────── */

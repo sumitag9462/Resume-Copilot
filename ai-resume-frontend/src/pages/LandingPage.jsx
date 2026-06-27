@@ -96,7 +96,7 @@ const Footer = () => (
     <div className="max-w-7xl mx-auto px-6 lg:px-8">
       <div className="grid gap-12 lg:grid-cols-[2fr_1fr_1fr_1fr] mb-20">
         <div>
-          <div className="flex items-center gap-3 mb-6 relative group inline-flex cursor-default">
+          <div className="flex items-center gap-3 mb-6 relative group cursor-default">
             <div className="absolute inset-0 bg-accent-violet/20 rounded-2xl blur-lg group-hover:bg-accent-violet/40 transition-colors" />
             <div className="relative flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-accent-violet to-accent-teal shadow-lg group-hover:scale-105 transition-transform duration-300">
               <Sparkles className="h-5 w-5 text-white" />

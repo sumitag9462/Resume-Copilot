@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, MapPin, Phone, ArrowRight, ArrowLeft, CheckCircle2, Briefcase, GraduationCap, Sparkles } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import apiClient from '../../api/axiosConfig';
+import { useAuth } from '../../context/AuthContext';
 import { FloatingInput, PrimaryButton, OtpInput, AuthLayout, CountdownTimer, PasswordStrengthIndicator, ErrorMessage } from './AuthComponents';
 
 const Stepper = ({ currentStep }) => (
@@ -31,6 +32,7 @@ const RegisterPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [loadingText, setLoadingText] = useState('');
   const navigate = useNavigate();
+  const { loginWithToken } = useAuth();
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -86,7 +88,7 @@ const RegisterPage = () => {
     const fullName = `${formData.firstName} ${formData.lastName}`.trim();
     
     try {
-      await apiClient.post('/auth/verify-email-otp', {
+      const response = await apiClient.post('/auth/verify-email-otp', {
         name: fullName,
         email: formData.email,
         password: formData.password,
@@ -94,6 +96,10 @@ const RegisterPage = () => {
         place: formData.place || 'Remote',
         otp: otp,
       });
+
+      if (response.data.success && response.data.token) {
+        loginWithToken(response.data.token, response.data.user);
+      }
 
       setStep(5); // Success State
       setTimeout(() => navigate('/dashboard'), 3000);

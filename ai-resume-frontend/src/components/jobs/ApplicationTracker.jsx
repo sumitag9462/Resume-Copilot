@@ -68,7 +68,7 @@ export default function ApplicationTracker() {
   };
 
   return (
-    <div className="flex gap-4 h-[300px] overflow-x-auto pb-4 scrollbar-hide">
+    <div className="flex gap-4 h-[170px] overflow-x-auto pb-4 scrollbar-hide">
       {Object.values(columns).map(column => (
         <div 
           key={column.id}

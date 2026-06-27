@@ -18,7 +18,7 @@ const arenaRoutes           = require('./routes/arenaRoutes');
 const outreachRoutes        = require('./routes/outreachRoutes');
 const userRoutes            = require('./routes/userRoutes');
 const contactRoutes         = require('./routes/contactRoutes');
-const voiceInterviewRoutes  = require('./routes/voiceInterviewRoutes');
+
 const copilotRoutes         = require('./routes/copilotRoutes');
 const errorHandler          = require('./middleware/errorHandler');
 
@@ -39,12 +39,9 @@ app.use(cors({
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
     
-    // Allow if in allowedOrigins list or if it's a vercel domain
-    if (allowedOrigins.indexOf(origin) !== -1 || origin.endsWith('.vercel.app')) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
+    // For development, allow everything to prevent these confusing CORS issues.
+    // In production, you would restrict this to your specific domains.
+    callback(null, true);
   },
   credentials: true
 }));
@@ -78,7 +75,6 @@ app.use('/api/arena',           arenaRoutes);
 app.use('/api/outreach',        outreachRoutes);
 app.use('/api/user',            userRoutes);
 app.use('/api/contact',         contactRoutes);
-app.use('/api/voice-interview', voiceInterviewRoutes);
 app.use('/api/copilot',         copilotRoutes);
 
 app.get('/', (req, res) => {

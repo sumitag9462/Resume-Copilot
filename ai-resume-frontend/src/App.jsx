@@ -48,7 +48,6 @@ import SettingsPage         from './pages/SettingsPage'
 import OutreachPage         from './pages/OutreachPage'
 import ResumeComparisonPage from './pages/ResumeComparisonPage'
 import CopilotPage          from './pages/CopilotPage'
-import VoiceInterviewPage  from './pages/VoiceInterviewPage'
 
 const App = () => {
   const location = useLocation();
@@ -118,10 +117,6 @@ const App = () => {
           <Route
             path="/resume-comparison"
             element={<ProtectedRoute><PageWrapper><ResumeComparisonPage /></PageWrapper></ProtectedRoute>}
-          />
-          <Route
-            path="/voice-interview"
-            element={<ProtectedRoute><PageWrapper><VoiceInterviewPage /></PageWrapper></ProtectedRoute>}
           />
 
 

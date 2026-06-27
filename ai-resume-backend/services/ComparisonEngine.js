@@ -27,6 +27,10 @@ const runModelQuery = async (feature, inputs, modelKey, prompt) => {
   const apiModelName = modelConfig.apiName;
   const startTime = Date.now();
 
+  // Track which model actually produced the output (may change on fallback).
+  // Declared outside try so the outer catch block can also report the correct model.
+  let actualModelUsed = modelKey;
+
   try {
     // ⚠️ SPECIFIC INSTANTIATION PATTERN TO PREVENT 256 TOKEN LIMIT BUG
     // Configure responseMimeType and maxOutputTokens inside getGenerativeModel
@@ -61,11 +65,13 @@ const runModelQuery = async (feature, inputs, modelKey, prompt) => {
           // If the error specifically mentions a long wait time (e.g. 429 Quota Exceeded) or 503 High Demand,
           // fallback to the lighter model immediately to preserve UX rather than failing.
           if (err.message?.includes("429") || err.message?.includes("Quota exceeded") || err.message?.includes("503") || err.message?.includes("high demand")) {
-             console.warn(`[Arena Engine] Model ${modelKey} overloaded. Switching to fallback model gemini-2.5-flash-lite.`);
+             const fallbackModel = "gemini-2.5-flash-lite";
+             console.warn(`[Arena Engine] Model ${modelKey} overloaded. Switching to fallback model ${fallbackModel}.`);
              modelInstance = getGenAIInstance().getGenerativeModel({
-               model: "gemini-2.5-flash-lite",
+               model: fallbackModel,
                generationConfig: { temperature: 0.1, maxOutputTokens: 8192 }
              });
+             actualModelUsed = fallbackModel; // Track the real model that will generate output
              // We don't delay, we just instantly retry on the fallback model
              attempt++;
           } else {
@@ -102,7 +108,7 @@ const runModelQuery = async (feature, inputs, modelKey, prompt) => {
     const usage = result.response.usageMetadata || {};
 
     return {
-      model: modelKey,
+      model: actualModelUsed,
       output: parsedJSON,
       executionTime: duration,
       error: null,
@@ -124,7 +130,7 @@ const runModelQuery = async (feature, inputs, modelKey, prompt) => {
     }
 
     return {
-      model: modelKey,
+      model: actualModelUsed,
       output: null,
       executionTime: duration,
       error: errorMessage,

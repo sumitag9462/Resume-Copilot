@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { motion, useScroll, useTransform, AnimatePresence, useSpring, useMotionValueEvent, LayoutGroup } from 'framer-motion';
+import { motion, useScroll, useTransform, AnimatePresence, useSpring, useMotionValueEvent } from 'framer-motion';
 import { FileUp, ScanText, FileText, Brain, Database, Shield, Target, Award, Terminal, Lightbulb, MessageSquare, Download, ArrowRight } from 'lucide-react';
 import GlassCard from '../ui/GlassCard';
 
@@ -107,7 +107,6 @@ const AICard = ({ stage, isActive, isPast, isFinal }) => {
   
   return (
     <motion.div
-      layout
       initial={false}
       animate={{ 
         opacity: showActiveState ? 1 : 0.4,
@@ -138,55 +137,43 @@ const AICard = ({ stage, isActive, isPast, isFinal }) => {
             </div>
             <p className="text-sm text-slate-400 truncate mb-3">{stage.desc}</p>
             
-            <AnimatePresence>
-              {showActiveState && !isFinal && (
-                <motion.div 
-                  initial={{ opacity: 0, height: 0 }} 
-                  animate={{ opacity: 1, height: 'auto' }}
-                  className="grid grid-cols-2 lg:grid-cols-4 gap-3 pt-3 border-t border-white/10"
-                >
-                  {stage.metadata.map((meta, i) => (
-                    <div key={i} className="flex flex-col">
-                      <span className="text-[10px] text-slate-500 uppercase tracking-wider">{meta.label}</span>
-                      <span className="text-xs font-mono text-slate-300 truncate">{meta.value}</span>
-                    </div>
-                  ))}
-                </motion.div>
-              )}
-            </AnimatePresence>
+            {showActiveState && !isFinal && (
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 pt-3 border-t border-white/10 mt-3 animate-in fade-in slide-in-from-top-2 duration-500">
+                {stage.metadata.map((meta, i) => (
+                  <div key={i} className="flex flex-col">
+                    <span className="text-[10px] text-slate-500 uppercase tracking-wider">{meta.label}</span>
+                    <span className="text-xs font-mono text-slate-300 truncate">{meta.value}</span>
+                  </div>
+                ))}
+              </div>
+            )}
 
             {/* Final Report Dashboard Expansion */}
-            <AnimatePresence>
-              {showActiveState && isFinal && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  className="pt-4 mt-4 border-t border-white/10"
-                >
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                    <div className="p-4 rounded-xl bg-white/5 border border-white/10">
-                      <div className="text-xs text-slate-400 mb-1">ATS Score</div>
-                      <div className="text-2xl font-bold text-accent-teal">94</div>
-                    </div>
-                    <div className="p-4 rounded-xl bg-white/5 border border-white/10">
-                      <div className="text-xs text-slate-400 mb-1">Job Matches</div>
-                      <div className="text-2xl font-bold text-emerald-400">24</div>
-                    </div>
-                    <div className="p-4 rounded-xl bg-white/5 border border-white/10">
-                      <div className="text-xs text-slate-400 mb-1">Suggestions</div>
-                      <div className="text-2xl font-bold text-amber-400">8</div>
-                    </div>
-                    <div className="p-4 rounded-xl bg-white/5 border border-white/10">
-                      <div className="text-xs text-slate-400 mb-1">Processing Time</div>
-                      <div className="text-2xl font-bold text-purple-400">1.4s</div>
-                    </div>
+            {showActiveState && isFinal && (
+              <div className="pt-4 mt-4 border-t border-white/10 animate-in fade-in slide-in-from-top-2 duration-500">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                  <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+                    <div className="text-xs text-slate-400 mb-1">ATS Score</div>
+                    <div className="text-2xl font-bold text-accent-teal">94</div>
                   </div>
-                  <button className="w-full py-3 rounded-xl bg-gradient-to-r from-accent-violet to-accent-teal text-white font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition-opacity">
-                    <Download className="w-4 h-4" /> Download Full Report
-                  </button>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                  <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+                    <div className="text-xs text-slate-400 mb-1">Job Matches</div>
+                    <div className="text-2xl font-bold text-emerald-400">24</div>
+                  </div>
+                  <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+                    <div className="text-xs text-slate-400 mb-1">Suggestions</div>
+                    <div className="text-2xl font-bold text-amber-400">8</div>
+                  </div>
+                  <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+                    <div className="text-xs text-slate-400 mb-1">Processing Time</div>
+                    <div className="text-2xl font-bold text-purple-400">1.4s</div>
+                  </div>
+                </div>
+                <button className="w-full py-3 rounded-xl bg-gradient-to-r from-accent-violet to-accent-teal text-white font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition-opacity">
+                  <Download className="w-4 h-4" /> Download Full Report
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </GlassCard>
@@ -287,7 +274,7 @@ export default function AIDemoSection() {
 
             {/* Stages */}
             <div className="flex flex-col gap-6 relative z-10 pl-16 md:pl-28">
-              <LayoutGroup>
+              <div className="flex flex-col gap-6 w-full">
                 {pipelineStages.map((stage, idx) => {
                   const isActive = idx === activeStep;
                   const isPast = idx < activeStep;
@@ -302,7 +289,7 @@ export default function AIDemoSection() {
                     </div>
                   );
                 })}
-              </LayoutGroup>
+              </div>
             </div>
           </div>
 

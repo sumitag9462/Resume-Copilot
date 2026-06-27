@@ -30,6 +30,12 @@ export const AuthProvider = ({ children }) => {
         return res;
     };
 
+    const loginWithToken = (token, user) => {
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(user));
+        setAuthData({ user, isAuthenticated: true, token, isLoading: false });
+    };
+
     const logout = async () => {
         try {
             await apiClient.post('/auth/logout');
@@ -53,7 +59,7 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-    const value = { ...authData, login, logout, updateUser };
+    const value = { ...authData, login, loginWithToken, logout, updateUser };
 
     return (
         <AuthContext.Provider value={value}>

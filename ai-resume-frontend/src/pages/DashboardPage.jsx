@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
-import { ArrowRight, BrainCircuit, Briefcase, FileText, Mic, ScanText, Target } from 'lucide-react';
+import { ArrowRight, BrainCircuit, Briefcase, FileText, ScanText, Target } from 'lucide-react';
 import DashboardLayout from '../components/layout/DashboardLayout';
 import { useAuth } from '../context/AuthContext';
 import { getAllResumes } from '../api/resumeApi';

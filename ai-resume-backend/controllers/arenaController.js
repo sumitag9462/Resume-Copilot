@@ -102,9 +102,11 @@ const runArena = async (req, res, next) => {
       }
     }
 
-    // ── AI INPUT VALIDATION ──────────────────────────────────
+    // ── AI INPUT VALIDATION ──────────────────────────────
+    // Pass executionInputs (which has resolved resumeText) so the validator
+    // can actually inspect content fields, not just bare IDs.
     console.log(`[Arena Controller] Validating inputs for feature '${feature}'...`);
-    const validation = await validateInputs(inputs);
+    const validation = await validateInputs(executionInputs);
     if (!validation.isValid) {
       console.warn(`[ValidationEngine] Rejected input: ${validation.reason}`);
       return res.status(200).json({ 
@@ -158,7 +160,10 @@ const runArena = async (req, res, next) => {
       };
     }
 
-    return res.status(201).json({
+    // Use 201 only when a new record was actually created in DB
+    const statusCode = hasSuccessfulResult ? 201 : 200;
+
+    return res.status(statusCode).json({
       success: true,
       fromCache: false,
       arenaRun: historyRecord
