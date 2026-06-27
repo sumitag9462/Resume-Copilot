@@ -24,6 +24,8 @@ import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { AnimatePresence } from 'framer-motion'
 import ProtectedRoute from './components/auth/ProtectedRoute'
 import ScrollProgress from './components/ui/ScrollProgress'
+import CommandPalette from './components/ui/CommandPalette'
+import PageWrapper from './components/layout/PageWrapper'
 
 // Public pages
 import LandingPage          from './pages/LandingPage'
@@ -53,72 +55,73 @@ const App = () => {
   return (
     <>
       <ScrollProgress />
+      <CommandPalette />
       <AnimatePresence mode="wait">
         <Routes location={location} key={location.pathname}>
           {/* ── PUBLIC ROUTES ─────────────────────────────────── */}
-          <Route path="/"                 element={<LandingPage />} />
-          <Route path="/login"            element={<LoginPage />} />
-          <Route path="/register"         element={<RegisterPage />} />
-          <Route path="/forgot-password"  element={<ForgotPasswordPage />} />
-          <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
+          <Route path="/"                 element={<PageWrapper><LandingPage /></PageWrapper>} />
+          <Route path="/login"            element={<PageWrapper><LoginPage /></PageWrapper>} />
+          <Route path="/register"         element={<PageWrapper><RegisterPage /></PageWrapper>} />
+          <Route path="/forgot-password"  element={<PageWrapper><ForgotPasswordPage /></PageWrapper>} />
+          <Route path="/reset-password/:token" element={<PageWrapper><ResetPasswordPage /></PageWrapper>} />
 
           {/* ── PROTECTED ROUTES ──────────────────────────────── */}
           <Route
             path="/copilot"
-            element={<ProtectedRoute><CopilotPage /></ProtectedRoute>}
+            element={<ProtectedRoute><PageWrapper><CopilotPage /></PageWrapper></ProtectedRoute>}
           />
           <Route
             path="/dashboard"
-            element={<ProtectedRoute><DashboardPage /></ProtectedRoute>}
+            element={<ProtectedRoute><PageWrapper><DashboardPage /></PageWrapper></ProtectedRoute>}
           />
           <Route
             path="/resumes"
-            element={<ProtectedRoute><ResumesPage /></ProtectedRoute>}
+            element={<ProtectedRoute><PageWrapper><ResumesPage /></PageWrapper></ProtectedRoute>}
           />
           <Route
             path="/builder"
-            element={<ProtectedRoute><BuilderPage /></ProtectedRoute>}
+            element={<ProtectedRoute><PageWrapper><BuilderPage /></PageWrapper></ProtectedRoute>}
           />
           <Route
             path="/resume-boost"
-            element={<ProtectedRoute><ResumeBoostPage /></ProtectedRoute>}
+            element={<ProtectedRoute><PageWrapper><ResumeBoostPage /></PageWrapper></ProtectedRoute>}
           />
           <Route
             path="/interview-prep"
-            element={<ProtectedRoute><InterviewPrepPage /></ProtectedRoute>}
+            element={<ProtectedRoute><PageWrapper><InterviewPrepPage /></PageWrapper></ProtectedRoute>}
           />
           <Route
             path="/analyzer"
-            element={<ProtectedRoute><AnalyzerPage /></ProtectedRoute>}
+            element={<ProtectedRoute><PageWrapper><AnalyzerPage /></PageWrapper></ProtectedRoute>}
           />
           
           <Route
             path="/jd-match"
-            element={<ProtectedRoute><JDMatchPage /></ProtectedRoute>}
+            element={<ProtectedRoute><PageWrapper><JDMatchPage /></PageWrapper></ProtectedRoute>}
           />
           <Route
             path="/cover-letter"
-            element={<ProtectedRoute><CoverLetterPage /></ProtectedRoute>}
+            element={<ProtectedRoute><PageWrapper><CoverLetterPage /></PageWrapper></ProtectedRoute>}
           />
           <Route
             path="/version-compare"
-            element={<ProtectedRoute><VersionComparePage /></ProtectedRoute>}
+            element={<ProtectedRoute><PageWrapper><VersionComparePage /></PageWrapper></ProtectedRoute>}
           />
           <Route
             path="/settings"
-            element={<ProtectedRoute><SettingsPage /></ProtectedRoute>}
+            element={<ProtectedRoute><PageWrapper><SettingsPage /></PageWrapper></ProtectedRoute>}
           />
           <Route
             path="/outreach"
-            element={<ProtectedRoute><OutreachPage /></ProtectedRoute>}
+            element={<ProtectedRoute><PageWrapper><OutreachPage /></PageWrapper></ProtectedRoute>}
           />
           <Route
             path="/resume-comparison"
-            element={<ProtectedRoute><ResumeComparisonPage /></ProtectedRoute>}
+            element={<ProtectedRoute><PageWrapper><ResumeComparisonPage /></PageWrapper></ProtectedRoute>}
           />
           <Route
             path="/voice-interview"
-            element={<ProtectedRoute><VoiceInterviewPage /></ProtectedRoute>}
+            element={<ProtectedRoute><PageWrapper><VoiceInterviewPage /></PageWrapper></ProtectedRoute>}
           />
 
 
