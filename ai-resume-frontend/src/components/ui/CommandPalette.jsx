@@ -1,27 +1,33 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, FileText, Briefcase, Settings, Zap, ArrowRight, Home } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-
-const actions = [
-  { id: 'home', label: 'Go to Dashboard', icon: Home, route: '/dashboard', category: 'Navigation' },
-  { id: 'jobs', label: 'Search Jobs', icon: Briefcase, route: '/jd-match', category: 'Navigation' },
-  { id: 'resumes', label: 'My Resumes', icon: FileText, route: '/resumes', category: 'Navigation' },
-  { id: 'settings', label: 'Account Settings', icon: Settings, route: '/settings', category: 'Navigation' },
-  { id: 'optimize', label: 'Optimize Resume', icon: Zap, route: '/analyzer', category: 'AI Tools' },
-  { id: 'coverletter', label: 'Generate Cover Letter', icon: FileText, route: '/cover-letter', category: 'AI Tools' },
-];
+import { Search, FileText, BrainCircuit, LayoutDashboard, Settings2, Sparkles, Command } from 'lucide-react';
 
 export default function CommandPalette() {
   const [isOpen, setIsOpen] = useState(false);
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState('');
+  const [selectedIndex, setSelectedIndex] = useState(0);
   const navigate = useNavigate();
+
+  const commands = [
+    { id: 'dashboard', title: 'Go to Dashboard', icon: LayoutDashboard, path: '/dashboard', section: 'Navigation' },
+    { id: 'resumes', title: 'Manage Resumes', icon: FileText, path: '/resumes', section: 'Navigation' },
+    { id: 'builder', title: 'AI Resume Builder', icon: Sparkles, path: '/builder', section: 'Tools' },
+    { id: 'analyzer', title: 'ATS Analyzer', icon: BrainCircuit, path: '/analyzer', section: 'Tools' },
+    { id: 'interview', title: 'Interview Copilot', icon: Command, path: '/interview-prep', section: 'Tools' },
+    { id: 'settings', title: 'Workspace Settings', icon: Settings2, path: '/settings', section: 'Preferences' },
+  ];
+
+  const filteredCommands = commands.filter(cmd => 
+    cmd.title.toLowerCase().includes(query.toLowerCase()) || 
+    cmd.section.toLowerCase().includes(query.toLowerCase())
+  );
 
   useEffect(() => {
     const handleKeyDown = (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
-        setIsOpen(prev => !prev);
+        setIsOpen((prev) => !prev);
       }
       if (e.key === 'Escape') {
         setIsOpen(false);
@@ -31,79 +37,107 @@ export default function CommandPalette() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  const filteredActions = actions.filter(a => 
-    a.label.toLowerCase().includes(query.toLowerCase()) || 
-    a.category.toLowerCase().includes(query.toLowerCase())
-  );
+  useEffect(() => {
+    setSelectedIndex(0);
+  }, [query]);
 
-  const handleSelect = (route) => {
+  const handleSelect = (path) => {
     setIsOpen(false);
-    setQuery("");
-    navigate(route);
+    setQuery('');
+    navigate(path);
   };
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleNavigation = (e) => {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setSelectedIndex(prev => (prev + 1) % filteredCommands.length);
+      }
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setSelectedIndex(prev => (prev - 1 + filteredCommands.length) % filteredCommands.length);
+      }
+      if (e.key === 'Enter' && filteredCommands[selectedIndex]) {
+        e.preventDefault();
+        handleSelect(filteredCommands[selectedIndex].path);
+      }
+    };
+
+    window.addEventListener('keydown', handleNavigation);
+    return () => window.removeEventListener('keydown', handleNavigation);
+  }, [isOpen, filteredCommands, selectedIndex]);
 
   return (
     <AnimatePresence>
       {isOpen && (
-        <>
+        <div className="fixed inset-0 z-50 flex items-start justify-center pt-[15vh] px-4">
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setIsOpen(false)}
-            className="fixed inset-0 bg-[#0A0B0F]/80 backdrop-blur-sm z-[100]"
+            className="absolute inset-0 bg-[#0A0B0F]/80 backdrop-blur-sm"
           />
-          <motion.div 
+          
+          <motion.div
             initial={{ opacity: 0, scale: 0.95, y: -20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -20 }}
-            className="fixed top-[20%] left-1/2 -translate-x-1/2 w-full max-w-2xl bg-[#121422]/90 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-[0_30px_100px_rgba(0,0,0,0.8)] z-[101] overflow-hidden"
+            transition={{ duration: 0.2 }}
+            className="relative w-full max-w-2xl bg-[#111318] border border-white/10 rounded-2xl shadow-2xl overflow-hidden"
           >
-            <div className="flex items-center px-4 py-4 border-b border-white/10">
-              <Search className="w-5 h-5 text-slate-400 mr-3 shrink-0" />
-              <input 
-                type="text"
+            <div className="flex items-center px-4 border-b border-white/10">
+              <Search className="w-5 h-5 text-slate-400" />
+              <input
                 autoFocus
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search commands, navigate, or ask AI..."
-                className="w-full bg-transparent border-none outline-none text-lg text-white placeholder:text-slate-500 font-medium"
+                placeholder="What do you need?"
+                className="w-full h-14 bg-transparent border-none text-white text-lg placeholder-slate-500 focus:outline-none focus:ring-0 px-4"
               />
-              <div className="flex items-center gap-1 text-[10px] font-bold text-slate-500 bg-white/5 px-2 py-1 rounded">
-                ESC
+              <div className="flex gap-1">
+                <kbd className="px-2 py-1 bg-white/5 border border-white/10 rounded text-[10px] font-bold text-slate-400">ESC</kbd>
               </div>
             </div>
 
-            <div className="max-h-[60vh] overflow-y-auto p-2 scrollbar-hide">
-              {filteredActions.length === 0 ? (
-                <div className="p-8 text-center text-slate-400">
+            <div className="max-h-[60vh] overflow-y-auto custom-scrollbar p-2">
+              {filteredCommands.length === 0 ? (
+                <div className="p-8 text-center text-slate-500 text-sm">
                   No commands found for "{query}"
                 </div>
               ) : (
                 <div className="space-y-1">
-                  {filteredActions.map((action, idx) => (
+                  {filteredCommands.map((cmd, idx) => (
                     <button
-                      key={action.id}
-                      onClick={() => handleSelect(action.route)}
-                      className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-white/[0.05] transition-colors group text-left"
+                      key={cmd.id}
+                      onClick={() => handleSelect(cmd.path)}
+                      onMouseEnter={() => setSelectedIndex(idx)}
+                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+                        selectedIndex === idx 
+                        ? 'bg-accent-violet/20 text-white' 
+                        : 'text-slate-400 hover:bg-white/5'
+                      }`}
                     >
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center border border-white/10 group-hover:bg-accent-violet/20 group-hover:border-accent-violet/30 transition-colors">
-                          <action.icon className="w-4 h-4 text-slate-400 group-hover:text-accent-violet-light transition-colors" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-semibold text-slate-200 group-hover:text-white transition-colors">{action.label}</p>
-                          <p className="text-[10px] text-slate-500 uppercase tracking-widest">{action.category}</p>
-                        </div>
+                      <cmd.icon className={`w-5 h-5 ${selectedIndex === idx ? 'text-accent-violet-light' : 'opacity-70'}`} />
+                      <div className="flex flex-col items-start">
+                        <span className="text-sm font-bold">{cmd.title}</span>
+                        <span className="text-[10px] uppercase tracking-wider opacity-70">{cmd.section}</span>
                       </div>
-                      <ArrowRight className="w-4 h-4 text-slate-600 opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0" />
+                      
+                      {selectedIndex === idx && (
+                        <span className="ml-auto flex gap-1">
+                          <kbd className="px-1.5 py-0.5 bg-white/10 rounded text-[10px] font-bold text-slate-300">↵</kbd>
+                        </span>
+                      )}
                     </button>
                   ))}
                 </div>
               )}
             </div>
           </motion.div>
-        </>
+        </div>
       )}
     </AnimatePresence>
   );
