@@ -33,9 +33,21 @@ export default function MagneticButton({ children, className = '', onClick, as =
     return <motion.a href={href} {...props}>{children}</motion.a>;
   }
 
-  // Handle react-router Link by wrapping it or using an onClick.
-  // The easiest way is to just render a button if `to` is not standard, or let the parent handle the link logic.
-  // We'll just default to button.
+  if (as === 'div') {
+    return (
+        <motion.div
+            ref={ref}
+            onMouseMove={handleMouse}
+            onMouseLeave={reset}
+            animate={{ x: position.x, y: position.y }}
+            transition={{ type: 'spring', stiffness: 150, damping: 15, mass: 0.1 }}
+            className={`relative inline-block ${className}`}
+        >
+            {children}
+        </motion.div>
+    );
+  }
+
   return (
     <motion.button {...props}>
       {children}
