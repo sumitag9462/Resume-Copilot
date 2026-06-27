@@ -220,6 +220,7 @@ export default function LandingHero() {
                   />
                 </div>
               </div>
+            </div>
             </GlassCard>
           </motion.div>
 
