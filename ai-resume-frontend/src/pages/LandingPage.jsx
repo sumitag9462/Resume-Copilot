@@ -9,10 +9,10 @@ import AIDemoSection from '../components/landing/AIDemoSection';
 import PricingCards from '../components/landing/PricingCards';
 import ContactForm from '../components/landing/ContactForm';
 import AmbientMouseLight from '../components/landing/AmbientMouseLight';
-import MagneticButton from '../components/landing/MagneticButton';
 import { motion } from 'framer-motion';
 import { ArrowRight, Sparkles, Github, Linkedin, FileText, ScanLine } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import GradientButton from '../components/ui/GradientButton';
 
 const CTA = () => (
   <section className="py-32 relative bg-base overflow-hidden border-t border-white/[0.04]">
@@ -69,11 +69,11 @@ const CTA = () => (
         transition={{ delay: 0.2 }}
         className="flex justify-center"
       >
-        <MagneticButton as="div">
-          <Link to="/register" className="btn-primary h-16 px-10 text-lg shadow-[0_0_40px_rgba(124,111,247,0.4)]">
+        <GradientButton as="div" className="h-16 px-10 text-lg shadow-[0_0_40px_rgba(124,111,247,0.4)]">
+          <Link to="/register" className="flex items-center justify-center w-full h-full">
             Start for Free <ArrowRight className="w-5 h-5 ml-2" />
           </Link>
-        </MagneticButton>
+        </GradientButton>
       </motion.div>
     </div>
   </section>

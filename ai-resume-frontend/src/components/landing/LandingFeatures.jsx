@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { BarChart3, Briefcase, FileText, Zap, BrainCircuit, ShieldCheck } from 'lucide-react';
+import GlassCard from '../ui/GlassCard';
 
 const features = [
   { icon: BarChart3, title: 'ATS Analysis', desc: 'Instant compatibility scoring with keyword gaps and section-by-section coaching.', color: '#7C5CFC' },
@@ -23,16 +24,14 @@ function FeatureCard({ feature, index }) {
   };
 
   return (
-    <motion.div
+    <GlassCard
       ref={cardRef}
-      initial={{ opacity: 0, y: 40 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-100px" }}
-      transition={{ delay: index * 0.1, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+      animated
+      delay={index * 0.1}
       onMouseMove={handleMouseMove}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="card-3d relative rounded-3xl overflow-hidden bg-[#111318]/40 backdrop-blur-xl border border-white/[0.05] p-8 group cursor-pointer"
+      className="card-3d p-8 group cursor-pointer"
       style={{
         boxShadow: isHovered 
           ? `0 20px 40px -10px rgba(0,0,0,0.5), 0 0 40px -10px ${feature.color}40` 
@@ -75,7 +74,7 @@ function FeatureCard({ feature, index }) {
           {feature.desc}
         </p>
       </div>
-    </motion.div>
+    </GlassCard>
   );
 }
 
@@ -87,15 +86,13 @@ export default function LandingFeatures() {
 
       <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
         <div className="text-center max-w-3xl mx-auto mb-20">
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+          <GlassCard 
+            animated
             className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.03] border border-white/[0.08] mb-6"
           >
             <div className="w-2 h-2 rounded-full bg-accent-violet animate-pulse" />
             <span className="text-xs font-semibold uppercase tracking-widest text-slate-300">Platform Features</span>
-          </motion.div>
+          </GlassCard>
           <motion.h2 
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}

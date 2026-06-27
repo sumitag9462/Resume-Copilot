@@ -6,6 +6,8 @@ import { ArrowRight, Sparkles, Check, Cpu, FileText, Target, Award } from 'lucid
 import { Canvas } from '@react-three/fiber';
 import HeroBackground3D from './HeroBackground3D';
 import MagneticButton from './MagneticButton';
+import GradientButton from '../ui/GradientButton';
+import GlassCard from '../ui/GlassCard';
 import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion';
 
 const words = ["Optimize.", "Match.", "Prepare.", "Win."];
@@ -127,17 +129,17 @@ export default function LandingHero() {
             transition={{ delay: 0.6, duration: 0.8 }}
             className="flex flex-col sm:flex-row gap-4"
           >
-            <MagneticButton as="div">
-              <Link to="/register" className="btn-primary h-14 px-8 text-base w-full shadow-[0_0_40px_rgba(124,111,247,0.3)]">
+            <GradientButton variant="primary" as="div" className="h-14 px-8 text-base w-full shadow-[0_0_40px_rgba(124,111,247,0.3)]">
+              <Link to="/register" className="flex items-center justify-center w-full h-full">
                 Start for Free
                 <ArrowRight className="h-5 w-5 ml-1" />
               </Link>
-            </MagneticButton>
-            <MagneticButton as="div">
-              <a href="#demo" className="btn-secondary h-14 px-8 text-base w-full">
+            </GradientButton>
+            <GradientButton variant="secondary" as="div" className="h-14 px-8 text-base w-full">
+              <a href="#demo" className="flex items-center justify-center w-full h-full">
                 View Live Demo
               </a>
-            </MagneticButton>
+            </GradientButton>
           </motion.div>
         </div>
 
@@ -156,8 +158,9 @@ export default function LandingHero() {
               rotateY: [-2, 2, -2]
             }}
             transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-            className="relative z-10 w-full max-w-[500px] glass-panel rounded-3xl border border-white/10 p-8 shadow-[0_0_80px_rgba(124,111,247,0.15)]"
+            className="relative z-10 w-full max-w-[500px]"
           >
+            <GlassCard className="p-8 shadow-[0_0_80px_rgba(124,111,247,0.15)]">
             <div className="flex justify-between items-center mb-8 border-b border-white/10 pb-4">
               <div className="flex gap-2">
                 <div className="w-3 h-3 rounded-full bg-red-500/80" />
@@ -217,7 +220,7 @@ export default function LandingHero() {
                   />
                 </div>
               </div>
-            </div>
+            </GlassCard>
           </motion.div>
 
           {/* Floating UI Elements (Parallax) */}

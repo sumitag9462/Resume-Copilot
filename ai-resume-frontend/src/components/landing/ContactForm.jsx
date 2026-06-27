@@ -3,6 +3,10 @@ import { motion } from 'framer-motion';
 import { Send, MessageSquare, User, Mail, Loader2 } from 'lucide-react';
 import api from '../../api/axiosConfig';
 import toast from 'react-hot-toast';
+import GlassCard from '../ui/GlassCard';
+import GradientButton from '../ui/GradientButton';
+
+const MotionGlassCard = motion(GlassCard);
 
 export default function ContactForm() {
   const [formData, setFormData] = useState({ name: '', email: '', message: '' });
@@ -49,12 +53,12 @@ export default function ContactForm() {
           </motion.h2>
         </div>
 
-        <motion.div 
+        <MotionGlassCard 
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.2 }}
-          className="card-3d relative rounded-3xl overflow-hidden bg-[#111318]/40 backdrop-blur-xl border border-white/[0.05] p-8 md:p-12 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.5)] max-w-2xl mx-auto"
+          className="card-3d p-8 md:p-12 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.5)] max-w-2xl mx-auto"
         >
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -100,19 +104,19 @@ export default function ContactForm() {
               />
             </div>
 
-            <button 
+            <GradientButton 
               type="submit" 
               disabled={loading}
-              className="w-full btn-primary h-14 text-base shadow-[0_0_30px_rgba(124,111,247,0.3)] mt-4 disabled:opacity-70 flex items-center justify-center"
+              className="w-full h-14 text-base shadow-[0_0_30px_rgba(124,111,247,0.3)] mt-4 disabled:opacity-70 flex items-center justify-center"
             >
               {loading ? (
                 <>Sending... <Loader2 className="w-5 h-5 ml-2 animate-spin" /></>
               ) : (
                 <>Send Message <Send className="w-5 h-5 ml-2" /></>
               )}
-            </button>
+            </GradientButton>
           </form>
-        </motion.div>
+        </MotionGlassCard>
       </div>
     </section>
   );

@@ -10,9 +10,10 @@ export default function GradientButton({
   disabled = false,
   magnetic = true,
   variant = 'primary', // 'primary' | 'secondary' | 'outline'
-  as: Component = motion.button,
+  as = 'button',
   ...props 
 }) {
+  const Component = motion[as] || motion.button;
   const baseClasses = "relative flex items-center justify-center gap-2 font-semibold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed";
   
   const variants = {
