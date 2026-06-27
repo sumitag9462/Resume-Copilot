@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import GlassCard from '../ui/GlassCard';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -58,11 +59,11 @@ export default function LandingStats() {
       <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {stats.map((stat, idx) => (
-            <div 
+            <GlassCard 
               key={idx} 
-              className="card-3d relative rounded-3xl border border-white/[0.08] bg-[#111318]/50 backdrop-blur-xl p-10 text-center group overflow-hidden"
+              hoverEffect
+              className="card-3d p-10 text-center group"
             >
-              <div className="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               
               <div className="flex items-baseline justify-center text-5xl lg:text-7xl font-bold font-display tracking-tight mb-4 text-transparent bg-clip-text bg-gradient-to-br">
                 <span 
@@ -83,7 +84,7 @@ export default function LandingStats() {
 
               {/* Shimmer effect */}
               <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/[0.05] to-transparent group-hover:animate-[shimmer_1.5s_infinite]" />
-            </div>
+            </GlassCard>
           ))}
         </div>
       </div>

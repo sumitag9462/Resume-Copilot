@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { CheckCircle2, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import GlassCard from '../ui/GlassCard';
 
 const freeFeatures = ['3 resume uploads', 'ATS analysis', 'JD match scoring', 'Email support'];
 const proFeatures = ['Unlimited uploads', 'ATS + JD Match', 'AI Cover Letters', 'Resume History', 'Interview Prep', 'Cold Outreach AI'];
@@ -33,11 +34,10 @@ export default function PricingCards() {
         <div className="grid lg:grid-cols-2 gap-8 max-w-5xl mx-auto items-center">
           
           {/* Free Card */}
-          <motion.div 
-            initial={{ opacity: 0, x: -50 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            className="card p-10 rounded-[32px] bg-[#111318]/50 backdrop-blur-xl border border-white/[0.05]"
+          <GlassCard 
+            animated
+            delay={0}
+            className="p-10"
           >
             <h3 className="text-2xl font-display font-bold text-white mb-2">Basic</h3>
             <p className="text-slate-400 mb-8">Perfect for getting started.</p>
@@ -58,7 +58,7 @@ export default function PricingCards() {
                 </li>
               ))}
             </ul>
-          </motion.div>
+          </GlassCard>
 
           {/* Pro Card */}
           <motion.div 
