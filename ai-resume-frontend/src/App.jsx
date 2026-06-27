@@ -23,7 +23,6 @@
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { AnimatePresence } from 'framer-motion'
 import ProtectedRoute from './components/auth/ProtectedRoute'
-import CursorGlow from './components/ui/CursorGlow'
 import ScrollProgress from './components/ui/ScrollProgress'
 
 // Public pages
@@ -52,7 +51,6 @@ const App = () => {
   const location = useLocation();
   return (
     <>
-      <CursorGlow />
       <ScrollProgress />
       <AnimatePresence mode="wait">
         <Routes location={location} key={location.pathname}>
