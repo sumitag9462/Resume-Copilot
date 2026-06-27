@@ -18,6 +18,25 @@ export const sendVoiceMessage = async (payload) => {
   return response.data
 }
 
+export const streamVoiceMessage = async (payload) => {
+  const token = localStorage.getItem('token') || sessionStorage.getItem('token')
+  const response = await fetch('http://localhost:5001/api/voice-interview/message-stream', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    },
+    body: JSON.stringify(payload)
+  })
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}))
+    throw new Error(errorData.message || `HTTP error! status: ${response.status}`)
+  }
+
+  return response.body.getReader()
+}
+
 export const endVoiceInterview = async (payload) => {
   const response = await api.post('/voice-interview/end', payload)
   return response.data

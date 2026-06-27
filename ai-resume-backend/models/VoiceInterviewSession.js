@@ -88,6 +88,10 @@ const voiceInterviewSessionSchema = new mongoose.Schema({
     enum: ['Behavioral', 'Technical', 'Recruiter', 'Hiring Manager'],
     default: 'Technical'
   },
+  language: {
+    type: String,
+    default: 'English'
+  },
   difficultyLevel: {
     type: Number,
     min: 1,

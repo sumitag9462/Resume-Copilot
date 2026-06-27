@@ -65,6 +65,7 @@ const startInterviewSession = async (req, res) => {
       companyName: companyName.trim(),
       companyMode: companyMode || 'General',
       interviewType: interviewType || 'Technical',
+      language: language || 'English',
       status: 'active',
       chatHistory: [{
         role: 'model',
@@ -126,7 +127,10 @@ const sendInterviewMessage = async (req, res) => {
       userAnswer.trim(),
       session.resumeText,
       session.jobDescription,
-      session.companyName
+      session.companyName,
+      session.interviewType,
+      session.companyMode,
+      session.language
     );
 
     // Append both messages to history
@@ -157,6 +161,84 @@ const sendInterviewMessage = async (req, res) => {
       success: false,
       message: error.message || 'Failed to process your answer.'
     });
+  }
+};
+
+
+// @desc    Process candidate's spoken message and stream back AI response (SSE)
+// @route   POST /api/voice-interview/message-stream
+// @access  Private
+const streamInterviewMessage = async (req, res) => {
+  try {
+    const { sessionId, userAnswer } = req.body;
+
+    if (!sessionId || !userAnswer) {
+      return res.status(400).json({ success: false, message: 'Please provide sessionId and userAnswer.' });
+    }
+
+    const session = await VoiceInterviewSession.findById(sessionId);
+    if (!session || session.userId.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ success: false, message: 'Not authorized for this session.' });
+    }
+    if (session.status !== 'active') {
+      return res.status(400).json({ success: false, message: 'This interview session has already ended.' });
+    }
+
+    // Set headers for Server-Sent Events (SSE)
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.flushHeaders(); // Establish connection immediately
+
+    const stream = await continueChatStream(
+      session.chatHistory,
+      null,
+      userAnswer.trim(),
+      session.resumeText,
+      session.jobDescription,
+      session.companyName,
+      session.interviewType,
+      session.companyMode,
+      session.language
+    );
+
+    let fullAiResponse = '';
+
+    for await (const chunk of stream) {
+      const chunkText = chunk.text();
+      fullAiResponse += chunkText;
+      
+      // Write SSE data chunk
+      res.write(`data: ${JSON.stringify({ text: chunkText })}\n\n`);
+    }
+
+    // Append both messages to history in DB
+    session.chatHistory.push({
+      role: 'user',
+      content: userAnswer.trim(),
+      timestamp: new Date()
+    });
+    session.chatHistory.push({
+      role: 'model',
+      content: fullAiResponse,
+      timestamp: new Date()
+    });
+
+    await session.save();
+
+    // Signal end of stream
+    res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
+    res.end();
+
+  } catch (error) {
+    console.error('[voiceInterviewController] stream error:', error);
+    // If headers are already sent, we must close the stream with an error event
+    if (!res.headersSent) {
+      res.status(500).json({ success: false, message: error.message });
+    } else {
+      res.write(`data: ${JSON.stringify({ error: error.message })}\n\n`);
+      res.end();
+    }
   }
 };
 
@@ -306,6 +388,7 @@ const deleteInterviewSession = async (req, res) => {
 module.exports = {
   startInterviewSession,
   sendInterviewMessage,
+  streamInterviewMessage,
   endInterviewSession,
   getInterviewHistory,
   getInterviewSession,

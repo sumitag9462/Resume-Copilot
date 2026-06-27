@@ -20,7 +20,10 @@ const { buildInterviewSystemPrompt, buildEvaluationPrompt } = require('./voiceIn
 // --- MODEL PRIORITY LIST ---
 const GEMINI_MODELS = [
   'gemini-2.5-flash',
-  'gemini-2.5-flash-lite'
+  'gemini-2.5-flash-lite',
+  'gemini-1.5-flash',
+  'gemini-1.5-pro',
+  'gemini-2.0-flash-exp'
 ];
 
 // ── HELPER: Parse JSON from AI response ─────────────────────
@@ -51,10 +54,14 @@ const withRetry = async (operation, operationName) => {
         const isTemporary =
           err.message?.includes("503") ||
           err.message?.includes("Service Unavailable") ||
-          err.message?.includes("429") ||
-          err.message?.includes("Quota exceeded") ||
-          err.message?.includes("Resource exhausted") ||
           err.message?.includes("overloaded");
+
+        // If it's a strict quota limit, do not spam retries for this model.
+        // Break out of the inner loop to instantly fallback to the next model (e.g. flash-lite).
+        if (err.message?.includes("429") || err.message?.includes("Quota exceeded") || err.message?.includes("Resource exhausted")) {
+           console.error(`[voiceInterviewService] ${operationName}: Strict Quota Limit hit for ${modelName}. Falling back to next model.`);
+           break;
+        }
 
         if (isTemporary && attempt < maxRetriesPerModel) {
           console.warn(`[voiceInterviewService] ${operationName}: Temporary error with ${modelName}: ${err.message}. Retrying in ${delayMs}ms...`);
@@ -120,11 +127,14 @@ const startInterview = async (resumeText, jobDescription, companyName, interview
  * @param {string} resumeText - For system instruction reconstruction
  * @param {string} jobDescription - For system instruction reconstruction
  * @param {string} companyName - For system instruction reconstruction
+ * @param {string} interviewType - For system instruction reconstruction
+ * @param {string} companyMode - For system instruction reconstruction
+ * @param {string} language - For system instruction reconstruction
  * @returns {string} AI's next question/response
  */
-const continueChat = async (chatHistory, systemPrompt, userMessage, resumeText, jobDescription, companyName) => {
+const continueChat = async (chatHistory, systemPrompt, userMessage, resumeText, jobDescription, companyName, interviewType, companyMode, language) => {
   // If systemPrompt is not stored, rebuild it
-  const instruction = systemPrompt || buildInterviewSystemPrompt(resumeText, jobDescription, companyName);
+  const instruction = systemPrompt || buildInterviewSystemPrompt(resumeText, jobDescription, companyName, interviewType, companyMode, language);
 
   const aiResponse = await withRetry(async (modelName) => {
     const genAI = getGenAIInstance();
@@ -159,6 +169,50 @@ const continueChat = async (chatHistory, systemPrompt, userMessage, resumeText, 
   }, 'continueChat');
 
   return aiResponse;
+};
+
+
+/**
+ * Continue an ongoing interview conversation via Server-Sent Events (Streaming).
+ * Reconstructs the chat session and returns an AsyncGenerator of text chunks.
+ */
+const continueChatStream = async (chatHistory, systemPrompt, userMessage, resumeText, jobDescription, companyName, interviewType, companyMode, language) => {
+  const instruction = systemPrompt || buildInterviewSystemPrompt(resumeText, jobDescription, companyName, interviewType, companyMode, language);
+
+  const resultStream = await withRetry(async (modelName) => {
+    const genAI = getGenAIInstance();
+    const model = genAI.getGenerativeModel({
+      model: modelName,
+      systemInstruction: instruction,
+      generationConfig: {
+        temperature: 0.8,
+        topP: 0.9,
+        topK: 40,
+        maxOutputTokens: 500,
+      }
+    });
+
+    const geminiHistory = chatHistory.map(msg => ({
+      role: msg.role,
+      parts: [{ text: msg.content }]
+    }));
+
+    if (geminiHistory.length > 0 && geminiHistory[0].role === 'model') {
+      geminiHistory.unshift({
+        role: 'user',
+        parts: [{ text: 'Begin the interview. Introduce yourself and ask your first question.' }]
+      });
+    }
+
+    const chat = model.startChat({ history: geminiHistory });
+    const result = await chat.sendMessageStream(userMessage);
+    
+    // We must return the stream immediately. 
+    // If it fails here (e.g. 429), it will throw and withRetry will catch it.
+    return result.stream;
+  }, 'continueChatStream');
+
+  return resultStream;
 };
 
 
@@ -200,5 +254,6 @@ const evaluateInterview = async (chatHistory, resumeText, jobDescription, compan
 module.exports = {
   startInterview,
   continueChat,
+  continueChatStream,
   evaluateInterview
 };

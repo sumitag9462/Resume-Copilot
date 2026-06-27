@@ -96,22 +96,22 @@ const AIOrb = ({ state = 'idle' }) => {
 
         {/* Main Orb */}
         <motion.div
-          className={`relative z-10 flex h-36 w-36 items-center justify-center rounded-full bg-gradient-to-br ${style.gradient} backdrop-blur-xl border border-white/10`}
+          className={`relative z-10 flex h-48 w-48 items-center justify-center rounded-full bg-gradient-to-br ${style.gradient} backdrop-blur-3xl border border-white/20`}
           style={{ boxShadow: style.glow }}
           animate={
             state === 'idle'
-              ? { scale: [1, 1.03, 1] }
+              ? { scale: [1, 1.05, 1] }
               : state === 'listening'
-              ? { scale: [1, 1.06, 1] }
+              ? { scale: [1, 1.1, 1], boxShadow: [style.glow, '0 0 160px rgba(59, 130, 246, 0.4)', style.glow] }
               : state === 'speaking'
-              ? { scale: [1, 1.04, 0.98, 1.02, 1] }
+              ? { scale: [1, 1.05, 0.95, 1.05, 1], rotate: [0, -2, 2, 0] }
               : {}
           }
           transition={
             state === 'idle'
-              ? { duration: 3, repeat: Infinity, ease: 'easeInOut' }
+              ? { duration: 4, repeat: Infinity, ease: 'easeInOut' }
               : state === 'listening'
-              ? { duration: 1.5, repeat: Infinity, ease: 'easeInOut' }
+              ? { duration: 2, repeat: Infinity, ease: 'easeInOut' }
               : state === 'speaking'
               ? { duration: 0.8, repeat: Infinity, ease: 'easeInOut' }
               : {}

@@ -96,16 +96,22 @@ const useSpeechSynthesis = ({ rate = 1.0, pitch = 1.0, onEnd } = {}) => {
   const speak = useCallback((text, options = {}) => {
     if (!synth || !text) return
 
-    // Cancel any current speech
-    synth.cancel()
+    // Cancel any current speech ONLY if we are not enqueueing
+    if (!options.enqueue) {
+      synth.cancel()
+      setIsSpeaking(false)
+    }
 
     const utterance = new SpeechSynthesisUtterance(text)
-    if (options.voice || selectedVoice) {
-      utterance.voice = options.voice || selectedVoice
-    }
+
+    utterance.voice = options.voice || selectedVoice || null
     utterance.rate = options.rate || rate
     utterance.pitch = options.pitch || pitch
+    utterance.lang = (options.voice || selectedVoice) ? (options.voice || selectedVoice).lang : 'en-US'
     utterance.volume = options.volume || 1.0
+
+    // Save ref to prevent garbage collection bugs in Safari
+    utteranceRef.current = utterance
 
     utterance.onstart = () => {
       setIsSpeaking(true)
@@ -113,28 +119,29 @@ const useSpeechSynthesis = ({ rate = 1.0, pitch = 1.0, onEnd } = {}) => {
     }
 
     utterance.onend = () => {
-      setIsSpeaking(false)
-      setIsPaused(false)
-      if (onEndRef.current) onEndRef.current()
-    }
-
-    utterance.onerror = (event) => {
-      // 'canceled' is not a real error — it happens when we call cancel()
-      if (event.error !== 'canceled') {
-        console.error('[SpeechSynthesis] Error:', event.error)
+      // Check if there are more items in the queue
+      if (!synth.pending) {
+        setIsSpeaking(false)
+        setIsPaused(false)
+        if (onEndRef.current) {
+          onEndRef.current()
+        }
       }
-      setIsSpeaking(false)
-      setIsPaused(false)
-      // Call onEnd even on error so the app can recover and activate the mic
-      if (onEndRef.current) onEndRef.current()
     }
 
-    utteranceRef.current = utterance
+    utterance.onerror = (e) => {
+      // 'interrupted' and 'canceled' are normal when we call synth.cancel() manually
+      if (e.error !== 'interrupted' && e.error !== 'canceled') {
+        console.error('SpeechSynthesisError:', e)
+        setIsSpeaking(false)
+      }
+      
+      // Safety net: if queue is empty, trigger onEnd anyway so UI doesn't hang
+      if (!synth.pending && onEndRef.current) {
+        onEndRef.current()
+      }
+    }
 
-    // Chrome has a bug where long texts get cut off.
-    // The workaround is to keep the synth "alive" by resuming periodically.
-    // For our use case (short interviewer responses), this shouldn't be needed,
-    // but we add a safety net.
     synth.speak(utterance)
   }, [synth, selectedVoice, rate, pitch])
 

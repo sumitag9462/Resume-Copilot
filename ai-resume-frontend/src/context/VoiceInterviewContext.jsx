@@ -17,6 +17,7 @@ import { createContext, useContext, useState, useRef, useCallback, useEffect } f
 import {
   startVoiceInterview,
   sendVoiceMessage,
+  streamVoiceMessage,
   endVoiceInterview
 } from '../api/voiceInterviewApi'
 
@@ -78,11 +79,17 @@ export const VoiceInterviewProvider = ({ children }) => {
 
 
   // ── API: Start Interview ──────────────────────────────────
-  const handleStartInterview = useCallback(async ({ resumeText, resumeId, jobDescription, companyName: company }) => {
+  const handleStartInterview = useCallback(async ({ resumeText, resumeId, jobDescription, companyName: company, interviewType, language, companyMode }) => {
     setIsLoading(true)
     setError(null)
     try {
-      const payload = { jobDescription, companyName: company }
+      const payload = { 
+        jobDescription, 
+        companyName: company,
+        interviewType,
+        language,
+        companyMode 
+      }
       if (resumeId) payload.resumeId = resumeId
       else payload.resumeText = resumeText
 
@@ -130,34 +137,86 @@ export const VoiceInterviewProvider = ({ children }) => {
       timestamp: new Date().toISOString()
     }
     setChatHistory(prev => [...prev, userMsg])
+    
+    // Add empty model message placeholder for the stream
+    const modelMsgIndex = chatHistory.length + 1
+    setChatHistory(prev => [...prev, {
+      role: 'model',
+      content: '',
+      timestamp: new Date().toISOString()
+    }])
 
     try {
-      const data = await sendVoiceMessage({ sessionId, userAnswer: userAnswer.trim() })
+      const reader = await streamVoiceMessage({ sessionId, userAnswer: userAnswer.trim() })
+      setInterviewState('speaking')
+      
+      const decoder = new TextDecoder()
+      let fullResponse = ''
+      let sentenceBuffer = ''
 
-      if (data.success) {
-        setQuestionCount(data.questionCount || questionCount + 1)
-        setLastAiMessage(data.aiMessage)
-        setChatHistory(prev => [...prev, {
-          role: 'model',
-          content: data.aiMessage,
-          timestamp: new Date().toISOString()
-        }])
-        setInterviewState('speaking')
-        return data
-      } else {
-        throw new Error(data.message || 'Failed to send message')
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+        
+        const chunkStr = decoder.decode(value, { stream: true })
+        // SSE chunks look like: data: {"text":"..."}\n\n
+        const lines = chunkStr.split('\n')
+        
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const dataStr = line.replace('data: ', '').trim()
+            if (!dataStr) continue
+            
+            try {
+              const data = JSON.parse(dataStr)
+              if (data.done) break
+              if (data.error) throw new Error(data.error)
+              
+              if (data.text) {
+                fullResponse += data.text
+                sentenceBuffer += data.text
+                
+                // Update chat history in real-time
+                setChatHistory(prev => {
+                  const newHistory = [...prev]
+                  if (newHistory.length > 0) {
+                    newHistory[newHistory.length - 1].content = fullResponse
+                  }
+                  return newHistory
+                })
+                
+                // Check for sentence boundaries
+                const match = sentenceBuffer.match(/([^.?!]+[.?!]+)/)
+                if (match) {
+                  const sentence = match[1]
+                  setLastAiMessage(sentence) // Triggers TTS in layout
+                  sentenceBuffer = sentenceBuffer.substring(sentence.length)
+                }
+              }
+            } catch (e) {
+              console.error('Failed to parse SSE data:', dataStr, e)
+            }
+          }
+        }
       }
+      
+      // Flush remaining text
+      if (sentenceBuffer.trim()) {
+        setLastAiMessage(sentenceBuffer.trim())
+      }
+      
+      setQuestionCount(prev => prev + 1)
+      setIsLoading(false)
+
     } catch (err) {
+      console.error('[VoiceInterviewContext] stream error:', err)
       const msg = err.response?.data?.message || err.message || 'Failed to process answer'
       setError(msg)
       setInterviewState('idle')
-      // Revert optimistic UI update if backend fails
-      setChatHistory(prev => prev.filter(m => m.timestamp !== userMsg.timestamp))
-      throw new Error(msg)
-    } finally {
       setIsLoading(false)
+      throw new Error(msg)
     }
-  }, [sessionId, questionCount])
+  }, [sessionId, chatHistory.length])
 
 
   // ── API: End Interview ────────────────────────────────────

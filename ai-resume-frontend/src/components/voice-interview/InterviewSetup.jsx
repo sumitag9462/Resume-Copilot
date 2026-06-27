@@ -11,7 +11,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
-  Mic, FileText, Building2, Briefcase, AlertCircle, ChevronDown, Sparkles, Shield, Zap, Brain
+  Mic, FileText, Building2, Briefcase, AlertCircle, ChevronDown, Sparkles, Shield, Zap, Brain, Settings2, Languages, Users, Code2, Phone, UserCheck
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import GlassCard from '../ui/GlassCard'
@@ -38,8 +38,17 @@ const InterviewSetup = () => {
   const [resumeMode, setResumeMode] = useState('upload') // 'upload' | 'paste'
   const [jobDescription, setJobDescription] = useState('')
   const [companyName, setCompanyName] = useState('')
+  const [interviewType, setInterviewType] = useState('Technical')
+  const [language, setLanguage] = useState('English')
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [filteredSuggestions, setFilteredSuggestions] = useState([])
+
+  const INTERVIEW_TYPES = [
+    { id: 'Technical', title: 'Technical', icon: Code2, desc: 'DSA, System Design, Architecture' },
+    { id: 'Behavioral', title: 'Behavioral', icon: Users, desc: 'STAR format, Leadership, Conflict' },
+    { id: 'Recruiter', title: 'Recruiter Screen', icon: Phone, desc: 'Background, Motivation, Fit' },
+    { id: 'Hiring Manager', title: 'Hiring Manager', icon: UserCheck, desc: 'Ownership, Impact, Deep-dive' }
+  ]
 
   // Browser support check
   const hasSpeechRecognition = !!(window.SpeechRecognition || window.webkitSpeechRecognition)
@@ -110,11 +119,18 @@ const InterviewSetup = () => {
     }
 
     try {
+      // Determine if company is a special mode
+      const faangList = ['Google', 'Meta', 'Amazon', 'Microsoft', 'Apple', 'Netflix', 'Stripe', 'OpenAI', 'Adobe'];
+      const exactMatch = faangList.find(c => c.toLowerCase() === companyName.trim().toLowerCase());
+      
       await handleStartInterview({
         resumeId: resumeMode === 'upload' ? selectedResumeId : undefined,
         resumeText: resumeMode === 'paste' ? pastedResume : undefined,
         jobDescription,
-        companyName
+        companyName,
+        interviewType,
+        language,
+        companyMode: exactMatch || 'General'
       })
     } catch (err) {
       toast.error(err.response?.data?.message || err.message || 'Failed to start interview')
@@ -361,6 +377,74 @@ const InterviewSetup = () => {
                 <p className="text-[13px] text-rose-200">{error}</p>
               </div>
             )}
+
+            {/* Divider */}
+            <div className="border-t border-white/[0.04]" />
+
+            {/* Section 4: Interview Configuration */}
+            <div>
+              <div className="flex items-center gap-3 mb-5">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-500/10 border border-orange-500/20">
+                  <Settings2 className="h-4 w-4 text-orange-400" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-display font-bold text-white">Interview Settings</h2>
+                  <p className="text-[11px] text-slate-500">Customize the AI persona and language</p>
+                </div>
+              </div>
+
+              {/* Interview Type Selector */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                {INTERVIEW_TYPES.map(type => (
+                  <button
+                    key={type.id}
+                    type="button"
+                    onClick={() => setInterviewType(type.id)}
+                    className={`flex items-start gap-4 p-4 rounded-2xl border text-left transition-all ${
+                      interviewType === type.id
+                        ? 'bg-orange-500/10 border-orange-500/30 shadow-[0_0_20px_rgba(249,115,22,0.1)]'
+                        : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20'
+                    }`}
+                  >
+                    <div className={`p-2 rounded-lg ${interviewType === type.id ? 'bg-orange-500/20 text-orange-400' : 'bg-white/10 text-slate-400'}`}>
+                      <type.icon className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <h3 className={`text-sm font-bold ${interviewType === type.id ? 'text-white' : 'text-slate-300'}`}>
+                        {type.title}
+                      </h3>
+                      <p className="text-[11px] text-slate-500 mt-1 leading-relaxed">
+                        {type.desc}
+                      </p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              {/* Language Selector */}
+              <div className="relative">
+                <div className="flex items-center gap-2 mb-2">
+                  <Languages className="h-4 w-4 text-slate-400" />
+                  <label className="text-sm font-bold text-slate-300">Language</label>
+                </div>
+                <select
+                  value={language}
+                  onChange={(e) => setLanguage(e.target.value)}
+                  className="w-full h-[56px] appearance-none rounded-2xl border border-white/10 bg-white/5 px-4 pr-10 text-[14px] text-white outline-none transition-all focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/50 cursor-pointer shadow-inner"
+                >
+                  <option value="English" className="bg-[#111318]">English</option>
+                  <option value="Spanish" className="bg-[#111318]">Spanish (Español)</option>
+                  <option value="French" className="bg-[#111318]">French (Français)</option>
+                  <option value="German" className="bg-[#111318]">German (Deutsch)</option>
+                  <option value="Hindi" className="bg-[#111318]">Hindi (हिन्दी)</option>
+                  <option value="Mandarin" className="bg-[#111318]">Mandarin (中文)</option>
+                </select>
+                <ChevronDown className="pointer-events-none absolute right-4 bottom-4 h-4 w-4 text-slate-500" />
+              </div>
+            </div>
+
+            {/* Divider */}
+            <div className="border-t border-white/[0.04]" />
 
             {/* Submit */}
             <GradientButton

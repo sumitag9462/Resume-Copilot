@@ -13,6 +13,7 @@ const router = express.Router();
 const {
   startInterviewSession,
   sendInterviewMessage,
+  streamInterviewMessage,
   endInterviewSession,
   getInterviewHistory,
   getInterviewSession,
@@ -31,6 +32,7 @@ const interviewLimiter = rateLimit({
 // Core interview flow
 router.post('/start',   protect, interviewLimiter, startInterviewSession);
 router.post('/message', protect, interviewLimiter, sendInterviewMessage);
+router.post('/message-stream', protect, interviewLimiter, streamInterviewMessage);
 router.post('/end',     protect, endInterviewSession);
 
 // History management
