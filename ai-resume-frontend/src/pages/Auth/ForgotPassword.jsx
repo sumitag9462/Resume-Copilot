@@ -117,7 +117,7 @@ const ForgotPasswordPage = () => {
 
                         <CountdownTimer initialSeconds={60} onResend={requestOtp} />
 
-                        <button type="button" onClick={() => setStep(1)} className="mt-4 flex w-full items-center justify-center gap-2 text-[13px] font-medium text-slate-400 transition-colors hover:text-white">
+                        <button type="button" onClick={() => { setStep(1); setOtp(''); }} className="mt-4 flex w-full items-center justify-center gap-2 text-[13px] font-medium text-slate-400 transition-colors hover:text-white">
                             <ArrowLeft className="h-3.5 w-3.5" /> Change email address
                         </button>
                     </motion.form>

@@ -149,7 +149,7 @@ const RegisterPage = () => {
 
                         <button  
                             type="button" 
-                            onClick={() => setStep(1)} 
+                            onClick={() => { setStep(1); setOtp(''); }} 
                             className="flex w-full items-center justify-center gap-2 text-[13px] font-medium text-slate-400 transition-colors hover:text-white"
                         >
                             <Edit2 className="h-3.5 w-3.5" /> Edit registration details
