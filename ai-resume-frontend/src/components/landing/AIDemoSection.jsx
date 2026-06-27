@@ -57,6 +57,10 @@ export default function AIDemoSection() {
       );
     });
 
+    return () => {
+      tl.scrollTrigger?.kill();
+      tl.kill();
+    };
   }, []);
 
   return (

@@ -15,25 +15,35 @@ export default function LandingStats() {
   const countersRef = useRef([]);
 
   useEffect(() => {
+    const tweens = [];
+
     countersRef.current.forEach((counter, i) => {
       if (!counter) return;
       const target = parseFloat(counter.getAttribute('data-target'));
-      
-      gsap.to(counter, {
+      const obj = { val: 0 };
+
+      const tween = gsap.to(obj, {
+        val: target,
+        duration: 2.5,
+        ease: 'power3.out',
+        delay: i * 0.2,
+        onUpdate: () => {
+          if (counter) counter.textContent = Math.ceil(obj.val).toLocaleString();
+        },
         scrollTrigger: {
           trigger: sectionRef.current,
           start: 'top 80%',
         },
-        innerHTML: target,
-        duration: 2.5,
-        ease: 'power3.out',
-        snap: { innerHTML: 1 },
-        stagger: 0.2,
-        onUpdate: function() {
-          counter.innerHTML = Math.ceil(this.targets()[0].innerHTML).toLocaleString();
-        }
       });
+      tweens.push(tween);
     });
+
+    return () => {
+      tweens.forEach(tween => {
+        tween.scrollTrigger?.kill();
+        tween.kill();
+      });
+    };
   }, []);
 
   return (
