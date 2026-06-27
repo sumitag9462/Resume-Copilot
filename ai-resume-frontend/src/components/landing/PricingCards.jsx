@@ -1,13 +1,15 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { Link, useNavigate } from 'react-router-dom';
 import { CheckCircle2, ArrowRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
 import GlassCard from '../ui/GlassCard';
+import GradientButton from '../ui/GradientButton';
 
 const freeFeatures = ['3 resume uploads', 'ATS analysis', 'JD match scoring', 'Email support'];
 const proFeatures = ['Unlimited uploads', 'ATS + JD Match', 'AI Cover Letters', 'Resume History', 'Interview Prep', 'Cold Outreach AI'];
 
 export default function PricingCards() {
+  const navigate = useNavigate();
   return (
     <section id="pricing" className="py-32 relative bg-[#0A0B0F] border-t border-white/[0.04]">
       <div className="max-w-6xl mx-auto px-6 lg:px-8">
@@ -46,9 +48,13 @@ export default function PricingCards() {
               <span className="text-slate-500 mb-2">/ forever</span>
             </div>
             
-            <Link to="/register" className="btn-secondary w-full h-14 mb-10 text-base">
+            <GradientButton 
+              variant="secondary" 
+              className="w-full h-14 mb-10 text-base"
+              onClick={() => navigate('/register')}
+            >
               Get Started
-            </Link>
+            </GradientButton>
 
             <ul className="space-y-4">
               {freeFeatures.map(f => (
@@ -86,9 +92,13 @@ export default function PricingCards() {
                 <span className="text-slate-500 mb-2">/ month</span>
               </div>
               
-              <Link to="/register" className="btn-primary w-full h-14 mb-10 text-base shadow-[0_0_30px_rgba(124,111,247,0.4)]">
+              <GradientButton 
+                variant="primary" 
+                className="w-full h-14 mb-10 text-base shadow-[0_0_30px_rgba(124,111,247,0.4)]"
+                onClick={() => navigate('/register')}
+              >
                 Start Pro Trial <ArrowRight className="w-5 h-5 ml-1" />
-              </Link>
+              </GradientButton>
 
               <ul className="space-y-4">
                 {proFeatures.map(f => (

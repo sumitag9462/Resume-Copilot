@@ -10,6 +10,7 @@ export default function GradientButton({
   disabled = false,
   magnetic = true,
   variant = 'primary', // 'primary' | 'secondary' | 'outline'
+  as: Component = motion.button,
   ...props 
 }) {
   const baseClasses = "relative flex items-center justify-center gap-2 font-semibold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed";
@@ -22,18 +23,23 @@ export default function GradientButton({
 
   const finalClassName = twMerge(baseClasses, variants[variant], "rounded-2xl px-6 py-3 text-sm", className);
 
-  const ButtonContent = () => (
-    <motion.button 
-      className={finalClassName}
-      onClick={onClick}
-      disabled={disabled}
-      whileTap={{ scale: 0.98 }}
-      {...props}
-    >
-      <div className="absolute inset-0 rounded-2xl bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
-      {children}
-    </motion.button>
-  );
+  const ButtonContent = () => {
+    // If it's a Link or something else, we might not want motion props directly unless it's motion(Link)
+    // But framer-motion doesn't support 'whileTap' on standard Link directly unless wrapped.
+    // For simplicity, we'll just render it as is.
+    return (
+      <Component 
+        className={finalClassName}
+        onClick={onClick}
+        disabled={disabled}
+        whileTap={{ scale: 0.98 }}
+        {...props}
+      >
+        <div className="absolute inset-0 rounded-2xl bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
+        {children}
+      </Component>
+    );
+  };
 
   if (magnetic && !disabled) {
     return (
