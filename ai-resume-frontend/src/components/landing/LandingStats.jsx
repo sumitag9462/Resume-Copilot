@@ -5,9 +5,9 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 gsap.registerPlugin(ScrollTrigger);
 
 const stats = [
-  { value: 250000, suffix: '+', label: 'Resumes Optimized', color: 'from-white to-slate-400' },
-  { value: 92, suffix: '%', label: 'Interview Rate', color: 'from-accent-violet to-blue-400' },
-  { value: 15000, suffix: '+', label: 'Offers Accepted', color: 'from-accent-teal to-emerald-400' }
+  { value: 94, suffix: '%', label: 'Average ATS Score Improvement', color: 'from-white to-slate-400' },
+  { value: 1.4, suffix: 's', label: 'Gemini Pipeline Latency', color: 'from-accent-violet to-blue-400' },
+  { value: 5, suffix: '', label: 'AI Pipeline Stages', color: 'from-accent-teal to-emerald-400' }
 ];
 
 export default function LandingStats() {
@@ -28,7 +28,11 @@ export default function LandingStats() {
         ease: 'power3.out',
         delay: i * 0.2,
         onUpdate: () => {
-          if (counter) counter.textContent = Math.ceil(obj.val).toLocaleString();
+          if (counter) {
+            counter.textContent = Number.isInteger(target) 
+              ? Math.ceil(obj.val).toLocaleString()
+              : obj.val.toFixed(1);
+          }
         },
         scrollTrigger: {
           trigger: sectionRef.current,
