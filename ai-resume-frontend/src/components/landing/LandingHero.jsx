@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import gsap from 'gsap';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Sparkles, Check, Cpu, FileText, Target, Award } from 'lucide-react';
@@ -84,16 +84,18 @@ export default function LandingHero() {
               </span>
             </h1>
             <div className="h-[60px] md:h-[90px] mt-4 overflow-hidden relative">
-              <motion.div
-                key={currentWord}
-                initial={{ y: 80, opacity: 0, rotateX: -90 }}
-                animate={{ y: 0, opacity: 1, rotateX: 0 }}
-                exit={{ y: -80, opacity: 0, rotateX: 90 }}
-                transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-                className="absolute text-5xl md:text-[70px] lg:text-[80px] font-bold tracking-tight text-white font-display"
-              >
-                {words[currentWord]}
-              </motion.div>
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={currentWord}
+                  initial={{ y: 80, opacity: 0, rotateX: -90 }}
+                  animate={{ y: 0, opacity: 1, rotateX: 0 }}
+                  exit={{ y: -80, opacity: 0, rotateX: 90 }}
+                  transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+                  className="absolute text-5xl md:text-[70px] lg:text-[80px] font-bold tracking-tight text-white font-display"
+                >
+                  {words[currentWord]}
+                </motion.div>
+              </AnimatePresence>
             </div>
           </div>
 
