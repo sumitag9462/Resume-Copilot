@@ -6,7 +6,6 @@ import LandingStats from '../components/landing/LandingStats';
 import SocialMarquee from '../components/landing/SocialMarquee';
 import LandingFeatures from '../components/landing/LandingFeatures';
 import AIDemoSection from '../components/landing/AIDemoSection';
-import TestimonialCarousel from '../components/landing/TestimonialCarousel';
 import PricingCards from '../components/landing/PricingCards';
 import ContactForm from '../components/landing/ContactForm';
 import AmbientMouseLight from '../components/landing/AmbientMouseLight';
@@ -170,7 +169,6 @@ export default function LandingPage() {
         <LandingStats />
         <LandingFeatures />
         <AIDemoSection />
-        <TestimonialCarousel />
         <PricingCards />
         <ContactForm />
         <CTA />
