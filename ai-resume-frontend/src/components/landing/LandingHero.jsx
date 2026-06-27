@@ -6,6 +6,7 @@ import { ArrowRight, Sparkles, Check, Cpu, FileText, Target, Award } from 'lucid
 import { Canvas } from '@react-three/fiber';
 import HeroBackground3D from './HeroBackground3D';
 import MagneticButton from './MagneticButton';
+import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion';
 
 const words = ["Optimize.", "Match.", "Prepare.", "Win."];
 
@@ -15,6 +16,7 @@ export default function LandingHero() {
   const keywordsRef = useRef(null);
   const formattingRef = useRef(null);
   const [currentWord, setCurrentWord] = useState(0);
+  const prefersReduced = usePrefersReducedMotion();
 
   useEffect(() => {
     const animateCounter = (ref, targetValue, duration, delay) => {
@@ -58,14 +60,15 @@ export default function LandingHero() {
   return (
     <section className="relative min-h-[100dvh] w-full overflow-hidden bg-base flex items-center justify-center pt-24 pb-20">
       {/* 3D Background */}
-      <div className="absolute inset-0 z-0 pointer-events-auto">
-        <Canvas camera={{ position: [0, 0, 15], fov: 60 }}>
-          <color attach="background" args={['#0A0B0F']} />
-          <ambientLight intensity={0.5} />
-          <HeroBackground3D count={150} />
-          <Environment preset="city" />
-        </Canvas>
-      </div>
+      {!prefersReduced && (
+        <div className="absolute inset-0 z-0 pointer-events-auto">
+          <Canvas camera={{ position: [0, 0, 15], fov: 60 }}>
+            <color attach="background" args={['#0A0B0F']} />
+            <ambientLight intensity={0.5} />
+            <HeroBackground3D count={150} />
+          </Canvas>
+        </div>
+      )}
 
       {/* Aurora glow overlays */}
       <div className="absolute top-[-10%] right-[-5%] w-[600px] h-[600px] bg-accent-violet/20 rounded-full blur-[120px] mix-blend-screen pointer-events-none" />

@@ -1,4 +1,5 @@
 import React from 'react';
+import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion';
 
 const logos = [
   'Google', 'Microsoft', 'Apple', 'Meta', 'Netflix', 'OpenAI', 'Stripe', 
@@ -6,6 +7,7 @@ const logos = [
 ];
 
 export default function SocialMarquee() {
+  const prefersReduced = usePrefersReducedMotion();
   return (
     <section className="py-12 border-b border-white/[0.04] bg-[#0A0B0F]/80 backdrop-blur-md overflow-hidden relative z-10">
       <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-[#0A0B0F] to-transparent z-10" />
@@ -17,7 +19,10 @@ export default function SocialMarquee() {
         </p>
         
         <div className="flex overflow-hidden w-full group">
-          <div className="flex space-x-12 min-w-max animate-marquee group-hover:[animation-play-state:paused] px-6">
+          <div 
+            className="flex space-x-12 min-w-max animate-marquee group-hover:[animation-play-state:paused] px-6"
+            style={{ animationPlayState: prefersReduced ? 'paused' : undefined }}
+          >
             {[...logos, ...logos].map((logo, idx) => (
               <div 
                 key={`${logo}-${idx}`} 

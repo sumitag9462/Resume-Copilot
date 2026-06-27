@@ -127,7 +127,7 @@ export const OtpInput = ({ length = 6, value, onChange }) => {
           ref={(el) => (inputRefs.current[i] = el)}
           type="text"
           inputMode="numeric"
-          aria-label={`Digit ${i + 1}`}
+          aria-label={`Digit ${i + 1} of ${length}`}
           maxLength={1}
           value={digit}
           onChange={(e) => handleChange(e, i)}
