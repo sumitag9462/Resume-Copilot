@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, MapPin, Phone, Sparkles, ArrowRight, Github, Edit2 } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import apiClient from '../../api/axiosConfig';
-import { FloatingInput, PrimaryButton, OtpInput, AuthLayout, CountdownTimer } from './AuthComponents';
+import { FloatingInput, PrimaryButton, OtpInput, AuthLayout, CountdownTimer, PasswordStrengthIndicator } from './AuthComponents';
 
 const RegisterPage = () => {
     const [step, setStep] = useState(1);
@@ -95,6 +95,7 @@ const RegisterPage = () => {
                             <FloatingInput label="Location" name="place" value={formData.place} onChange={handleInputChange} icon={MapPin} required />
                         </div>
                         <FloatingInput label="Password" type="password" name="password" value={formData.password} onChange={handleInputChange} required minLength="8" />
+                        <PasswordStrengthIndicator password={formData.password} />
                         
                         {error && (
                             <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-center">
