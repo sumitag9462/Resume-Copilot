@@ -4,7 +4,7 @@ import { CheckCircle2, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const freeFeatures = ['3 resume uploads', 'ATS analysis', 'JD match scoring', 'Email support'];
-const proFeatures = ['Unlimited uploads', 'ATS + JD Match', 'AI Cover Letters', 'Resume History', 'Interview Prep', 'Export PDF', 'Priority Support', 'Cold Outreach AI'];
+const proFeatures = ['Unlimited uploads', 'ATS + JD Match', 'AI Cover Letters', 'Resume History', 'Interview Prep', 'Cold Outreach AI'];
 
 export default function PricingCards() {
   return (
