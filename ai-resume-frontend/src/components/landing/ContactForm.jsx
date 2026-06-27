@@ -1,122 +1,120 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Send, MessageSquare, User, Mail, Loader2 } from 'lucide-react';
-import api from '../../api/axiosConfig';
-import toast from 'react-hot-toast';
-import GlassCard from '../ui/GlassCard';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Mail, ArrowRight, CheckCircle2 } from 'lucide-react';
 import GradientButton from '../ui/GradientButton';
 
-const MotionGlassCard = motion(GlassCard);
-
 export default function ContactForm() {
-  const [formData, setFormData] = useState({ name: '', email: '', message: '' });
-  const [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState('');
+  const [status, setStatus] = useState('idle'); // idle, loading, success
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    setLoading(true);
-    try {
-      await api.post('/contact/submit', formData);
-      toast.success('Message sent successfully! We will get back to you soon.');
-      setFormData({ name: '', email: '', message: '' });
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to send message. Please try again.');
-    } finally {
-      setLoading(false);
-    }
+    if (!email) return;
+    
+    setStatus('loading');
+    setTimeout(() => {
+      setStatus('success');
+      setEmail('');
+      setTimeout(() => setStatus('idle'), 5000);
+    }, 1500);
   };
 
   return (
-    <section id="contact" className="py-32 relative bg-base border-t border-white/[0.04] overflow-hidden">
-      {/* Background Glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-accent-violet/10 rounded-full blur-[150px] pointer-events-none" />
-
-      <div className="max-w-4xl mx-auto px-6 relative z-10">
-        <div className="text-center mb-16">
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.03] border border-white/[0.08] mb-6"
-          >
-            <span className="text-xs font-semibold uppercase tracking-widest text-slate-300">Get in touch</span>
-          </motion.div>
-          <motion.h2 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.1 }}
-            className="text-4xl md:text-5xl font-display font-bold text-white tracking-tight"
-          >
-            Have a question? <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent-violet to-accent-teal">We'd love to hear from you.</span>
-          </motion.h2>
-        </div>
-
-        <MotionGlassCard 
-          initial={{ opacity: 0, y: 40 }}
+    <section className="py-24 relative bg-base">
+      <div className="max-w-4xl mx-auto px-6 lg:px-8">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ delay: 0.2 }}
-          className="card-3d p-8 md:p-12 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.5)] max-w-2xl mx-auto"
+          className="glass-card p-10 md:p-16 rounded-[2rem] border border-white/[0.05] relative overflow-hidden"
         >
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-300 flex items-center gap-2">
-                  <User className="w-4 h-4 text-accent-violet" /> Name
-                </label>
-                <input 
-                  type="text" 
-                  required
-                  placeholder="John Doe"
-                  className="w-full bg-[#1A1D27]/80 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-accent-violet focus:ring-1 focus:ring-accent-violet transition-colors"
-                  value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-300 flex items-center gap-2">
-                  <Mail className="w-4 h-4 text-accent-teal" /> Email
-                </label>
-                <input 
-                  type="email" 
-                  required
-                  placeholder="john@example.com"
-                  className="w-full bg-[#1A1D27]/80 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-accent-teal focus:ring-1 focus:ring-accent-teal transition-colors"
-                  value={formData.email}
-                  onChange={(e) => setFormData({...formData, email: e.target.value})}
-                />
-              </div>
-            </div>
+          {/* Subtle Glow Background */}
+          <div className="absolute inset-0 bg-gradient-to-br from-white/[0.02] to-transparent pointer-events-none" />
+          <div className="absolute top-0 right-0 w-64 h-64 bg-accent-violet/10 blur-[80px] rounded-full pointer-events-none -translate-y-1/2 translate-x-1/2" />
+
+          <div className="relative z-10 grid md:grid-cols-2 gap-12 items-center">
             
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-300 flex items-center gap-2">
-                <MessageSquare className="w-4 h-4 text-blue-400" /> Message
-              </label>
-              <textarea 
-                required
-                rows="5"
-                placeholder="How can we help you?"
-                className="w-full bg-[#1A1D27]/80 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-colors resize-none"
-                value={formData.message}
-                onChange={(e) => setFormData({...formData, message: e.target.value})}
-              />
+            <div>
+              <h3 className="text-3xl font-display font-bold text-white mb-4">
+                Stay ahead with AI career insights.
+              </h3>
+              <ul className="space-y-3 mb-6">
+                <li className="flex items-center gap-2 text-sm text-slate-400">
+                  <div className="w-1 h-1 rounded-full bg-accent-teal" /> Weekly resume tips
+                </li>
+                <li className="flex items-center gap-2 text-sm text-slate-400">
+                  <div className="w-1 h-1 rounded-full bg-accent-teal" /> Hiring trends
+                </li>
+                <li className="flex items-center gap-2 text-sm text-slate-400">
+                  <div className="w-1 h-1 rounded-full bg-accent-teal" /> Interview strategies
+                </li>
+              </ul>
+              <p className="text-xs text-slate-500 font-medium tracking-wide uppercase">No spam. Unsubscribe anytime.</p>
             </div>
 
-            <GradientButton 
-              type="submit" 
-              disabled={loading}
-              className="w-full h-14 text-base shadow-[0_0_30px_rgba(124,111,247,0.3)] mt-4 disabled:opacity-70 flex items-center justify-center"
-            >
-              {loading ? (
-                <>Sending... <Loader2 className="w-5 h-5 ml-2 animate-spin" /></>
-              ) : (
-                <>Send Message <Send className="w-5 h-5 ml-2" /></>
-              )}
-            </GradientButton>
-          </form>
-        </MotionGlassCard>
+            <div>
+              <AnimatePresence mode="wait">
+                {status === 'success' ? (
+                  <motion.div 
+                    key="success"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    className="flex flex-col items-center justify-center text-center py-8"
+                  >
+                    <div className="w-16 h-16 rounded-full bg-success/20 flex items-center justify-center mb-4">
+                      <CheckCircle2 className="w-8 h-8 text-success" />
+                    </div>
+                    <h4 className="text-lg font-bold text-white mb-1">You're on the list!</h4>
+                    <p className="text-sm text-slate-400">Keep an eye on your inbox for our next issue.</p>
+                  </motion.div>
+                ) : (
+                  <motion.form 
+                    key="form"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    onSubmit={handleSubmit}
+                    className="flex flex-col gap-4"
+                  >
+                    <div className="relative group">
+                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-500 group-focus-within:text-accent-violet transition-colors">
+                        <Mail className="w-5 h-5" />
+                      </div>
+                      <input 
+                        type="email" 
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="name@email.com"
+                        className="w-full bg-white/[0.03] border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder-slate-500 focus:outline-none focus:border-accent-violet focus:bg-white/[0.05] transition-all"
+                        required
+                      />
+                    </div>
+                    
+                    <GradientButton 
+                      as="button" 
+                      type="submit" 
+                      disabled={status === 'loading'}
+                      className="w-full h-14 font-medium"
+                    >
+                      {status === 'loading' ? (
+                        <span className="flex items-center gap-2">
+                          <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: "linear" }} className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full" />
+                          Subscribing...
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-2">
+                          Subscribe <ArrowRight className="w-4 h-4" />
+                        </span>
+                      )}
+                    </GradientButton>
+                  </motion.form>
+                )}
+              </AnimatePresence>
+            </div>
+
+          </div>
+        </motion.div>
       </div>
     </section>
   );

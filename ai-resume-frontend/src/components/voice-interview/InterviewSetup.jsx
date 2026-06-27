@@ -68,6 +68,7 @@ const InterviewSetup = () => {
         }
       }
     } catch (err) {
+      toast.error('Failed to load resumes');
       console.error('Failed to load resumes:', err)
     } finally {
       setLoadingResumes(false)

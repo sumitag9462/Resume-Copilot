@@ -4,7 +4,7 @@
 // displaying custom badge awards (Winner, Fastest, etc.), and rendering comparisons.
 
 import { useState, useRef, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import {
   Cpu,
   Trophy,
@@ -44,6 +44,7 @@ const ArenaWorkspace = ({
   const [activeTab, setActiveTab] = useState("winner"); // "winner", or modelKeys
   const [layoutMode, setLayoutMode] = useState("side-by-side"); // "side-by-side" or "tabs"
   const workspaceRef = useRef(null);
+  const shouldReduceMotion = useReducedMotion();
 
   // Automatically scroll to the workspace when results or errors are ready
   useEffect(() => {
@@ -142,8 +143,9 @@ const ArenaWorkspace = ({
       </div>
       <div className="h-1.5 w-full rounded-full bg-white/5">
         <motion.div
-          initial={{ width: 0 }}
+          initial={{ width: shouldReduceMotion ? `${value}%` : 0 }}
           animate={{ width: `${value}%` }}
+          transition={{ duration: shouldReduceMotion ? 0 : 0.5 }}
           className={`h-full rounded-full ${
             value >= 85 ? "bg-emerald-400" : value >= 70 ? "bg-[#7C5CFC]" : "bg-rose-400"
           }`}
@@ -157,8 +159,9 @@ const ArenaWorkspace = ({
       {/* ── SECTION 1: ARENA SCORECARD ── */}
       {compareMode && (
         <motion.section
-          initial={{ opacity: 0, y: 12 }}
+          initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 12 }}
           animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: shouldReduceMotion ? 0 : 0.3 }}
           className="rounded-[24px] border border-white/10 bg-[#0E0E16]/80 p-6 shadow-[0_20px_50px_rgba(0,0,0,0.3)] backdrop-blur-md"
         >
           <div className="mb-6 flex items-center justify-between">
@@ -350,6 +353,7 @@ const ArenaWorkspace = ({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
+              transition={{ duration: shouldReduceMotion ? 0 : 0.2 }}
               className="grid gap-6 md:grid-cols-3"
             >
               {results.map(res => {
@@ -387,10 +391,10 @@ const ArenaWorkspace = ({
           ) : (
             <motion.div
               key={activeTab}
-              initial={{ opacity: 0, y: 8 }}
+              initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 8 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.2 }}
+              exit={{ opacity: 0, y: shouldReduceMotion ? 0 : -8 }}
+              transition={{ duration: shouldReduceMotion ? 0 : 0.2 }}
               className="card min-h-[400px] p-6 lg:p-8"
             >
               {selectedResult?.error ? (

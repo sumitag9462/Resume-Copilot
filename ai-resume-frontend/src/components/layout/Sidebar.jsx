@@ -20,6 +20,7 @@ import {
 import { useAuth } from '../../context/AuthContext'
 import toast from 'react-hot-toast'
 import { motion, AnimatePresence } from 'framer-motion'
+import GlassCard from '../ui/GlassCard'
 
 const navGroups = [
   {
@@ -78,7 +79,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     : 'U'
 
   const sidebarContent = (
-    <div className="flex h-full flex-col bg-[#111318]/40 backdrop-blur-2xl border border-white/[0.05] shadow-[0_8px_32px_rgba(0,0,0,0.2)] lg:rounded-3xl lg:h-[calc(100vh-32px)] lg:m-4 overflow-hidden relative">
+    <GlassCard className="flex h-full flex-col backdrop-blur-2xl lg:h-[calc(100vh-32px)] lg:m-4 rounded-none lg:rounded-3xl">
       {/* Subtle top glow */}
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
       
@@ -183,7 +184,7 @@ const Sidebar = ({ isOpen, onClose }) => {
           </button>
         </div>
       </div>
-    </div>
+    </GlassCard>
   )
 
   return (

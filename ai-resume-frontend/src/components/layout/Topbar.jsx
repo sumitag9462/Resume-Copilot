@@ -1,6 +1,7 @@
 import { useLocation } from 'react-router-dom'
 import { Bell, Search, Cpu, Menu } from 'lucide-react'
 import { useModel } from '../../context/ModelContext'
+import GlassCard from '../ui/GlassCard'
 
 const titles = {
   '/dashboard': 'Executive Dashboard',
@@ -27,7 +28,7 @@ const Topbar = ({ onMenuClick }) => {
 
   return (
     <header className="sticky top-0 z-30 pt-6 px-6 lg:px-10 pb-4 transition-all duration-300">
-      <div className="mx-auto flex w-full max-w-[1400px] items-center justify-between rounded-2xl bg-[#111318]/40 backdrop-blur-2xl border border-white/[0.08] px-4 py-3 shadow-[0_16px_40px_rgba(0,0,0,0.3)] transition-all hover:bg-[#111318]/60">
+      <GlassCard className="mx-auto flex w-full max-w-[1400px] items-center justify-between rounded-2xl backdrop-blur-2xl px-4 py-3 shadow-[0_16px_40px_rgba(0,0,0,0.3)] transition-all hover:bg-[#111318]/60">
         
         <div className="flex items-center gap-4">
           <button 
@@ -91,7 +92,7 @@ const Topbar = ({ onMenuClick }) => {
             <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-accent-teal shadow-[0_0_12px_rgba(46,203,173,1)] animate-pulse" />
           </button>
         </div>
-      </div>
+      </GlassCard>
     </header>
   )
 }

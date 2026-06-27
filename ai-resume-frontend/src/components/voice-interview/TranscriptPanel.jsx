@@ -10,6 +10,7 @@
 import { useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Bot, User } from 'lucide-react'
+import GlassCard from '../ui/GlassCard'
 
 const TranscriptPanel = ({ chatHistory = [], interimTranscript = '' }) => {
   const scrollRef = useRef(null)
@@ -31,7 +32,7 @@ const TranscriptPanel = ({ chatHistory = [], interimTranscript = '' }) => {
   }
 
   return (
-    <div className="flex flex-col h-full rounded-3xl bg-[#111318]/40 backdrop-blur-xl border border-white/[0.05] shadow-[0_8px_32px_rgba(0,0,0,0.2)] overflow-hidden">
+    <GlassCard className="flex flex-col h-full">
       {/* Header */}
       <div className="flex items-center gap-2 px-5 py-4 border-b border-white/[0.04]">
         <div className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
@@ -114,7 +115,7 @@ const TranscriptPanel = ({ chatHistory = [], interimTranscript = '' }) => {
           </motion.div>
         )}
       </div>
-    </div>
+    </GlassCard>
   )
 }
 

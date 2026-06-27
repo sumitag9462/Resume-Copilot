@@ -11,6 +11,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   Mic, MicOff, Volume2, VolumeX, RotateCcw, Square, Keyboard, X
 } from 'lucide-react'
+import GlassCard from '../ui/GlassCard'
 
 const InterviewControls = ({
   isListening,
@@ -70,7 +71,7 @@ const InterviewControls = ({
 
   return (
     <>
-      <div className="rounded-3xl bg-[#111318]/60 backdrop-blur-2xl border border-white/[0.05] shadow-[0_-8px_32px_rgba(0,0,0,0.3)] px-6 py-4">
+      <GlassCard className="px-6 py-4 rounded-3xl backdrop-blur-2xl shadow-[0_-8px_32px_rgba(0,0,0,0.3)]">
         <div className="flex items-center justify-center gap-3 md:gap-4">
           {/* Mic Toggle */}
           <div className="relative group">
@@ -164,7 +165,7 @@ const InterviewControls = ({
             </span>
           </div>
         </div>
-      </div>
+      </GlassCard>
 
       {/* End Interview Confirmation Modal */}
       <AnimatePresence>

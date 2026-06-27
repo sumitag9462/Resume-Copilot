@@ -9,6 +9,7 @@
 
 import { motion } from 'framer-motion'
 import { Hash, Clock, Activity, TrendingUp, BarChart3, Signal } from 'lucide-react'
+import GlassCard from '../ui/GlassCard'
 
 const ScorePanel = ({ questionCount = 0, elapsedSeconds = 0, interviewState = 'idle', companyName = '' }) => {
   const formatTime = (seconds) => {
@@ -33,13 +34,13 @@ const ScorePanel = ({ questionCount = 0, elapsedSeconds = 0, interviewState = 'i
   return (
     <div className="flex flex-col gap-4 h-full">
       {/* Company Badge */}
-      <div className="rounded-2xl bg-[#111318]/40 backdrop-blur-xl border border-white/[0.05] p-4">
+      <GlassCard className="p-4">
         <span className="text-[9px] font-bold uppercase tracking-[0.25em] text-slate-600 block mb-2">Interview For</span>
         <p className="text-sm font-bold text-white truncate">{companyName || 'Company'}</p>
-      </div>
+      </GlassCard>
 
       {/* Status Indicator */}
-      <div className="rounded-2xl bg-[#111318]/40 backdrop-blur-xl border border-white/[0.05] p-4">
+      <GlassCard className="p-4">
         <span className="text-[9px] font-bold uppercase tracking-[0.25em] text-slate-600 block mb-3">Status</span>
         <div className={`flex items-center gap-2.5 px-3 py-2 rounded-xl ${stateStyle.bg}`}>
           <div className={`h-2 w-2 rounded-full ${stateStyle.dot} ${interviewState !== 'idle' && interviewState !== 'complete' ? 'animate-pulse' : ''}`} />
@@ -51,10 +52,10 @@ const ScorePanel = ({ questionCount = 0, elapsedSeconds = 0, interviewState = 'i
              'Complete'}
           </span>
         </div>
-      </div>
+      </GlassCard>
 
       {/* Stats Grid */}
-      <div className="rounded-2xl bg-[#111318]/40 backdrop-blur-xl border border-white/[0.05] p-4 space-y-4">
+      <GlassCard className="p-4 space-y-4">
         <span className="text-[9px] font-bold uppercase tracking-[0.25em] text-slate-600 block">Metrics</span>
 
         {/* Question Count */}
@@ -99,10 +100,10 @@ const ScorePanel = ({ questionCount = 0, elapsedSeconds = 0, interviewState = 'i
             />
           </div>
         </div>
-      </div>
+      </GlassCard>
 
       {/* AI Analysis Indicator */}
-      <div className="rounded-2xl bg-[#111318]/40 backdrop-blur-xl border border-white/[0.05] p-4">
+      <GlassCard className="p-4">
         <div className="flex items-center gap-2.5 mb-3">
           <Activity className="h-3.5 w-3.5 text-violet-400" />
           <span className="text-[9px] font-bold uppercase tracking-[0.25em] text-slate-600">AI Analysis</span>
@@ -136,7 +137,7 @@ const ScorePanel = ({ questionCount = 0, elapsedSeconds = 0, interviewState = 'i
         <p className="text-[9px] text-slate-600 mt-3 italic text-center">
           Detailed scores revealed after interview
         </p>
-      </div>
+      </GlassCard>
     </div>
   )
 }

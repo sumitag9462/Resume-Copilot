@@ -29,7 +29,8 @@ export default function CopilotPage() {
       const data = await getSessions();
       setSessions(data);
     } catch (error) {
-      console.error('Failed to load sessions', error);
+      toast.error('Failed to load sessions');
+      console.error(error);
     }
   };
 

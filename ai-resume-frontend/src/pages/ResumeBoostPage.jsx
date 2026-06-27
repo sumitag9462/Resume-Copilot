@@ -57,6 +57,7 @@ const ResumeBoostPage = () => {
         }
       }
     } catch (err) {
+      toast.error('Failed to load resumes');
       console.error("Failed to load resumes:", err);
     }
   };
@@ -69,6 +70,7 @@ const ResumeBoostPage = () => {
         setHistoryList(res.history || []);
       }
     } catch (err) {
+      toast.error('Failed to load history');
       console.error("Failed to load history:", err);
     } finally {
       setLoadingHistory(false);

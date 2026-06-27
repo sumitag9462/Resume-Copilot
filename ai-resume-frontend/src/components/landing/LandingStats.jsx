@@ -1,91 +1,81 @@
 import React, { useEffect, useRef } from 'react';
+import { motion, useInView } from 'framer-motion';
 import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import GlassCard from '../ui/GlassCard';
 
-gsap.registerPlugin(ScrollTrigger);
-
-const stats = [
-  { value: 94, suffix: '%', label: 'Average ATS Score Improvement', color: 'from-white to-slate-400' },
-  { value: 1.4, suffix: 's', label: 'Gemini Pipeline Latency', color: 'from-accent-violet to-blue-400' },
-  { value: 5, suffix: '', label: 'AI Pipeline Stages', color: 'from-accent-teal to-emerald-400' }
-];
-
-export default function LandingStats() {
-  const sectionRef = useRef(null);
-  const countersRef = useRef([]);
+const StatCard = ({ title, value, suffix = "", prefix = "", delay = 0, duration = 2, decimals = 0 }) => {
+  const nodeRef = useRef(null);
+  const containerRef = useRef(null);
+  const isInView = useInView(containerRef, { once: true, margin: "-50px" });
 
   useEffect(() => {
-    const tweens = [];
-
-    countersRef.current.forEach((counter, i) => {
-      if (!counter) return;
-      const target = parseFloat(counter.getAttribute('data-target'));
-      const obj = { val: 0 };
-
-      const tween = gsap.to(obj, {
-        val: target,
-        duration: 2.5,
-        ease: 'power3.out',
-        delay: i * 0.2,
-        onUpdate: () => {
-          if (counter) {
-            counter.textContent = Number.isInteger(target) 
-              ? Math.ceil(obj.val).toLocaleString()
-              : obj.val.toFixed(1);
-          }
-        },
-        scrollTrigger: {
-          trigger: sectionRef.current,
-          start: 'top 80%',
-        },
-      });
-      tweens.push(tween);
+    if (!isInView || !nodeRef.current) return;
+    const obj = { val: 0 };
+    gsap.to(obj, {
+      val: value,
+      duration,
+      delay,
+      ease: "power3.out",
+      onUpdate: () => {
+        if (nodeRef.current) {
+          nodeRef.current.textContent = obj.val.toFixed(decimals);
+        }
+      }
     });
-
-    return () => {
-      tweens.forEach(tween => {
-        tween.scrollTrigger?.kill();
-        tween.kill();
-      });
-    };
-  }, []);
+  }, [isInView, value, duration, delay, decimals]);
 
   return (
-    <section ref={sectionRef} className="py-32 relative bg-base overflow-hidden border-t border-white/[0.04]">
-      {/* Background glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[300px] bg-accent-violet/5 blur-[120px] rounded-[100%]" />
+    <motion.div
+      ref={containerRef}
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ delay }}
+      className="glass-card p-8 rounded-2xl flex flex-col items-center justify-center text-center group hover:border-white/[0.1] transition-colors"
+    >
+      <div className="text-4xl md:text-5xl font-display font-bold text-white mb-2 flex items-baseline justify-center">
+        {prefix && <span className="text-3xl text-accent-violet">{prefix}</span>}
+        <span ref={nodeRef}>0</span>
+        <span className="text-3xl text-accent-teal">{suffix}</span>
+      </div>
+      <p className="text-sm font-medium text-slate-400 uppercase tracking-wider">{title}</p>
+    </motion.div>
+  );
+};
+
+export default function LandingStats() {
+  return (
+    <section className="py-24 relative bg-base">
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-3xl h-[300px] bg-accent-violet/5 rounded-[100%] blur-[100px]" />
+      </div>
       
       <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {stats.map((stat, idx) => (
-            <GlassCard 
-              key={idx} 
-              hoverEffect
-              className="card-3d p-10 text-center group"
-            >
-              
-              <div className="flex items-baseline justify-center text-5xl lg:text-7xl font-bold font-display tracking-tight mb-4 text-transparent bg-clip-text bg-gradient-to-br">
-                <span 
-                  ref={el => countersRef.current[idx] = el} 
-                  data-target={stat.value}
-                  className={`bg-clip-text text-transparent bg-gradient-to-br ${stat.color}`}
-                >
-                  0
-                </span>
-                <span className={`text-4xl lg:text-5xl bg-clip-text text-transparent bg-gradient-to-br ${stat.color}`}>
-                  {stat.suffix}
-                </span>
-              </div>
-              
-              <div className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-400 group-hover:text-slate-300 transition-colors duration-300">
-                {stat.label}
-              </div>
-
-              {/* Shimmer effect */}
-              <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/[0.05] to-transparent group-hover:animate-[shimmer_1.5s_infinite]" />
-            </GlassCard>
-          ))}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <StatCard 
+            title="Resumes Processed" 
+            value={50} 
+            suffix="k+" 
+            delay={0}
+          />
+          <StatCard 
+            title="Avg. ATS Improvement" 
+            value={94} 
+            suffix="%" 
+            delay={0.1}
+          />
+          <StatCard 
+            title="Avg. Job Matches" 
+            value={24} 
+            suffix="+" 
+            delay={0.2}
+          />
+          <StatCard 
+            title="Processing Time" 
+            value={1.4} 
+            suffix="s" 
+            delay={0.3}
+            decimals={1}
+          />
         </div>
       </div>
     </section>

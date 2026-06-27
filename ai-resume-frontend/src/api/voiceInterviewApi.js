@@ -20,7 +20,8 @@ export const sendVoiceMessage = async (payload) => {
 
 export const streamVoiceMessage = async (payload) => {
   const token = localStorage.getItem('token') || sessionStorage.getItem('token')
-  const response = await fetch('http://localhost:5001/api/voice-interview/message-stream', {
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api'
+  const response = await fetch(`${API_URL}/voice-interview/message-stream`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

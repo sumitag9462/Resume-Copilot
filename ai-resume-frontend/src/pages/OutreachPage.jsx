@@ -57,7 +57,10 @@ const OutreachPage = () => {
           setSelectedResumeId(d.resumes[0]._id);
         }
       })
-      .catch(console.error)
+      .catch((err) => {
+        toast.error(err.message || 'Failed to load resumes')
+        console.error(err)
+      })
       .finally(() => setLoadingResumes(false));
   }, []);
 

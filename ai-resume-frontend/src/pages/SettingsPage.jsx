@@ -16,6 +16,7 @@ import DashboardLayout from '../components/layout/DashboardLayout'
 import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
 import { userApi } from '../api/userApi'
+import GradientButton from '../components/ui/GradientButton'
 
 // ── Toggle switch ─────────────────────────────────────────────
 const Toggle = ({ checked, onChange, label, desc }) => (
@@ -266,9 +267,9 @@ const SettingsPage = () => {
                     </div>
 
                     <div className="pt-4 border-t border-white/[0.06]">
-                      <button type="submit" disabled={savingProfile} className="btn-primary">
+                      <GradientButton type="submit" disabled={savingProfile}>
                         {savingProfile ? 'Saving...' : 'Save Changes'}
-                      </button>
+                      </GradientButton>
                     </div>
                   </form>
                 </motion.div>
@@ -343,9 +344,9 @@ const SettingsPage = () => {
                     </div>
 
                     <div className="pt-4 border-t border-white/[0.06]">
-                      <button type="submit" disabled={savingPwd} className="btn-primary">
+                      <GradientButton type="submit" disabled={savingPwd}>
                         {savingPwd ? 'Updating...' : 'Update Password'}
-                      </button>
+                      </GradientButton>
                     </div>
                   </form>
                 </motion.div>
@@ -406,9 +407,9 @@ const SettingsPage = () => {
                     </div>
 
                     <div className="pt-4 border-t border-white/[0.06]">
-                      <button onClick={handleSaveAiPrefs} className="btn-primary">
+                      <GradientButton onClick={handleSaveAiPrefs}>
                         Save AI Preferences
-                      </button>
+                      </GradientButton>
                     </div>
                   </div>
                 </motion.div>
@@ -449,9 +450,9 @@ const SettingsPage = () => {
                     />
                     
                     <div className="pt-6 border-t border-white/[0.06]">
-                      <button onClick={handleSaveNotifications} className="btn-primary">
+                      <GradientButton onClick={handleSaveNotifications}>
                         Update Notifications
-                      </button>
+                      </GradientButton>
                     </div>
                   </div>
                 </motion.div>
