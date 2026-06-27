@@ -68,7 +68,7 @@ export default function PricingCards() {
             className="relative p-10 rounded-[32px] bg-gradient-to-b from-[#181A2A] to-[#111318] border-none shadow-[0_0_80px_rgba(124,111,247,0.15)] overflow-hidden"
           >
             {/* Animated Gradient Border */}
-            <div className="absolute inset-0 rounded-[32px] p-[2px] bg-gradient-to-br from-accent-violet via-blue-500 to-accent-teal animate-gradient-shift [mask-image:linear-gradient(#fff_0_0)_content-box,linear-gradient(#fff_0_0)] [-webkit-mask-composite:xor] mask-composite-exclude" />
+            <div className="absolute inset-0 rounded-[32px] p-[2px] bg-gradient-to-br from-accent-violet via-blue-500 to-accent-teal animate-gradient-shift [mask-image:linear-gradient(#fff_0_0)_content-box,linear-gradient(#fff_0_0)] [-webkit-mask-composite:xor] [mask-composite:exclude]" />
             
             <div className="absolute top-0 right-0 w-64 h-64 bg-accent-violet/20 blur-[80px] -translate-y-1/2 translate-x-1/4 rounded-full pointer-events-none" />
 
