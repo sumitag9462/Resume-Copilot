@@ -17,7 +17,7 @@ export default function SocialMarquee() {
         </p>
         
         <div className="flex overflow-hidden w-full group">
-          <div className="flex space-x-12 min-w-max animate-[marquee_40s_linear_infinite] group-hover:[animation-play-state:paused] px-6">
+          <div className="flex space-x-12 min-w-max animate-marquee group-hover:[animation-play-state:paused] px-6">
             {[...logos, ...logos].map((logo, idx) => (
               <div 
                 key={`${logo}-${idx}`} 

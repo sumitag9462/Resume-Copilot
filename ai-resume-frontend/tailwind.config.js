@@ -143,6 +143,11 @@ export default {
           '0%, 100%': { opacity: '0.4', transform: 'scale(1)' },
           '50%':      { opacity: '1', transform: 'scale(1.3)' },
         },
+        // Marquee scrolling
+        marquee: {
+          '0%': { transform: 'translateX(0%)' },
+          '100%': { transform: 'translateX(-50%)' },
+        },
       },
 
       animation: {
@@ -154,6 +159,7 @@ export default {
         'gradient-shift': 'gradient-shift 6s ease infinite',
         'blink':          'blink 1s step-end infinite',
         'dot-pulse':      'dot-pulse 1.4s ease-in-out infinite',
+        'marquee':        'marquee 40s linear infinite',
       },
     },
   },
