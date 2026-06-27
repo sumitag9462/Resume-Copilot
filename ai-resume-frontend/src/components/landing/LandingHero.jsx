@@ -18,16 +18,27 @@ export default function LandingHero() {
   const [currentWord, setCurrentWord] = useState(0);
 
   useEffect(() => {
-    // Score count ups
-    if (scoreRef.current) {
-      gsap.fromTo(scoreRef.current, { innerHTML: 0 }, { innerHTML: 94, duration: 2, ease: "power3.out", snap: { innerHTML: 1 }, delay: 1 });
-    }
-    if (keywordsRef.current) {
-      gsap.fromTo(keywordsRef.current, { innerHTML: 0 }, { innerHTML: 24, duration: 2, ease: "power3.out", snap: { innerHTML: 1 }, delay: 1.2 });
-    }
-    if (formattingRef.current) {
-      gsap.fromTo(formattingRef.current, { innerHTML: 0 }, { innerHTML: 8, duration: 1.5, ease: "power3.out", snap: { innerHTML: 1 }, delay: 1.4 });
-    }
+    const animateCounter = (ref, targetValue, duration, delay) => {
+      if (!ref.current) return null;
+      const obj = { val: 0 };
+      return gsap.to(obj, {
+        val: targetValue,
+        duration,
+        ease: 'power3.out',
+        delay,
+        onUpdate: () => {
+          if (ref.current) ref.current.textContent = Math.ceil(obj.val);
+        },
+      });
+    };
+
+    const tweens = [
+      animateCounter(scoreRef, 94, 2, 1),
+      animateCounter(keywordsRef, 24, 2, 1.2),
+      animateCounter(formattingRef, 8, 1.5, 1.4),
+    ].filter(Boolean);
+
+    return () => tweens.forEach(t => t.kill());
   }, []);
 
   useEffect(() => {
