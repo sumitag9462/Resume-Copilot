@@ -44,6 +44,7 @@ export const FloatingInput = ({ label, type = "text", value, onChange, name, req
       {isPassword && (
         <button
           type="button"
+          aria-label={showPassword ? "Hide password" : "Show password"}
           onClick={() => setShowPassword(!showPassword)}
           className={`absolute right-4 top-1/2 -translate-y-1/2 transition-colors duration-300 focus:outline-none
             ${isFocused ? 'text-accent-violet' : 'text-slate-500 hover:text-slate-300'}
@@ -126,6 +127,7 @@ export const OtpInput = ({ length = 6, value, onChange }) => {
           ref={(el) => (inputRefs.current[i] = el)}
           type="text"
           inputMode="numeric"
+          aria-label={`Digit ${i + 1}`}
           maxLength={1}
           value={digit}
           onChange={(e) => handleChange(e, i)}
