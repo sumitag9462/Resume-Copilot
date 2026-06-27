@@ -6,7 +6,7 @@ import GlassCard from '../ui/GlassCard';
 import GradientButton from '../ui/GradientButton';
 
 const freeFeatures = ['3 resume uploads', 'ATS analysis', 'JD match scoring', 'Email support'];
-const proFeatures = ['Unlimited uploads', 'ATS + JD Match', 'AI Cover Letters', 'Resume History', 'Interview Prep', 'Cold Outreach AI'];
+const proFeatures = ['Unlimited uploads', 'ATS + JD Match', 'AI Cover Letters', 'Resume History', 'Interview Prep'];
 
 export default function PricingCards() {
   const navigate = useNavigate();
