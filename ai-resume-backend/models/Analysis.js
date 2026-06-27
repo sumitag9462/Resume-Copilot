@@ -56,6 +56,8 @@ const analysisSchema = new mongoose.Schema(
     matchedSkills:   [String],     // Skills found in BOTH resume and JD
     missingSkills:   [String],     // Skills in JD but NOT in resume
     recommendations: [String],     // What to add/improve to increase match
+    verdict:         String,        // "Strong Match" / "Good Match" / "Moderate Match" / "Weak Match"
+    summary:         String,        // AI-generated 2-3 sentence match summary
 
     // ── COVER LETTER FIELDS ───────────────────────────────
     companyName:        String,
@@ -64,7 +66,9 @@ const analysisSchema = new mongoose.Schema(
       type: String,
       enum: ['professional', 'formal', 'startup', 'creative']
     },
-    coverLetterContent: String     // The full generated cover letter text
+    coverLetterContent: String,    // The full generated cover letter text
+    wordCount:       Number,        // Approximate word count of cover letter
+    keyHighlights:   [String]       // Key points the cover letter emphasizes
   },
   {
     timestamps: true

@@ -44,7 +44,25 @@ const getOwnedResume = async (resumeId, userId) => {
     err.statusCode = 403;
     throw err;
   }
+  if (!resume.extractedText || resume.extractedText.trim().length === 0) {
+    const err = new Error('Resume text could not be extracted. Please re-upload your resume.');
+    err.statusCode = 400;
+    throw err;
+  }
   return resume;
+};
+
+// ── HELPER: validate AI response shape before persisting ──────
+// generateAndParse only checks that the response is parseable JSON, not that
+// it matches the expected schema. This prevents undefined/wrong-typed data
+// from being silently written to Mongo if Gemini omits a required field.
+const assertShape = (obj, requiredKeys) => {
+  const missing = requiredKeys.filter(k => obj[k] === undefined);
+  if (missing.length > 0) {
+    const err = new Error(`AI response missing expected fields: ${missing.join(', ')}`);
+    err.statusCode = 502;
+    throw err;
+  }
 };
 
 const findCachedAnalysis = async (query) => {
@@ -85,6 +103,9 @@ const runATSAnalysis = async (req, res, next) => {
 
     // Call Gemini AI — this is the slow step (10-20 seconds)
     const aiResult = await analyzeResume(resume.extractedText);
+
+    // Validate AI response shape before persisting
+    assertShape(aiResult, ['atsScore', 'overallScore']);
 
     // Save analysis to MongoDB
     const analysis = await Analysis.create({
@@ -144,7 +165,7 @@ const matchWithJob = async (req, res, next) => {
       resume: resume._id,
       user: req.user._id,
       type: 'jd_match',
-      jobDescription: normalizedJD,
+      jobDescription: normalizedJD,  // query with trimmed text
     });
 
     if (cachedAnalysis && !req.body.forceRefresh) {
@@ -158,33 +179,30 @@ const matchWithJob = async (req, res, next) => {
     // Call Gemini AI
     const aiResult = await matchResumeWithJob(resume.extractedText, normalizedJD);
 
-    // Save to MongoDB
+    // Validate AI response shape before persisting
+    assertShape(aiResult, ['matchScore', 'skillCoverage', 'keywordCoverage', 'verdict']);
+
+    // Save to MongoDB — persist all AI fields directly (including verdict/summary)
+    // so cached and fresh responses return the identical shape.
     const analysis = await Analysis.create({
       resume:          resume._id,
       user:            req.user._id,
       type:            'jd_match',
-      jobDescription:  jobDescription,
+      jobDescription:  normalizedJD,   // save trimmed text to match cache key
       matchScore:      aiResult.matchScore,
       skillCoverage:   aiResult.skillCoverage,
       keywordCoverage: aiResult.keywordCoverage,
       matchedSkills:   aiResult.matchedSkills   || [],
       missingSkills:   aiResult.missingSkills   || [],
       recommendations: aiResult.recommendations || [],
-      // Store verdict and summary inside recommendations array as extra fields
-      // We attach them directly on the returned object for the frontend
+      verdict:         aiResult.verdict,
+      summary:         aiResult.summary,
     });
-
-    // Attach verdict and summary to response (Gemini returns them but schema doesn't store them)
-    const responseData = {
-      ...analysis.toObject(),
-      verdict: aiResult.verdict,
-      summary: aiResult.summary,
-    };
 
     res.status(201).json({
       success:  true,
       message:  'JD match analysis complete',
-      analysis: responseData,
+      analysis: analysis.toObject(),
     });
 
   } catch (error) {
@@ -225,12 +243,13 @@ const createCoverLetter = async (req, res, next) => {
 
     const resume = await getOwnedResume(resumeId, req.user._id);
     const normalizedJD = jobDescription.trim();
+    const normalizedCompany = companyName.trim();
 
     const cachedAnalysis = await findCachedAnalysis({
       resume: resume._id,
       user: req.user._id,
       type: 'cover_letter',
-      companyName,
+      companyName: normalizedCompany,  // use trimmed value as cache key
       jobDescription: normalizedJD,
       style,
     });
@@ -246,33 +265,32 @@ const createCoverLetter = async (req, res, next) => {
     // Call Gemini AI
     const aiResult = await generateCoverLetter(
       resume.extractedText,
-      companyName,
+      normalizedCompany,
       normalizedJD,
       style
     );
 
-    // Save to MongoDB
+    // Validate AI response shape before persisting
+    assertShape(aiResult, ['coverLetter']);
+
+    // Save to MongoDB — persist all AI fields directly so cached and fresh
+    // responses return the identical shape.
     const analysis = await Analysis.create({
       resume:             resume._id,
       user:               req.user._id,
       type:               'cover_letter',
-      companyName:        companyName,
-      jobDescription:     jobDescription,
+      companyName:        normalizedCompany,  // save trimmed value to match cache key
+      jobDescription:     normalizedJD,       // save trimmed value to match cache key
       style:              style,
       coverLetterContent: aiResult.coverLetter,
+      wordCount:          aiResult.wordCount,
+      keyHighlights:      aiResult.keyHighlights || [],
     });
-
-    // Add wordCount and keyHighlights from AI response
-    const responseData = {
-      ...analysis.toObject(),
-      wordCount:     aiResult.wordCount,
-      keyHighlights: aiResult.keyHighlights || [],
-    };
 
     res.status(201).json({
       success:  true,
       message:  'Cover letter generated successfully',
-      analysis: responseData,
+      analysis: analysis.toObject(),
     });
 
   } catch (error) {

@@ -10,8 +10,21 @@ const FEATURES = {
     autoModel: "gemini-pro", // Rebuilding/detailed analysis uses Pro
     buildPrompt: (inputs) => {
       const { resumeText } = inputs;
-      return `You are an expert ATS (Applicant Tracking System) analyzer and resume coach.
-Analyze the following resume and return details on score, keywords, suggestions, formatting, and grammar.
+      return `You are an extremely strict, enterprise-grade Applicant Tracking System (ATS) parser and a top-tier Silicon Valley technical recruiter. Your standards are exceptionally high.
+
+Your task is to analyze the following resume and produce TWO distinct scores:
+- atsScore: Machine parsability — can ATS software correctly parse every section? Are section headings standard? Is the format clean (no tables, columns, graphics that break parsers)? Are keywords present and properly placed?
+- overallScore: Human quality — would a recruiter be impressed? Are bullet points impactful with metrics? Is the tone professional? Is the content substantive?
+
+Most resumes should score between 40-60. Only the top 1% of flawless resumes should score 80+.
+
+SCORING RULES (each rule states which score it affects):
+1. [overallScore] PENALIZE HEAVILY if bullet points do not start with strong action verbs.
+2. [overallScore] PENALIZE HEAVILY for lack of quantifiable metrics (numbers, percentages, dollar amounts) in achievements.
+3. [atsScore] DEDUCT points for missing standard sections (ContactInfo, Summary, Experience, Education, Skills) or non-standard section headings.
+4. [overallScore] DEDUCT points for fluff, buzzwords, or lack of clear impact.
+5. [atsScore] DEDUCT points for formatting that breaks ATS parsers (tables, columns, graphics, headers/footers with critical info).
+6. Be brutally honest in your feedback. Do not flatter the candidate.
 
 Resume:
 """
@@ -20,8 +33,10 @@ ${resumeText}
 
 Return ONLY a valid JSON object matching this schema:
 {
-  "atsScore": 0-100 score,
-  "overallScore": 0-100 score,
+  "atsScore": <number 0-100, machine parsability>,
+  "overallScore": <number 0-100, human quality>,
+  "professionalismScore": <number 0-100, how professional the tone, action verb usage, and language are>,
+  "readabilityScore": <number 0-100, how easy the resume is to scan and read quickly>,
   "missingKeywords": ["up to 8 missing keywords"],
   "suggestions": ["exactly 3 key actionable suggestions"],
   "grammarIssues": ["up to 5 key grammar/spelling issues, empty array if none"],

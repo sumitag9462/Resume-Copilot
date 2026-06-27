@@ -102,9 +102,21 @@ const generateAndParse = async (prompt) => {
 // Returns: atsScore, overallScore, keywords, suggestions, etc.
 // ─────────────────────────────────────────────────────────────
 const analyzeResume = async (resumeText) => {
-  const prompt = `You are an expert ATS (Applicant Tracking System) analyzer and professional resume coach with 10+ years of experience.
+  const prompt = `You are an extremely strict, enterprise-grade Applicant Tracking System (ATS) parser and a top-tier Silicon Valley technical recruiter. Your standards are exceptionally high.
 
-Analyze the following resume and provide detailed, actionable feedback.
+Your task is to analyze the following resume and produce TWO distinct scores:
+- atsScore: Machine parsability — can ATS software correctly parse every section? Are section headings standard? Is the format clean (no tables, columns, graphics that break parsers)? Are keywords present and properly placed?
+- overallScore: Human quality — would a recruiter be impressed? Are bullet points impactful with metrics? Is the tone professional? Is the content substantive?
+
+Most resumes should score between 40-60. Only the top 1% of flawless resumes should score 80+.
+
+SCORING RULES (each rule states which score it affects):
+1. [overallScore] PENALIZE HEAVILY if bullet points do not start with strong action verbs.
+2. [overallScore] PENALIZE HEAVILY for lack of quantifiable metrics (numbers, percentages, dollar amounts) in achievements.
+3. [atsScore] DEDUCT points for missing standard sections (ContactInfo, Summary, Experience, Education, Skills) or non-standard section headings.
+4. [overallScore] DEDUCT points for fluff, buzzwords, or lack of clear impact.
+5. [atsScore] DEDUCT points for formatting that breaks ATS parsers (tables, columns, graphics, headers/footers with critical info).
+6. Be brutally honest in your feedback. Do not flatter the candidate.
 
 IMPORTANT: Return ONLY a valid JSON object. No explanations, no markdown, no extra text — just the raw JSON.
 
@@ -113,22 +125,24 @@ Resume Text:
 ${resumeText}
 """
 
-Return exactly this JSON structure (fill in real values based on the resume):
+Return exactly this JSON structure (fill in real values based on the strict ATS analysis):
 {
-  "atsScore": <number between 0-100, how ATS-friendly this resume is>,
-  "overallScore": <number between 0-100, overall resume quality>,
+  "atsScore": <number 0-100, machine parsability — how well ATS software can parse this resume>,
+  "overallScore": <number 0-100, human quality — how impressed a recruiter would be>,
+  "professionalismScore": <number 0-100, how professional the tone, action verb usage, and language are>,
+  "readabilityScore": <number 0-100, how easy the resume is to scan and read quickly>,
   "missingKeywords": [<list of important keywords missing from the resume>],
-  "suggestions": [<list of 5-7 specific, actionable improvement suggestions>],
+  "suggestions": [<list of 5-7 highly specific, brutal, actionable improvement suggestions>],
   "grammarIssues": [<list of specific grammar or spelling issues found, empty array if none>],
   "sectionFeedback": {
-    "summary": "<feedback on the professional summary or objective section>",
-    "experience": "<feedback on work experience section>",
+    "summary": "<strict feedback on the professional summary or objective section>",
+    "experience": "<strict feedback on work experience, focusing on metrics and action verbs>",
     "education": "<feedback on education section>",
     "skills": "<feedback on skills section>",
-    "projects": "<feedback on projects section, or note if absent>"
+    "projects": "<feedback on projects section, focusing on impact>"
   },
-  "strengths": [<list of 3-4 things the candidate does well>],
-  "weaknesses": [<list of 3-4 areas that need improvement>]
+  "strengths": [<list of 3-4 things the candidate actually does well>],
+  "weaknesses": [<list of 3-4 critical areas that need immediate improvement>]
 }`;
 
   return await generateAndParse(prompt);

@@ -39,15 +39,14 @@ const scoreOutput = (feature, output, executionTime) => {
   }
 
   // 2. Readability Score
-  let readability = 80;
+  // Read the explicit score from the AI prompt output.
+  // IMPORTANT: Do NOT count bullets/headers from allText — that's the AI's
+  // JSON commentary, not the candidate's actual resume formatting.
+  let readability = 70;
   if (typeof output.readabilityScore === "number") {
     readability = output.readabilityScore;
   } else if (typeof output.readability === "number") {
     readability = output.readability;
-  } else {
-    // Count bullets and headers in response text
-    const bulletCount = (allText.match(/- |\* |\\n/g) || []).length;
-    readability = Math.min(100, 70 + (bulletCount * 2));
   }
 
   // 3. Keyword Density / Match
@@ -56,6 +55,9 @@ const scoreOutput = (feature, output, executionTime) => {
     keywordDensity = output.keywordCoverage;
   } else if (typeof output.keywordMatch === "number") {
     keywordDensity = output.keywordMatch;
+  } else if (Array.isArray(output.missingKeywords)) {
+    // analyzeResume returns missingKeywords — penalize proportionally
+    keywordDensity = Math.max(20, 100 - (output.missingKeywords.length * 8));
   } else if (Array.isArray(output.matchedSkills) && Array.isArray(output.missingSkills)) {
     const total = output.matchedSkills.length + output.missingSkills.length;
     keywordDensity = total > 0 ? Math.round((output.matchedSkills.length / total) * 100) : 75;
@@ -84,40 +86,43 @@ const scoreOutput = (feature, output, executionTime) => {
   }
 
   // 5. Professional Tone & Recruiter Score
-  let professionalism = 80;
+  // Read the explicit score from the AI prompt output.
+  // IMPORTANT: Do NOT sniff action verbs from allText — that's the AI's
+  // commentary, not the resume. A model that criticizes the resume with
+  // "bullets don't use verbs like 'engineered'" would falsely inflate its score.
+  let professionalism = 70;
   if (typeof output.professionalismScore === "number") {
     professionalism = output.professionalismScore;
-  } else {
-    // Count professional action verbs
-    const actionVerbs = ["spearheaded", "engineered", "designed", "optimized", "managed", "decreased", "increased", "boosted"];
-    let verbCount = 0;
-    actionVerbs.forEach(v => {
-      if (allText.includes(v)) verbCount++;
-    });
-    professionalism = Math.min(100, 75 + (verbCount * 4));
   }
 
   // 6. Completeness
+  // Fields where an empty array means "good" (no issues found), not "data missing".
+  const positiveEmptyFields = new Set(['grammarIssues', 'missingKeywords', 'weaknesses']);
   let emptyFields = 0;
   let totalFields = 0;
-  const traverse = (obj) => {
+  const traverse = (obj, parentKey) => {
     for (let key in obj) {
       if (obj.hasOwnProperty(key)) {
         totalFields++;
-        if (obj[key] === null || obj[key] === undefined || obj[key] === "" || (Array.isArray(obj[key]) && obj[key].length === 0)) {
+        if (obj[key] === null || obj[key] === undefined || obj[key] === "") {
           emptyFields++;
+        } else if (Array.isArray(obj[key]) && obj[key].length === 0) {
+          // Only count as empty if this isn't a "positive when empty" field
+          if (!positiveEmptyFields.has(key)) {
+            emptyFields++;
+          }
         } else if (typeof obj[key] === "object") {
-          traverse(obj[key]);
+          traverse(obj[key], key);
         }
       }
     }
   };
-  traverse(output);
+  traverse(output, null);
   const completeness = totalFields > 0 ? Math.round(((totalFields - emptyFields) / totalFields) * 100) : 90;
 
   // 7. Practicality (Specific Actionable suggestions)
   let suggestionsCount = 0;
-  const listKeys = ["suggestions", "recommendations", "steps", "factors", "reasons", "criticalFeedback", "weakPhrases", "changes"];
+  const listKeys = ["suggestions", "recommendations", "steps", "factors", "reasons", "criticalFeedback", "weakPhrases", "changes", "keyHighlights"];
   listKeys.forEach(key => {
     if (Array.isArray(output[key])) {
       suggestionsCount += output[key].length;
