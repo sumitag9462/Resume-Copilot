@@ -81,7 +81,7 @@ const InterviewDashboard = () => {
         if (micSupported) startListening()
       }
     }
-  }, [lastAiMessage]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [lastAiMessage])  
 
   // ── Speak new AI messages ───────────────────────────────────
   useEffect(() => {
@@ -97,7 +97,7 @@ const InterviewDashboard = () => {
         }
       }
     }
-  }, [chatHistory.length]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [chatHistory.length])  
 
   // ── Send user answer when mic stops (manual stop) ───────────
   useEffect(() => {
@@ -113,7 +113,7 @@ const InterviewDashboard = () => {
         if (micSupported) startListening()
       })
     }
-  }, [isListening]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isListening])  
 
   // ── Auto-submit answer after 3 seconds of silence ───────────
   useEffect(() => {

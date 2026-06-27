@@ -90,7 +90,7 @@ const useSpeechSynthesis = ({ rate = 1.0, pitch = 1.0, onEnd } = {}) => {
         synth.removeEventListener('voiceschanged', loadVoices)
       } catch (e) { /* ignore */ }
     }
-  }, [synth]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [synth])  
 
 
   const speak = useCallback((text, options = {}) => {
