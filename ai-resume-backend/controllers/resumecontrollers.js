@@ -171,7 +171,7 @@ const deleteResume = async (req, res, next) => {
     
     try {
       await Analysis.deleteMany({ resume: resume._id });
-      await ArenaHistory.deleteMany({ resume: resume._id });
+      await ArenaHistory.deleteMany({ "input.resumeId": resume._id.toString() });
     } catch (cleanupErr) {
       console.error("Cleanup error during resume deletion:", cleanupErr);
     }

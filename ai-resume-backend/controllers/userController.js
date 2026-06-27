@@ -3,7 +3,7 @@ const User = require('../models/User');
 // @desc    Update user profile
 // @route   PUT /api/user/profile
 // @access  Private
-const updateProfile = async (req, res) => {
+const updateProfile = async (req, res, next) => {
     try {
         const user = await User.findById(req.user.id);
         if (!user) {
@@ -25,14 +25,14 @@ const updateProfile = async (req, res) => {
         });
     } catch (error) {
         console.error('Update profile error:', error);
-        res.status(500).json({ success: false, error: 'Server error' });
+        next(error);
     }
 };
 
 // @desc    Update user password
 // @route   PUT /api/user/password
 // @access  Private
-const updatePassword = async (req, res) => {
+const updatePassword = async (req, res, next) => {
     try {
         const { currentPassword, newPassword } = req.body;
         
@@ -56,14 +56,14 @@ const updatePassword = async (req, res) => {
         res.status(200).json({ success: true, message: 'Password updated successfully' });
     } catch (error) {
         console.error('Update password error:', error);
-        res.status(500).json({ success: false, error: 'Server error' });
+        next(error);
     }
 };
 
 // @desc    Update AI settings
 // @route   PUT /api/user/settings/ai
 // @access  Private
-const updateAiSettings = async (req, res) => {
+const updateAiSettings = async (req, res, next) => {
     try {
         const user = await User.findById(req.user.id);
         if (!user) {
@@ -84,14 +84,14 @@ const updateAiSettings = async (req, res) => {
         res.status(200).json({ success: true, settings: updatedUser.settings });
     } catch (error) {
         console.error('Update AI settings error:', error);
-        res.status(500).json({ success: false, error: 'Server error' });
+        next(error);
     }
 };
 
 // @desc    Update notification settings
 // @route   PUT /api/user/settings/notifications
 // @access  Private
-const updateNotificationSettings = async (req, res) => {
+const updateNotificationSettings = async (req, res, next) => {
     try {
         const user = await User.findById(req.user.id);
         if (!user) {
@@ -112,7 +112,7 @@ const updateNotificationSettings = async (req, res) => {
         res.status(200).json({ success: true, settings: updatedUser.settings });
     } catch (error) {
         console.error('Update notification settings error:', error);
-        res.status(500).json({ success: false, error: 'Server error' });
+        next(error);
     }
 };
 

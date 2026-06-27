@@ -4,7 +4,6 @@ const cors    = require('cors');
 const dotenv  = require('dotenv');
 const path    = require('path');
 const helmet  = require('helmet');
-const rateLimit = require('express-rate-limit');
 
 dotenv.config();
 
@@ -51,16 +50,6 @@ app.use(cors({
 
 // Security Headers
 app.use(helmet({ crossOriginResourcePolicy: false })); // false allows serving local images
-
-// Rate Limiting (100 requests per 15 minutes)
-const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
-  message: { message: 'Too many requests from this IP, please try again after 15 minutes' },
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-app.use('/api/', apiLimiter);
 
 app.use(express.json({ limit: '50kb' })); // Larger limit for resume text in copilot
 app.use(express.urlencoded({ extended: true, limit: '50kb' }));

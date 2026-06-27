@@ -5,7 +5,7 @@ const Resume = require("../models/Resume");
 // @desc    Generate interview questions
 // @route   POST /api/interview/generate
 // @access  Private
-const generateQuestions = async (req, res) => {
+const generateQuestions = async (req, res, next) => {
   try {
     const { resume, resumeId, role, jobDescription } = req.body;
 
@@ -37,7 +37,8 @@ const generateQuestions = async (req, res) => {
     // Save to Database
     const history = await InterviewHistory.create({
       userId: req.user._id,
-      resume: resumeText,
+      resumeId: resumeId || null,
+      resume: resumeId ? "" : resumeText,
       role: role.trim(),
       jobDescription: jobDescription || "",
       matchPercentage: aiResponse.matchPercentage || 0,
@@ -57,14 +58,14 @@ const generateQuestions = async (req, res) => {
     });
   } catch (error) {
     console.error("Generate interview questions error:", error.message);
-    return res.status(500).json({ success: false, message: error.message || "Failed to generate questions." });
+    next(error);
   }
 };
 
 // @desc    Regenerate questions for an existing session
 // @route   POST /api/interview/regenerate
 // @access  Private
-const regenerateQuestions = async (req, res) => {
+const regenerateQuestions = async (req, res, next) => {
   try {
     const { historyId } = req.body;
 
@@ -72,7 +73,7 @@ const regenerateQuestions = async (req, res) => {
       return res.status(400).json({ success: false, message: "History ID is required for regeneration." });
     }
 
-    const history = await InterviewHistory.findById(historyId);
+    const history = await InterviewHistory.findById(historyId).populate('resumeId');
     if (!history) {
       return res.status(404).json({ success: false, message: "Interview history not found." });
     }
@@ -81,8 +82,11 @@ const regenerateQuestions = async (req, res) => {
       return res.status(403).json({ success: false, message: "Unauthorized." });
     }
 
+    // Resolve resume text
+    const resumeText = history.resumeId ? history.resumeId.extractedText : history.resume;
+
     // Call AI Generation Service with original details
-    const aiResponse = await generateInterviewQuestions(history.resume, history.role, history.jobDescription);
+    const aiResponse = await generateInterviewQuestions(resumeText, history.role, history.jobDescription);
 
     // Update existing record
     history.questions = aiResponse.questions || [];
@@ -102,14 +106,14 @@ const regenerateQuestions = async (req, res) => {
     });
   } catch (error) {
     console.error("Regenerate interview questions error:", error.message);
-    return res.status(500).json({ success: false, message: error.message || "Failed to regenerate questions." });
+    next(error);
   }
 };
 
 // @desc    Get interview history
 // @route   GET /api/interview/history
 // @access  Private
-const getHistory = async (req, res) => {
+const getHistory = async (req, res, next) => {
   try {
     // Select all fields except the large 'resume' text field to optimize payload size
     const historyList = await InterviewHistory.find({ userId: req.user._id })
@@ -122,14 +126,14 @@ const getHistory = async (req, res) => {
     });
   } catch (error) {
     console.error("Get history error:", error.message);
-    return res.status(500).json({ success: false, message: "Failed to retrieve history." });
+    next(error);
   }
 };
 
 // @desc    Delete interview history record
 // @route   DELETE /api/interview/history/:id
 // @access  Private
-const deleteHistory = async (req, res) => {
+const deleteHistory = async (req, res, next) => {
   try {
     const history = await InterviewHistory.findById(req.params.id);
     if (!history) {
@@ -148,7 +152,7 @@ const deleteHistory = async (req, res) => {
     });
   } catch (error) {
     console.error("Delete history error:", error.message);
-    return res.status(500).json({ success: false, message: "Failed to delete history record." });
+    next(error);
   }
 };
 

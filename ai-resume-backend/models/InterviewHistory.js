@@ -37,9 +37,14 @@ const interviewHistorySchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
+  resumeId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Resume',
+    default: null
+  },
   resume: {
     type: String,
-    required: true
+    default: ""
   },
   role: {
     type: String,

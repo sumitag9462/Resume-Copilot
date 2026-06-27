@@ -1,6 +1,19 @@
 const express = require('express');
 const router = express.Router();
+const rateLimit = require('express-rate-limit');
 const { protect } = require('../middleware/authMiddleware');
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20, // Strict limit for auth endpoints
+  message: { success: false, message: 'Too many authentication attempts. Please try again after 15 minutes.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+if (process.env.NODE_ENV !== 'test') {
+  router.use(authLimiter);
+}
 const {
     requestEmailOtp,
     verifyEmailOtp,

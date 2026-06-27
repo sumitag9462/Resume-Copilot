@@ -18,7 +18,7 @@ const { startInterview, continueChat, evaluateInterview } = require('../services
 // @desc    Start a new voice interview session
 // @route   POST /api/voice-interview/start
 // @access  Private
-const startInterviewSession = async (req, res) => {
+const startInterviewSession = async (req, res, next) => {
   try {
     const { resumeText, resumeId, jobDescription, companyName, interviewType, companyMode, language } = req.body;
 
@@ -86,10 +86,7 @@ const startInterviewSession = async (req, res) => {
 
   } catch (error) {
     console.error('[voiceInterview] Start error:', error.message);
-    return res.status(500).json({
-      success: false,
-      message: error.message || 'Failed to start interview session.'
-    });
+    next(error);
   }
 };
 
@@ -97,7 +94,7 @@ const startInterviewSession = async (req, res) => {
 // @desc    Send a message (user answer) and get AI response
 // @route   POST /api/voice-interview/message
 // @access  Private
-const sendInterviewMessage = async (req, res) => {
+const sendInterviewMessage = async (req, res, next) => {
   try {
     const { sessionId, userAnswer } = req.body;
 
@@ -157,10 +154,7 @@ const sendInterviewMessage = async (req, res) => {
 
   } catch (error) {
     console.error('[voiceInterview] Message error:', error.message);
-    return res.status(500).json({
-      success: false,
-      message: error.message || 'Failed to process your answer.'
-    });
+    next(error);
   }
 };
 
@@ -168,7 +162,7 @@ const sendInterviewMessage = async (req, res) => {
 // @desc    Process candidate's spoken message and stream back AI response (SSE)
 // @route   POST /api/voice-interview/message-stream
 // @access  Private
-const streamInterviewMessage = async (req, res) => {
+const streamInterviewMessage = async (req, res, next) => {
   try {
     const { sessionId, userAnswer } = req.body;
 
@@ -234,7 +228,7 @@ const streamInterviewMessage = async (req, res) => {
     console.error('[voiceInterviewController] stream error:', error);
     // If headers are already sent, we must close the stream with an error event
     if (!res.headersSent) {
-      res.status(500).json({ success: false, message: error.message });
+      next(error);
     } else {
       res.write(`data: ${JSON.stringify({ error: error.message })}\n\n`);
       res.end();
@@ -246,7 +240,7 @@ const streamInterviewMessage = async (req, res) => {
 // @desc    End interview and generate evaluation
 // @route   POST /api/voice-interview/end
 // @access  Private
-const endInterviewSession = async (req, res) => {
+const endInterviewSession = async (req, res, next) => {
   try {
     const { sessionId } = req.body;
 
@@ -306,10 +300,7 @@ const endInterviewSession = async (req, res) => {
 
   } catch (error) {
     console.error('[voiceInterview] End error:', error.message);
-    return res.status(500).json({
-      success: false,
-      message: error.message || 'Failed to generate evaluation.'
-    });
+    next(error);
   }
 };
 
@@ -317,7 +308,7 @@ const endInterviewSession = async (req, res) => {
 // @desc    Get interview history (list of past sessions)
 // @route   GET /api/voice-interview/history
 // @access  Private
-const getInterviewHistory = async (req, res) => {
+const getInterviewHistory = async (req, res, next) => {
   try {
     const sessions = await VoiceInterviewSession.find({ userId: req.user._id })
       .select('-resumeText -chatHistory -evaluation.technical.notes -evaluation.communication.notes -evaluation.confidence.notes -evaluation.leadership.notes -evaluation.problemSolving.notes -evaluation.behavior.notes -evaluation.cultureFit.notes -evaluation.resumeAuthenticity.notes -evaluation.domainKnowledge.notes')
@@ -330,7 +321,7 @@ const getInterviewHistory = async (req, res) => {
     });
   } catch (error) {
     console.error('[voiceInterview] History error:', error.message);
-    return res.status(500).json({ success: false, message: 'Failed to retrieve interview history.' });
+    next(error);
   }
 };
 
@@ -338,7 +329,7 @@ const getInterviewHistory = async (req, res) => {
 // @desc    Get a specific interview session with full details
 // @route   GET /api/voice-interview/history/:id
 // @access  Private
-const getInterviewSession = async (req, res) => {
+const getInterviewSession = async (req, res, next) => {
   try {
     const session = await VoiceInterviewSession.findById(req.params.id);
     if (!session) {
@@ -354,7 +345,7 @@ const getInterviewSession = async (req, res) => {
     });
   } catch (error) {
     console.error('[voiceInterview] Get session error:', error.message);
-    return res.status(500).json({ success: false, message: 'Failed to retrieve session.' });
+    next(error);
   }
 };
 
@@ -362,7 +353,7 @@ const getInterviewSession = async (req, res) => {
 // @desc    Delete an interview session
 // @route   DELETE /api/voice-interview/history/:id
 // @access  Private
-const deleteInterviewSession = async (req, res) => {
+const deleteInterviewSession = async (req, res, next) => {
   try {
     const session = await VoiceInterviewSession.findById(req.params.id);
     if (!session) {
@@ -380,7 +371,7 @@ const deleteInterviewSession = async (req, res) => {
     });
   } catch (error) {
     console.error('[voiceInterview] Delete error:', error.message);
-    return res.status(500).json({ success: false, message: 'Failed to delete session.' });
+    next(error);
   }
 };
 
