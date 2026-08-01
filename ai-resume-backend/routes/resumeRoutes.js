@@ -13,7 +13,7 @@ const {
   getAllResumes,
   getResume,
   deleteResume,
-} = require('../controllers/resumecontrollers');
+} = require('../controllers/resumeController');
 const upload = require('../middleware/uploadMiddleware');
 
 const { enhanceSingle, scanWeakLanguage } = require('../controllers/resumeBoostController');
