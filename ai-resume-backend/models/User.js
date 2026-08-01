@@ -8,6 +8,10 @@ const userSchema = new mongoose.Schema({
     mobile:   { type: String },
     place:    { type: String },
     photo:    { type: String, default: '' },
+    careerStage: { type: String },
+    experience:  { type: String },
+    desiredRole: { type: String },
+    skills:      { type: String },
     settings: {
         ai: {
             coverTone:      { type: String, default: 'professional' },

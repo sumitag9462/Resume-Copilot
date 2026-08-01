@@ -94,6 +94,10 @@ const RegisterPage = () => {
         password: formData.password,
         mobile: formData.mobile || '0000000000',
         place: formData.place || 'Remote',
+        careerStage: formData.careerStage,
+        experience: formData.experience,
+        desiredRole: formData.desiredRole,
+        skills: formData.skills,
         otp: otp,
       });
 

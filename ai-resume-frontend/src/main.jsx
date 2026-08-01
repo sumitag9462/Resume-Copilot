@@ -15,14 +15,16 @@ import { Toaster } from 'react-hot-toast'
 import { AuthProvider } from './context/AuthContext'
 import { ModelProvider } from './context/ModelContext'
 import { ArenaProvider } from './context/ArenaContext'
+import { GoogleOAuthProvider } from '@react-oauth/google';
 import GlobalErrorBoundary from './components/layout/GlobalErrorBoundary'
 import App from './App'
 import './index.css'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <BrowserRouter>
-      <AuthProvider>
+    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID || 'YOUR_GOOGLE_CLIENT_ID'}>
+      <BrowserRouter>
+        <AuthProvider>
         <ModelProvider>
           <ArenaProvider>
             <GlobalErrorBoundary>
@@ -53,6 +55,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           }}
         />
       </AuthProvider>
-    </BrowserRouter>
+      </BrowserRouter>
+    </GoogleOAuthProvider>
   </React.StrictMode>
 )// trigger reload

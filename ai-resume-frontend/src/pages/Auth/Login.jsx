@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import { FloatingInput, PrimaryButton, AuthLayout, SocialLoginButton, ErrorMessage } from './AuthComponents';
 import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
+import { useGoogleLogin } from '@react-oauth/google';
 
 // Temporary placeholder for Google Icon since it's not in lucide-react standard set easily
 const GoogleIcon = ({ className }) => (
@@ -22,7 +23,28 @@ const LoginPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [loadingText, setLoadingText] = useState("Authenticating...");
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, loginWithGoogle } = useAuth();
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    setIsLoading(true);
+    setLoadingText("Authenticating with Google...");
+    const res = await loginWithGoogle(credentialResponse.access_token);
+    if (res.success) {
+      toast.success(`Welcome back, ${res.user.name.split(' ')[0]}! 👋`);
+      navigate('/dashboard');
+    } else {
+      setError(res.message || 'Google authentication failed.');
+    }
+    setIsLoading(false);
+  };
+
+  const googleLogin = useGoogleLogin({
+    onSuccess: handleGoogleSuccess,
+    onError: () => {
+      console.log('Login Failed');
+      setError('Google authentication failed.');
+    }
+  });
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -110,9 +132,7 @@ const LoginPage = () => {
       </div>
 
       <div className="flex gap-3">
-        <SocialLoginButton provider="Google" icon={GoogleIcon} onClick={() => {}} />
-        <SocialLoginButton provider="GitHub" icon={Github} onClick={() => {}} />
-        <SocialLoginButton provider="LinkedIn" icon={Linkedin} onClick={() => {}} />
+        <SocialLoginButton provider="Google" icon={GoogleIcon} onClick={() => googleLogin()} />
       </div>
 
       <p className="mt-8 text-center text-[13px] text-slate-400">

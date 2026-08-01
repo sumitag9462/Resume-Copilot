@@ -30,6 +30,21 @@ export const AuthProvider = ({ children }) => {
         return res;
     };
 
+    const loginWithGoogle = async (credential) => {
+        try {
+            const res = await apiClient.post('/auth/google', { credential });
+            if (res.data.success) {
+                localStorage.setItem('token', res.data.token);
+                localStorage.setItem('user', JSON.stringify(res.data.user));
+                setAuthData({ user: res.data.user, isAuthenticated: true, token: res.data.token, isLoading: false });
+                return res.data;
+            }
+        } catch (error) {
+            console.error('Google login error', error);
+            return error.response?.data || { success: false, message: 'Google authentication failed' };
+        }
+    };
+
     const loginWithToken = (token, user) => {
         localStorage.setItem('token', token);
         localStorage.setItem('user', JSON.stringify(user));
@@ -59,7 +74,7 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-    const value = { ...authData, login, loginWithToken, logout, updateUser };
+    const value = { ...authData, login, loginWithGoogle, loginWithToken, logout, updateUser };
 
     return (
         <AuthContext.Provider value={value}>

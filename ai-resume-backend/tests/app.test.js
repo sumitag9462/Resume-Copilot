@@ -38,6 +38,12 @@ jest.mock('../services/geminiService', () => ({
   }))
 }));
 
+jest.mock('nodemailer', () => ({
+  createTransport: jest.fn(() => ({
+    sendMail: jest.fn(async () => true)
+  }))
+}));
+
 const request = require('supertest');
 const mongoose = require('mongoose');
 const fs = require('fs');

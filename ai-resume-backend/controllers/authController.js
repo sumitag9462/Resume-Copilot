@@ -2,9 +2,12 @@ const jwt = require('jsonwebtoken');
 const axios = require('axios');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
+const { OAuth2Client } = require('google-auth-library');
 const User = require('../models/User');
 const OTP = require('../models/OTP');
 const TokenBlocklist = require('../models/TokenBlocklist');
+
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const generateToken = (userId, name) => {
     return jwt.sign({ userId, name }, process.env.JWT_SECRET, { expiresIn: '30d' });
@@ -105,10 +108,9 @@ const requestEmailOtp = async (req, res) => {
     }
 };
 
-// 2. Verify OTP and Register Account
-const verifyEmailOtp = async (req, res) => {
+    const verifyEmailOtp = async (req, res) => {
     try {
-        const { name, email, password, mobile, place, otp } = req.body;
+        const { name, email, password, mobile, place, careerStage, experience, desiredRole, skills, otp } = req.body;
         if (!password || password.length < 8) {
             return res.status(400).json({ message: 'Password must be at least 8 characters long.' });
         }
@@ -118,7 +120,7 @@ const verifyEmailOtp = async (req, res) => {
         if (!otpRecord) return res.status(400).json({ message: 'Invalid or expired verification code.' });
 
         // Save User
-        const newUser = await User.create({ name, email, password, mobile, place });
+        const newUser = await User.create({ name, email, password, mobile, place, careerStage, experience, desiredRole, skills });
         await OTP.deleteMany({ email }); // Delete verified OTPs
 
         const token = generateToken(newUser._id, newUser.name);
@@ -170,7 +172,7 @@ const requestPasswordResetOtp = async (req, res) => {
         await OTP.create({ email, otp });
         await sendOtpEmail(email, otp, 'Your Password Reset Code', 'Password Reset');
 
-        res.status(200).json({ message: 'A verification code has been generated.' });
+        res.status(200).json({ message: 'If an account with this email exists, a verification code has been sent.' });
     } catch (error) {
         console.error('Password reset OTP error:', error);
         res.status(500).json({ message: 'Error sending verification code.' });
@@ -242,10 +244,53 @@ const getProfile = async (req, res) => {
     }
 };
 
+const googleLogin = async (req, res) => {
+    try {
+        const { credential } = req.body; // This is the access_token from frontend
+        
+        // Fetch user info from Google using the access token
+        const googleRes = await axios.get('https://www.googleapis.com/oauth2/v3/userinfo', {
+            headers: { Authorization: `Bearer ${credential}` }
+        });
+        
+        const { email, name, picture } = googleRes.data;
+
+        let user = await User.findOne({ email });
+        
+        if (!user) {
+            // Register new user
+            const randomPassword = crypto.randomBytes(16).toString('hex');
+            user = await User.create({
+                name,
+                email,
+                password: randomPassword,
+                photo: picture,
+                place: 'Remote',
+                mobile: '0000000000',
+            });
+        } else if (!user.photo && picture) {
+            user.photo = picture;
+            await user.save();
+        }
+
+        const token = generateToken(user._id, user.name);
+        res.status(200).json({
+            success: true,
+            message: 'Logged in successfully with Google!',
+            token,
+            user: { id: user._id, name: user.name, email: user.email, photo: user.photo || '' }
+        });
+    } catch (error) {
+        console.error('Google login error:', error);
+        res.status(401).json({ success: false, message: 'Google authentication failed' });
+    }
+};
+
 module.exports = {
     requestEmailOtp,
     verifyEmailOtp,
     loginUser,
+    googleLogin,
     logoutUser,
     requestPasswordResetOtp,
     verifyPasswordResetOtp,

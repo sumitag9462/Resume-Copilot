@@ -61,7 +61,7 @@ export default function ProfileOverview({ user, name, setName, handleSave }) {
                   <MapPin className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500 group-focus-within:text-accent-violet" />
                   <input
                     type="text"
-                    defaultValue="San Francisco, CA"
+                    defaultValue={user?.place || ''}
                     className="w-full h-11 rounded-xl border border-white/10 bg-white/5 pl-10 pr-4 text-sm text-white outline-none transition-all focus:border-accent-violet/50 focus:ring-1 focus:ring-accent-violet/50"
                   />
                 </div>
@@ -72,7 +72,7 @@ export default function ProfileOverview({ user, name, setName, handleSave }) {
                   <Briefcase className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500 group-focus-within:text-accent-violet" />
                   <input
                     type="text"
-                    defaultValue="Frontend Engineer"
+                    defaultValue={user?.desiredRole || ''}
                     className="w-full h-11 rounded-xl border border-white/10 bg-white/5 pl-10 pr-4 text-sm text-white outline-none transition-all focus:border-accent-violet/50 focus:ring-1 focus:ring-accent-violet/50"
                   />
                 </div>
