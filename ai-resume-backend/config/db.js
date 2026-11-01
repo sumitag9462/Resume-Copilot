@@ -7,7 +7,15 @@
 // so we know immediately something is wrong.
 // ============================================================
 
+const dns = require('dns');
 const mongoose = require('mongoose');
+
+// Resolve querySrv ENOTFOUND issues caused by local/ISP DNS not supporting SRV records
+try {
+  dns.setServers(['8.8.8.8', '8.8.4.4']);
+} catch (err) {
+  console.warn('⚠️ Failed to set custom DNS servers:', err.message);
+}
 
 const connectDB = async () => {
   try {
