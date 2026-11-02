@@ -47,4 +47,18 @@ Return ONLY a JSON object with this exact structure (no markdown, no backticks, 
   return parsed;
 };
 
-module.exports = { enhanceBullet };
+const enhanceBulkBullets = async (bullets, jobRole = "") => {
+  if (!Array.isArray(bullets) || bullets.length === 0) {
+    throw new Error("Provide an array of bullet points.");
+  }
+
+  // Process bullets concurrently up to 10
+  const limitedBullets = bullets.slice(0, 10);
+  const enhancedList = await Promise.all(
+    limitedBullets.map(b => enhanceBullet(b, jobRole))
+  );
+
+  return enhancedList;
+};
+
+module.exports = { enhanceBullet, enhanceBulkBullets };

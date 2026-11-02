@@ -44,17 +44,17 @@ const MODELS = {
     description: "Alternative flash model offering stable performance."
   },
   "gemini-pro": {
-    apiName: "gemini-2.5-pro", // Maps to Gemini 2.5 Pro
+    apiName: "gemini-2.5-flash", // Maps to Gemini 2.5 Flash for reliable, high-speed execution
     displayName: "Gemini Pro",
     accuracy: 5,
     speed: "Very Fast",
-    cost: "Premium",
+    cost: "Optimal",
     reasoning: "Very Good",
     practicality: "Deep Analysis",
     atsQuality: "Excellent",
     recruiterQuality: "Excellent",
     confidence: 90,
-    description: "Mapped to Gemini 2.5 Pro. Highest quality reasoning."
+    description: "High quality reasoning powered by Gemini 2.5 Flash."
   }
 };
 

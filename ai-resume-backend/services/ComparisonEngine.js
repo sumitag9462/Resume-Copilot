@@ -49,37 +49,45 @@ const runModelQuery = async (feature, inputs, modelKey, prompt) => {
 
     while (attempt <= maxRetries) {
       try {
-        console.log(`[Arena Engine] Querying ${modelKey} (${apiModelName}) for ${feature} (attempt ${attempt}/${maxRetries})...`);
+        console.log(`[Arena Engine] Querying ${modelKey} (${actualModelUsed}) for ${feature} (attempt ${attempt}/${maxRetries})...`);
         result = await modelInstance.generateContent(prompt);
         break; // Success
       } catch (err) {
-        const isTemporary = 
+        const isModelUnavailable = 
+          err.message?.includes("404") || 
+          err.message?.includes("no longer available") ||
+          err.message?.includes("not found");
+
+        const isOverloadedOrRateLimited =
           err.message?.includes("503") || 
           err.message?.includes("Service Unavailable") || 
           err.message?.includes("429") || 
           err.message?.includes("Quota exceeded") ||
           err.message?.includes("Resource exhausted") ||
-          err.message?.includes("overloaded");
+          err.message?.includes("overloaded") ||
+          err.message?.includes("high demand");
 
-        if (isTemporary && attempt < maxRetries) {
-          // If the error specifically mentions a long wait time (e.g. 429 Quota Exceeded) or 503 High Demand,
-          // fallback to the lighter model immediately to preserve UX rather than failing.
-          if (err.message?.includes("429") || err.message?.includes("Quota exceeded") || err.message?.includes("503") || err.message?.includes("high demand")) {
-             const fallbackModel = "gemini-2.5-flash-lite";
-             console.warn(`[Arena Engine] Model ${modelKey} overloaded. Switching to fallback model ${fallbackModel}.`);
-             modelInstance = getGenAIInstance().getGenerativeModel({
-               model: fallbackModel,
-               generationConfig: { temperature: 0.1, maxOutputTokens: 8192 }
-             });
-             actualModelUsed = fallbackModel; // Track the real model that will generate output
-             // We don't delay, we just instantly retry on the fallback model
-             attempt++;
-          } else {
-            console.warn(`[Arena Engine] Temporary error on ${modelKey}: ${err.message}. Retrying in ${delayMs}ms...`);
-            await new Promise(resolve => setTimeout(resolve, delayMs));
-            delayMs *= 2; // Exponential backoff
-            attempt++;
-          }
+        if ((isModelUnavailable || isOverloadedOrRateLimited) && attempt < maxRetries) {
+          // If the model is deprecated (404) or overloaded (429/503), switch to stable fallback model
+          const fallbackModel = (actualModelUsed === "gemini-2.5-flash") 
+            ? "gemini-2.5-flash-lite" 
+            : "gemini-2.5-flash";
+          console.warn(`[Arena Engine] Model ${actualModelUsed} issue: ${err.message}. Switching to fallback model ${fallbackModel}.`);
+          modelInstance = getGenAIInstance().getGenerativeModel({
+            model: fallbackModel,
+            generationConfig: { temperature: 0.1, maxOutputTokens: 8192 }
+          });
+          actualModelUsed = fallbackModel; // Track the real model that will generate output
+          attempt++;
+        } else if (attempt < maxRetries) {
+          console.warn(`[Arena Engine] Temporary error on ${modelKey}: ${err.message}. Retrying in ${delayMs}ms...`);
+          await new Promise(resolve => setTimeout(resolve, delayMs));
+          delayMs *= 2; // Exponential backoff
+          modelInstance = getGenAIInstance().getGenerativeModel({
+            model: actualModelUsed,
+            generationConfig: { temperature: 0.1, maxOutputTokens: 8192 }
+          });
+          attempt++;
         } else {
           throw err;
         }

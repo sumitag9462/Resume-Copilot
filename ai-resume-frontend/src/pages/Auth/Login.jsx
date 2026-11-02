@@ -27,22 +27,30 @@ const LoginPage = () => {
 
   const handleGoogleSuccess = async (credentialResponse) => {
     setIsLoading(true);
+    setError('');
     setLoadingText("Authenticating with Google...");
-    const res = await loginWithGoogle(credentialResponse.access_token);
-    if (res.success) {
-      toast.success(`Welcome back, ${res.user.name.split(' ')[0]}! 👋`);
-      navigate('/dashboard');
-    } else {
-      setError(res.message || 'Google authentication failed.');
+    try {
+      const token = credentialResponse.access_token || credentialResponse.credential;
+      const res = await loginWithGoogle(token);
+      if (res.success) {
+        toast.success(`Welcome back, ${res.user.name.split(' ')[0]}! 👋`);
+        navigate('/dashboard');
+      } else {
+        setError(res.message || 'Google authentication failed.');
+      }
+    } catch (err) {
+      setError('Google authentication failed. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   const googleLogin = useGoogleLogin({
     onSuccess: handleGoogleSuccess,
-    onError: () => {
-      console.log('Login Failed');
-      setError('Google authentication failed.');
+    onError: (err) => {
+      console.log('Google login failed or closed:', err);
+      setError('Google sign-in was cancelled or encountered an error.');
+      setIsLoading(false);
     }
   });
 

@@ -20,7 +20,7 @@ const analyzeText = async (req, res) => {
       });
     }
 
-    const result = analyzeWeakLanguage(text);
+    const result = await analyzeWeakLanguage(text);
     return res.status(200).json({ success: true, data: result });
   } catch (error) {
     console.error("Weak language analysis error:", error.message);
@@ -33,9 +33,8 @@ const analyzeText = async (req, res) => {
 const analyzeByResumeId = async (req, res) => {
   try {
     const { resumeId } = req.params;
-    const userId = req.user.id; // from your JWT middleware
 
-    const resume = await Resume.findOne({ _id: resumeId, userId });
+    const resume = await Resume.findOne({ _id: resumeId, user: req.user._id });
     if (!resume) {
       return res.status(404).json({ success: false, message: "Resume not found." });
     }
@@ -44,7 +43,7 @@ const analyzeByResumeId = async (req, res) => {
       return res.status(400).json({ success: false, message: "No text found for this resume." });
     }
 
-    const result = analyzeWeakLanguage(resume.extractedText);
+    const result = await analyzeWeakLanguage(resume.extractedText);
 
     return res.status(200).json({
       success: true,

@@ -17,7 +17,7 @@ const generateToken = (userId, name) => {
 const sendOtpEmail = async (email, otp, subject, title) => {
     if (process.env.BREVO_API_KEY) {
         try {
-            const response = await axios.post(
+            await axios.post(
                 'https://api.brevo.com/v3/smtp/email',
                 {
                     sender: {
@@ -38,10 +38,10 @@ const sendOtpEmail = async (email, otp, subject, title) => {
                         'api-key': process.env.BREVO_API_KEY,
                         'Content-Type': 'application/json',
                         'accept': 'application/json'
-                    }
+                    },
+                    timeout: 4000
                 }
             );
-            
             return true;
         } catch (mailError) {
             console.error('Brevo API error, falling back to nodemailer:', mailError.response?.data || mailError.message);
@@ -58,7 +58,10 @@ const sendOtpEmail = async (email, otp, subject, title) => {
                 auth: {
                     user: process.env.EMAIL_USER,
                     pass: process.env.EMAIL_PASS
-                }
+                },
+                connectionTimeout: 4000,
+                greetingTimeout: 4000,
+                socketTimeout: 4000
             });
 
             await transporter.sendMail({
@@ -81,6 +84,69 @@ const sendOtpEmail = async (email, otp, subject, title) => {
     // Fallback console log for local development or if email fails
     console.log(`\n==================================================\n⚠️  EMAIL NOT SENT! DEV OTP for ${email}: ${otp}\n==================================================\n`);
     return false;
+};
+
+// 1. Direct Registration (or OTP request if only email provided)
+const registerUser = async (req, res) => {
+    try {
+        const { name, email, password, mobile, place, careerStage, experience, desiredRole, skills } = req.body;
+
+        // Backward compatibility / test fallback: if only email is provided
+        if (email && !password && !name) {
+            return requestEmailOtp(req, res);
+        }
+
+        if (!email) {
+            return res.status(400).json({ success: false, message: 'Email is required.' });
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({ success: false, message: 'Invalid email format' });
+        }
+
+        if (!password || password.length < 8) {
+            return res.status(400).json({ success: false, message: 'Password must be at least 8 characters long.' });
+        }
+
+        if (!name || name.trim() === '') {
+            return res.status(400).json({ success: false, message: 'Name is required.' });
+        }
+
+        const userExists = await User.findOne({ email });
+        if (userExists) {
+            return res.status(400).json({ success: false, message: 'An account with this email already exists.' });
+        }
+
+        const newUser = await User.create({
+            name: name.trim(),
+            email,
+            password,
+            mobile: mobile || '0000000000',
+            place: place || 'Remote',
+            careerStage: careerStage || '',
+            experience: experience || '',
+            desiredRole: desiredRole || '',
+            skills: skills || ''
+        });
+
+        const token = generateToken(newUser._id, newUser.name);
+
+        res.status(201).json({
+            success: true,
+            message: 'Registration successful! Loading workspace...',
+            token,
+            user: {
+                id: newUser._id,
+                name: newUser.name,
+                email: newUser.email,
+                photo: newUser.photo || ''
+            }
+        });
+    } catch (error) {
+        console.error('Registration error:', error);
+        res.status(500).json({ success: false, message: 'Server error during registration.' });
+    }
 };
 
 // 1. Request Registration OTP
@@ -246,14 +312,43 @@ const getProfile = async (req, res) => {
 
 const googleLogin = async (req, res) => {
     try {
-        const { credential } = req.body; // This is the access_token from frontend
+        const { credential } = req.body;
+        if (!credential) {
+            return res.status(400).json({ success: false, message: 'Google credential is required' });
+        }
         
-        // Fetch user info from Google using the access token
-        const googleRes = await axios.get('https://www.googleapis.com/oauth2/v3/userinfo', {
-            headers: { Authorization: `Bearer ${credential}` }
-        });
-        
-        const { email, name, picture } = googleRes.data;
+        let email, name, picture;
+
+        // Check if credential is a JWT ID token (starts with ey)
+        if (typeof credential === 'string' && credential.startsWith('ey')) {
+            try {
+                const ticket = await googleClient.verifyIdToken({
+                    idToken: credential,
+                    audience: process.env.GOOGLE_CLIENT_ID
+                });
+                const payload = ticket.getPayload();
+                email = payload.email;
+                name = payload.name || payload.email.split('@')[0];
+                picture = payload.picture;
+            } catch (jwtErr) {
+                console.warn('Google ID token verification failed, trying userinfo endpoint:', jwtErr.message);
+            }
+        }
+
+        // If not retrieved via ID token, fetch using Google userinfo API with OAuth access token
+        if (!email) {
+            const googleRes = await axios.get('https://www.googleapis.com/oauth2/v3/userinfo', {
+                headers: { Authorization: `Bearer ${credential}` },
+                timeout: 8000
+            });
+            email = googleRes.data.email;
+            name = googleRes.data.name || email.split('@')[0];
+            picture = googleRes.data.picture;
+        }
+
+        if (!email) {
+            return res.status(400).json({ success: false, message: 'Could not retrieve email from Google' });
+        }
 
         let user = await User.findOne({ email });
         
@@ -264,7 +359,7 @@ const googleLogin = async (req, res) => {
                 name,
                 email,
                 password: randomPassword,
-                photo: picture,
+                photo: picture || '',
                 place: 'Remote',
                 mobile: '0000000000',
             });
@@ -281,12 +376,13 @@ const googleLogin = async (req, res) => {
             user: { id: user._id, name: user.name, email: user.email, photo: user.photo || '' }
         });
     } catch (error) {
-        console.error('Google login error:', error);
+        console.error('Google login error:', error.response?.data || error.message);
         res.status(401).json({ success: false, message: 'Google authentication failed' });
     }
 };
 
 module.exports = {
+    registerUser,
     requestEmailOtp,
     verifyEmailOtp,
     loginUser,

@@ -10,11 +10,14 @@ export default function CommandPalette() {
   const navigate = useNavigate();
 
   const commands = [
-    { id: 'dashboard', title: 'Go to Dashboard', icon: LayoutDashboard, path: '/dashboard', section: 'Navigation' },
-    { id: 'resumes', title: 'Manage Resumes', icon: FileText, path: '/resumes', section: 'Navigation' },
-    { id: 'builder', title: 'AI Resume Builder', icon: Sparkles, path: '/builder', section: 'Tools' },
+    { id: 'dashboard', title: 'Dashboard', icon: LayoutDashboard, path: '/dashboard', section: 'Navigation' },
+    { id: 'resumes', title: 'My Resumes', icon: FileText, path: '/resumes', section: 'Navigation' },
+    { id: 'copilot', title: 'AI Career Copilot', icon: Sparkles, path: '/copilot', section: 'Tools' },
     { id: 'analyzer', title: 'ATS Analyzer', icon: BrainCircuit, path: '/analyzer', section: 'Tools' },
-    { id: 'interview', title: 'Interview Copilot', icon: Command, path: '/interview-prep', section: 'Tools' },
+    { id: 'jd-match', title: 'Job Description Matcher', icon: FileText, path: '/jd-match', section: 'Tools' },
+    { id: 'resume-boost', title: 'Resume Boost', icon: Sparkles, path: '/resume-boost', section: 'Tools' },
+    { id: 'cover-letter', title: 'Cover Letter Generator', icon: FileText, path: '/cover-letter', section: 'Tools' },
+    { id: 'interview', title: 'Interview Prep', icon: Command, path: '/interview-prep', section: 'Tools' },
     { id: 'settings', title: 'Workspace Settings', icon: Settings2, path: '/settings', section: 'Preferences' },
   ];
 

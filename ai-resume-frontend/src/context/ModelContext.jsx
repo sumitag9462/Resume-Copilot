@@ -8,14 +8,12 @@ import { createContext, useContext, useState, useEffect } from "react";
 const ModelContext = createContext(null);
 
 export const ModelProvider = ({ children }) => {
-  // Load initial states from localStorage if they exist, else defaults
+  // Optimal default model
   const [selectedModel, setSelectedModel] = useState(() => {
     return localStorage.getItem("selectedModel") || "auto";
   });
 
-  const [compareMode, setCompareMode] = useState(() => {
-    return localStorage.getItem("compareMode") === "true";
-  });
+  const [compareMode, setCompareMode] = useState(false);
 
   // Persist selections
   useEffect(() => {

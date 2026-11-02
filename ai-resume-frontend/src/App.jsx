@@ -37,15 +37,12 @@ import ResetPasswordPage    from './pages/Auth/ResetPasswordPage'
 // Protected pages
 import DashboardPage        from './pages/DashboardPage'
 import ResumesPage          from './pages/ResumesPage'
-import BuilderPage          from './pages/BuilderPage'
 import ResumeBoostPage      from './pages/ResumeBoostPage'
 import InterviewPrepPage    from './pages/InterviewPrepPage'
 import AnalyzerPage         from './pages/AnalyzerPage'
 import JDMatchPage          from './pages/JDMatchPage'
 import CoverLetterPage      from './pages/CoverLetterPage'
-import VersionComparePage   from './pages/VersionComparePage'
 import SettingsPage         from './pages/SettingsPage'
-import OutreachPage         from './pages/OutreachPage'
 import ResumeComparisonPage from './pages/ResumeComparisonPage'
 import CopilotPage          from './pages/CopilotPage'
 
@@ -78,10 +75,6 @@ const App = () => {
             element={<ProtectedRoute><PageWrapper><ResumesPage /></PageWrapper></ProtectedRoute>}
           />
           <Route
-            path="/builder"
-            element={<ProtectedRoute><PageWrapper><BuilderPage /></PageWrapper></ProtectedRoute>}
-          />
-          <Route
             path="/resume-boost"
             element={<ProtectedRoute><PageWrapper><ResumeBoostPage /></PageWrapper></ProtectedRoute>}
           />
@@ -103,22 +96,17 @@ const App = () => {
             element={<ProtectedRoute><PageWrapper><CoverLetterPage /></PageWrapper></ProtectedRoute>}
           />
           <Route
+            path="/resume-comparison"
+            element={<ProtectedRoute><PageWrapper><ResumeComparisonPage /></PageWrapper></ProtectedRoute>}
+          />
+          <Route
             path="/version-compare"
-            element={<ProtectedRoute><PageWrapper><VersionComparePage /></PageWrapper></ProtectedRoute>}
+            element={<Navigate to="/resume-comparison" replace />}
           />
           <Route
             path="/settings"
             element={<ProtectedRoute><PageWrapper><SettingsPage /></PageWrapper></ProtectedRoute>}
           />
-          <Route
-            path="/outreach"
-            element={<ProtectedRoute><PageWrapper><OutreachPage /></PageWrapper></ProtectedRoute>}
-          />
-          <Route
-            path="/resume-comparison"
-            element={<ProtectedRoute><PageWrapper><ResumeComparisonPage /></PageWrapper></ProtectedRoute>}
-          />
-
 
           {/* ── 404 FALLBACK ──────────────────────────────────── */}
           <Route path="*" element={<Navigate to="/" replace />} />
