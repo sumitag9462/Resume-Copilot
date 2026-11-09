@@ -1,4 +1,7 @@
 const { generateContentWithFallback } = require("./aiHelper");
+const { extractAndCleanJSON } = require("./aiHelper");
+
+const MAX_REBUILD_INPUT_CHARS = 25000;
 
 /**
  * Rebuilds the user's resume using Gemini AI to enhance ATS compatibility,
@@ -10,9 +13,19 @@ const { generateContentWithFallback } = require("./aiHelper");
  * @returns {Promise<object>} Parsed AI Rebuild report and resume text
  */
 const rebuildResumeService = async (resumeText, jobRole = "", jobDescription = "") => {
-  if (!resumeText || resumeText.trim().length < 50) {
+  if (typeof resumeText !== 'string' || resumeText.trim().length < 50) {
     throw new Error("Resume content is too short or invalid.");
   }
+
+  const trimmedText = resumeText.trim();
+  const isTruncated = trimmedText.length > MAX_REBUILD_INPUT_CHARS;
+  const processedResumeText = isTruncated ? trimmedText.substring(0, MAX_REBUILD_INPUT_CHARS) : trimmedText;
+  const truncationNotice = isTruncated 
+    ? `Resume exceeds maximum limit of ${MAX_REBUILD_INPUT_CHARS} characters. Tail content beyond 25,000 characters was omitted; please verify tail sections.` 
+    : null;
+
+  const safeRole = typeof jobRole === 'string' ? jobRole.trim().slice(0, 100) : "Software Engineer";
+  const safeJD = typeof jobDescription === 'string' ? jobDescription.trim().slice(0, 15000) : "Not provided";
 
   const prompt = `You are an ATS Resume Expert and Senior Technical Recruiter.
 Analyze the following resume and completely rebuild it into a highly ATS-optimized and recruiter-friendly version.
@@ -22,14 +35,14 @@ Guidelines:
 - Rewrite all sections professionally using strong action verbs, quantifiable metrics, and active voice.
 - Rewrite the professional summary into a high-impact recruiter-friendly statement.
 - Enhance project descriptions using the formula: Action Verb + Technologies + Impact/Performance/Business Value.
-- Optimize keyword density for the Target Role: "${jobRole || "Software Engineer"}" and Job Description: "${jobDescription || "Not provided"}". Add missing keywords naturally without keyword stuffing.
+- Optimize keyword density for the Target Role: "${safeRole}" and Job Description: "${safeJD}". Add missing keywords naturally without keyword stuffing.
 - Rewrite every experience bullet professionally using the STAR format (keep under 30 words per bullet).
 - Automatically reorder all skills into these exact categories where relevant: Programming Languages, Frontend, Backend, Databases, Cloud, Developer Tools, Core CS Subjects, Soft Skills.
 - Format the final improved resume text cleanly in a professional Markdown format, keeping sections (Name, Contact, Summary, Education, Experience, Projects, Skills) structured.
 - **IMPORTANT**: In the "changes" array, list ONLY the 5 to 8 most critical, high-impact changes made (do not list every single minor modification). This keeps the response compact and prevents truncation.
 
 Original Resume:
-"${resumeText.substring(0, 4500)}"
+"${processedResumeText.replace(/"/g, '\\"')}"
 
 Return ONLY a valid JSON object matching the schema below. No markdown backticks (do not wrap in \`\`\`json), no trailing text, and no explanations.
 
@@ -70,14 +83,15 @@ Schema:
   const result = await generateContentWithFallback(prompt, { maxOutputTokens: 6000 });
 
   const raw = result.response.text().trim();
-  const { extractAndCleanJSON } = require('./aiHelper');
   const cleaned = extractAndCleanJSON(raw);
 
   let parsed;
   try {
     parsed = JSON.parse(cleaned);
   } catch (err) {
-    console.error("Gemini raw output:", raw);
+    if (process.env.NODE_ENV !== 'test') {
+      console.error("Gemini raw output:", raw);
+    }
     throw new Error("AI returned invalid JSON. Please try again.");
   }
 
@@ -89,9 +103,17 @@ Schema:
     parsed.changes = [];
   }
 
+  if (isTruncated) {
+    parsed.isTruncated = true;
+    parsed.truncationNotice = truncationNotice;
+  } else {
+    parsed.isTruncated = false;
+  }
+
   return parsed;
 };
 
 module.exports = {
-  rebuildResumeService
+  rebuildResumeService,
+  MAX_REBUILD_INPUT_CHARS
 };

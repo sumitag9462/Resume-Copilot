@@ -33,6 +33,7 @@ import LoginPage            from './pages/Auth/Login'
 import RegisterPage         from './pages/Auth/Register'
 import ForgotPasswordPage   from './pages/Auth/ForgotPassword'
 import ResetPasswordPage    from './pages/Auth/ResetPasswordPage'
+import VerifyEmailPage      from './pages/Auth/VerifyEmailPage'
 
 // Protected pages
 import DashboardPage        from './pages/DashboardPage'
@@ -58,6 +59,7 @@ const App = () => {
           <Route path="/"                 element={<PageWrapper><LandingPage /></PageWrapper>} />
           <Route path="/login"            element={<PageWrapper><LoginPage /></PageWrapper>} />
           <Route path="/register"         element={<PageWrapper><RegisterPage /></PageWrapper>} />
+          <Route path="/verify-email"     element={<PageWrapper><VerifyEmailPage /></PageWrapper>} />
           <Route path="/forgot-password"  element={<PageWrapper><ForgotPasswordPage /></PageWrapper>} />
           <Route path="/reset-password/:token" element={<PageWrapper><ResetPasswordPage /></PageWrapper>} />
 

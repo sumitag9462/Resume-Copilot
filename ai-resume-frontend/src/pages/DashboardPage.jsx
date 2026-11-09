@@ -200,7 +200,7 @@ export default function DashboardPage() {
                           <FileText className="w-4 h-4" />
                         </div>
                         <div className="min-w-0">
-                          <p className="text-sm font-semibold text-white truncate">{resume.filename || 'Untitled Resume'}</p>
+                          <p className="text-sm font-semibold text-white truncate">{resume.originalName || resume.fileName || resume.filename || 'Untitled Resume'}</p>
                           <p className="text-[11px] text-slate-500 mt-0.5">
                             Uploaded {formatDate(resume.createdAt)}
                           </p>

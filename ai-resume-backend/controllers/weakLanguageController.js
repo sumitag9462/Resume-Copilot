@@ -13,7 +13,7 @@ const analyzeText = async (req, res) => {
   try {
     const { text } = req.body;
 
-    if (!text || text.trim().length < 20) {
+    if (!text || typeof text !== 'string' || text.trim().length < 20) {
       return res.status(400).json({
         success: false,
         message: "Please provide at least 20 characters of resume text.",

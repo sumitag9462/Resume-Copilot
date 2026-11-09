@@ -3,27 +3,37 @@
 //
 // mongoose.connect() does the handshake with MongoDB Atlas.
 // We call this once at startup (in server.js).
-// If connection fails → process.exit(1) shuts the server down
-// so we know immediately something is wrong.
 // ============================================================
 
 const dns = require('dns');
 const mongoose = require('mongoose');
 
-// Resolve querySrv ENOTFOUND issues caused by local/ISP DNS not supporting SRV records
-try {
-  dns.setServers(['8.8.8.8', '8.8.4.4']);
-} catch (err) {
-  console.warn('⚠️ Failed to set custom DNS servers:', err.message);
+// A37: Do not unconditionally override host system DNS resolvers.
+// Respect host/VPC DNS unless explicitly configured via CUSTOM_DNS_SERVERS.
+if (process.env.CUSTOM_DNS_SERVERS) {
+  try {
+    const servers = process.env.CUSTOM_DNS_SERVERS.split(',').map(s => s.trim()).filter(Boolean);
+    if (servers.length > 0) {
+      dns.setServers(servers);
+    }
+  } catch (err) {
+    console.warn('⚠️ Failed to set custom DNS servers:', err.message);
+  }
 }
 
 const connectDB = async () => {
   try {
     const conn = await mongoose.connect(process.env.MONGO_URI);
-    console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
+    if (process.env.NODE_ENV !== 'test') {
+      console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
+    }
+    return conn;
   } catch (error) {
     console.error(`❌ MongoDB Error: ${error.message}`);
-    process.exit(1); // Exit with failure code
+    if (process.env.NODE_ENV !== 'test') {
+      process.exit(1); // Exit with failure code in standalone server mode
+    }
+    throw error;
   }
 };
 

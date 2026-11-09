@@ -7,11 +7,12 @@
 
 const express = require('express');
 const router = express.Router();
-const { protect } = require('../middleware/authMiddleware');
+const { protect, requireVerified } = require('../middleware/authMiddleware');
 const {
   uploadResume,
   getAllResumes,
   getResume,
+  getResumeFile,
   deleteResume,
 } = require('../controllers/resumeController');
 const upload = require('../middleware/uploadMiddleware');
@@ -27,12 +28,14 @@ const apiLimiter = rateLimit({
 });
 
 router.use(protect);
+router.use(requireVerified);
 
 router.post('/upload', upload.single('resume'), uploadResume);
 router.get('/all', getAllResumes);
 router.get('/history', getRebuildHistory);
 router.delete('/history/:id', deleteRebuildHistory);
 router.get('/:id', getResume);
+router.get('/:id/file', getResumeFile);
 router.delete('/:id', deleteResume);
 
 router.post('/enhance', apiLimiter, enhanceSingle);

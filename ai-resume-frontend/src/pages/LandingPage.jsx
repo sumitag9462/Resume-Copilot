@@ -1,234 +1,264 @@
-import React, { useEffect } from 'react';
-import Lenis from 'lenis';
-import Navbar from '../components/layout/Navbar';
-import LandingHero from '../components/landing/LandingHero';
-import LandingStats from '../components/landing/LandingStats';
-import SocialMarquee from '../components/landing/SocialMarquee';
-import LandingFeatures from '../components/landing/LandingFeatures';
-import AIDemoSection from '../components/landing/AIDemoSection';
-import PricingCards from '../components/landing/PricingCards';
-import ContactForm from '../components/landing/ContactForm'; // Now acts as Newsletter
-import LandingTestimonials from '../components/landing/LandingTestimonials';
-import SecurityTrust from '../components/landing/SecurityTrust';
-import LandingFAQ from '../components/landing/LandingFAQ';
-import AmbientMouseLight from '../components/landing/AmbientMouseLight';
-import { motion } from 'framer-motion';
-import { ArrowRight, Sparkles, Github, Linkedin, FileText, ScanLine, Twitter, Mail, Check } from 'lucide-react';
+import React from 'react';
 import { Link } from 'react-router-dom';
-import GradientButton from '../components/ui/GradientButton';
-import MagneticButton from '../components/landing/MagneticButton';
-
-const FinalCTA = () => (
-  <section className="py-32 relative bg-base overflow-hidden border-t border-white/[0.04]">
-    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-      <div className="w-[800px] h-[800px] bg-accent-violet/10 rounded-full blur-[120px] mix-blend-screen" />
-      <div className="w-[600px] h-[600px] bg-accent-teal/10 rounded-full blur-[120px] mix-blend-screen -ml-[200px]" />
-    </div>
-
-    {/* Floating AI Widgets */}
-    <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-      <motion.div 
-        animate={{ y: [-20, 20, -20], rotate: [-2, 2, -2] }}
-        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute top-20 left-[15%] glass-panel px-4 py-2 rounded-xl flex items-center gap-2 border border-white/10 opacity-70"
-      >
-        <div className="w-5 h-5 rounded-full bg-success/20 flex items-center justify-center"><Check className="w-3 h-3 text-success" /></div>
-        <span className="text-xs font-bold text-white">Resume Ready</span>
-      </motion.div>
-      <motion.div 
-        animate={{ y: [20, -20, 20], rotate: [2, -2, 2] }}
-        transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-        className="absolute bottom-32 right-[15%] glass-panel px-4 py-2 rounded-xl flex items-center gap-2 border border-white/10 opacity-70"
-      >
-        <div className="w-5 h-5 rounded-full bg-info/20 flex items-center justify-center"><Check className="w-3 h-3 text-info" /></div>
-        <span className="text-xs font-bold text-white">ATS Improved</span>
-      </motion.div>
-    </div>
-
-    <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
-      <motion.h2 
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        className="text-5xl md:text-7xl font-display font-bold text-white tracking-tight mb-8"
-      >
-        Your next interview<br />starts here.
-      </motion.h2>
-      <motion.p 
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ delay: 0.1 }}
-        className="text-xl text-slate-400 mb-12 max-w-2xl mx-auto leading-relaxed"
-      >
-        Join thousands of candidates using AI to build stronger resumes, improve ATS scores, and land better opportunities.
-      </motion.p>
-      
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ delay: 0.2 }}
-        className="flex flex-col sm:flex-row justify-center items-center gap-4"
-      >
-        <MagneticButton className="w-full sm:w-auto">
-          <Link to="/register" className="btn-primary w-full sm:w-auto h-14 px-10 shadow-[0_0_40px_rgba(124,111,247,0.4)] text-lg group">
-            Start Free
-            <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-          </Link>
-        </MagneticButton>
-
-        <MagneticButton className="w-full sm:w-auto">
-          <a href="#demo" className="btn-ghost w-full sm:w-auto h-14 px-8 group text-lg">
-            Watch Live Demo
-          </a>
-        </MagneticButton>
-      </motion.div>
-    </div>
-  </section>
-);
-
-const Footer = () => (
-  <footer className="bg-base border-t border-white/[0.04] pt-20 pb-10 text-slate-400 relative z-10">
-    {/* Ambient Glow */}
-    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-2xl h-1 bg-gradient-to-r from-transparent via-accent-violet/20 to-transparent blur-sm" />
-
-    <div className="max-w-7xl mx-auto px-6 lg:px-8">
-      <div className="grid gap-12 lg:grid-cols-[2fr_1fr_1fr_1fr] mb-20">
-        <div>
-          <div className="flex items-center gap-3 mb-6 relative group cursor-default">
-            <div className="absolute inset-0 bg-accent-violet/20 rounded-2xl blur-lg group-hover:bg-accent-violet/40 transition-colors" />
-            <div className="relative flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-accent-violet to-accent-teal shadow-lg group-hover:scale-105 transition-transform duration-300">
-              <Sparkles className="h-5 w-5 text-white" />
-            </div>
-            <div>
-              <p className="font-display text-xl font-bold text-white leading-none">Resume Copilot</p>
-              <p className="text-[11px] text-accent-teal tracking-widest uppercase mt-1 font-semibold">AI Career OS</p>
-            </div>
-          </div>
-          <p className="text-sm text-slate-500 max-w-sm leading-relaxed mb-8">
-            The intelligent platform to analyze, optimize, and supercharge your resume with advanced AI models — from upload to offer letter.
-          </p>
-          
-          <div className="flex items-center gap-4">
-            <a href="#" className="w-10 h-10 rounded-xl bg-white/[0.03] border border-white/[0.08] flex items-center justify-center hover:bg-white/[0.1] hover:text-white hover:scale-110 hover:-rotate-6 transition-all">
-              <Twitter className="w-4 h-4" />
-            </a>
-            <a href="https://github.com/sumitag9462" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-xl bg-white/[0.03] border border-white/[0.08] flex items-center justify-center hover:bg-white/[0.1] hover:text-white hover:scale-110 hover:rotate-6 transition-all">
-              <Github className="w-4 h-4" />
-            </a>
-            <a href="https://www.linkedin.com/in/sumitagrawalmnnit/" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-xl bg-white/[0.03] border border-white/[0.08] flex items-center justify-center hover:bg-white/[0.1] hover:text-white hover:scale-110 transition-all">
-              <Linkedin className="w-4 h-4" />
-            </a>
-            <a href="mailto:contact@resumecopilot.com" className="w-10 h-10 rounded-xl bg-white/[0.03] border border-white/[0.08] flex items-center justify-center hover:bg-white/[0.1] hover:text-white hover:scale-110 transition-all">
-              <Mail className="w-4 h-4" />
-            </a>
-          </div>
-        </div>
-        
-        <div>
-          <p className="text-[11px] uppercase tracking-[0.2em] text-slate-300 font-semibold mb-6">Product</p>
-          <ul className="space-y-4 text-sm font-medium">
-            <li><a href="#" className="text-slate-500 hover:text-white transition-colors flex items-center group"><span className="w-0 overflow-hidden group-hover:w-2 transition-all">›</span>Resume Builder</a></li>
-            <li><a href="#" className="text-slate-500 hover:text-white transition-colors flex items-center group"><span className="w-0 overflow-hidden group-hover:w-2 transition-all">›</span>ATS Analyzer</a></li>
-            <li><a href="#" className="text-slate-500 hover:text-white transition-colors flex items-center group"><span className="w-0 overflow-hidden group-hover:w-2 transition-all">›</span>Job Match</a></li>
-            <li><a href="#" className="text-slate-500 hover:text-white transition-colors flex items-center group"><span className="w-0 overflow-hidden group-hover:w-2 transition-all">›</span>Interview Prep</a></li>
-            <li><a href="#pricing" className="text-slate-500 hover:text-white transition-colors flex items-center group"><span className="w-0 overflow-hidden group-hover:w-2 transition-all">›</span>Pricing</a></li>
-          </ul>
-        </div>
-        
-        <div>
-          <p className="text-[11px] uppercase tracking-[0.2em] text-slate-300 font-semibold mb-6">Resources</p>
-          <ul className="space-y-4 text-sm font-medium">
-            <li><a href="#" className="text-slate-500 hover:text-white transition-colors">Blog</a></li>
-            <li><a href="#" className="text-slate-500 hover:text-white transition-colors">Documentation</a></li>
-            <li><a href="#" className="text-slate-500 hover:text-white transition-colors">Help Center</a></li>
-            <li><a href="#" className="text-slate-500 hover:text-white transition-colors">Tutorials</a></li>
-            <li><a href="#" className="text-slate-500 hover:text-white transition-colors">Community</a></li>
-          </ul>
-        </div>
-        
-        <div>
-          <p className="text-[11px] uppercase tracking-[0.2em] text-slate-300 font-semibold mb-6">Company</p>
-          <ul className="space-y-4 text-sm font-medium">
-            <li><a href="#" className="text-slate-500 hover:text-white transition-colors">About</a></li>
-            <li><a href="#" className="text-slate-500 hover:text-white transition-colors">Careers</a></li>
-            <li><a href="#" className="text-slate-500 hover:text-white transition-colors">Privacy Policy</a></li>
-            <li><a href="#" className="text-slate-500 hover:text-white transition-colors">Terms of Service</a></li>
-          </ul>
-        </div>
-      </div>
-      
-      <div className="flex flex-col md:flex-row items-center justify-between pt-8 border-t border-white/[0.04] gap-4">
-        <div className="text-xs text-slate-600 font-medium">
-          © {new Date().getFullYear()} Resume Copilot. Built with ❤️ using React & Gemini AI.
-        </div>
-        
-        <div className="flex items-center gap-6 text-xs text-slate-500 font-medium">
-          <a href="#" className="hover:text-white transition-colors">Privacy</a>
-          <a href="#" className="hover:text-white transition-colors">Terms</a>
-          <a href="#" className="hover:text-white transition-colors">API</a>
-          <div className="flex items-center gap-2 pl-4 border-l border-white/10">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-success"></span>
-            </span>
-            All Systems Operational
-          </div>
-        </div>
-      </div>
-    </div>
-  </footer>
-);
+import { FileText, Target, Mail, HelpCircle, Edit3, MessageSquare } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import PublicNavbar from '../components/public/PublicNavbar';
+import PublicFooter from '../components/public/PublicFooter';
 
 export default function LandingPage() {
-  useEffect(() => {
-    const lenis = new Lenis({
-      duration: 1.2,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      direction: 'vertical',
-      gestureDirection: 'vertical',
-      smooth: true,
-      mouseMultiplier: 1,
-      smoothTouch: false,
-      touchMultiplier: 2,
-      infinite: false,
-    });
-
-    let rafId;
-    function raf(time) {
-      lenis.raf(time);
-      rafId = requestAnimationFrame(raf);
-    }
-    rafId = requestAnimationFrame(raf);
-
-    return () => {
-      cancelAnimationFrame(rafId);
-      lenis.destroy();
-    };
-  }, []);
+  const { isAuthenticated } = useAuth();
+  const ctaLink = isAuthenticated ? '/dashboard' : '/register';
 
   return (
-    <div className="bg-[#050505] min-h-screen text-white font-body selection:bg-accent-violet/30 selection:text-white overflow-x-hidden">
-      <AmbientMouseLight />
-      <Navbar />
-      <main>
-        <LandingHero />
-        <SocialMarquee />
-        <LandingStats />
-        <LandingFeatures />
-        <AIDemoSection />
-        
-        {/* Phase 5 & 6 Components */}
-        <PricingCards />
-        <LandingTestimonials />
-        <SecurityTrust />
-        <LandingFAQ />
-        <ContactForm />
-        
-        <FinalCTA />
+    <div className="min-h-screen flex flex-col bg-white dark:bg-[#0F172A] text-[#111827] dark:text-[#F8FAFC] transition-colors">
+      <PublicNavbar />
+
+      <main className="flex-1">
+        {/* ── 1. HERO SECTION ── */}
+        <section className="py-20 sm:py-28 lg:py-32 border-b border-[#E5E7EB] dark:border-[#334155]">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="max-w-3xl">
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-[#111827] dark:text-[#F8FAFC] leading-[1.15]">
+                Improve Your Resume with AI
+              </h1>
+              <p className="mt-6 text-lg sm:text-xl text-[#64748B] dark:text-[#CBD5E1] leading-relaxed max-w-2xl">
+                Analyze your resume, compare it with job descriptions, and get practical suggestions to improve your applications.
+              </p>
+
+              <div className="mt-8 sm:mt-10 flex flex-wrap items-center gap-4">
+                <Link
+                  to={ctaLink}
+                  className="inline-flex items-center justify-center h-12 px-6 rounded-md bg-[#2563EB] hover:bg-[#1D4ED8] dark:bg-[#2563EB] dark:hover:bg-[#1D4ED8] text-white text-base font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                >
+                  Get Started
+                </Link>
+                <a
+                  href="#features"
+                  className="inline-flex items-center justify-center h-12 px-6 rounded-md border border-[#E5E7EB] dark:border-[#334155] bg-white dark:bg-[#0F172A] hover:bg-[#F8FAFC] dark:hover:bg-[#172033] text-[#111827] dark:text-[#F8FAFC] text-base font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                >
+                  Explore Features
+                </a>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── 2. THE PROBLEM SECTION ── */}
+        <section className="py-16 sm:py-24 border-b border-[#E5E7EB] dark:border-[#334155] bg-[#F8FAFC] dark:bg-[#172033]/40">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="max-w-3xl">
+              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#111827] dark:text-[#F8FAFC]">
+                Make Resume Improvements Easier
+              </h2>
+              <div className="mt-6 space-y-4 text-base text-[#64748B] dark:text-[#CBD5E1] leading-relaxed">
+                <p>
+                  Preparing a resume for different job applications can take time. It's not always obvious which skills to highlight, what information is missing, or how closely your resume matches a particular role.
+                </p>
+                <p>
+                  Resume Copilot brings these tasks into one place and provides AI-assisted feedback to help you review your application.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── 3. FEATURES SECTION ── */}
+        <section id="features" className="py-20 sm:py-28 border-b border-[#E5E7EB] dark:border-[#334155]">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="max-w-2xl">
+              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-[#111827] dark:text-[#F8FAFC]">
+                What You Can Do
+              </h2>
+              <p className="mt-3 text-base sm:text-lg text-[#64748B] dark:text-[#CBD5E1]">
+                Tools to help review, adapt, and improve your resume.
+              </p>
+            </div>
+
+            <div className="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+              {/* Feature 1 */}
+              <div className="p-6 rounded-lg border border-[#E5E7EB] dark:border-[#334155] bg-[#F8FAFC] dark:bg-[#172033] transition-colors">
+                <div className="w-9 h-9 rounded-md bg-[#2563EB]/10 dark:bg-[#60A5FA]/10 text-[#2563EB] dark:text-[#60A5FA] flex items-center justify-center mb-4">
+                  <FileText className="w-5 h-5" />
+                </div>
+                <h3 className="text-lg font-semibold text-[#111827] dark:text-[#F8FAFC]">
+                  Resume Analysis
+                </h3>
+                <p className="mt-2 text-sm text-[#64748B] dark:text-[#CBD5E1] leading-relaxed">
+                  Review your resume's content, structure, and areas that could be improved.
+                </p>
+              </div>
+
+              {/* Feature 2 */}
+              <div className="p-6 rounded-lg border border-[#E5E7EB] dark:border-[#334155] bg-[#F8FAFC] dark:bg-[#172033] transition-colors">
+                <div className="w-9 h-9 rounded-md bg-[#2563EB]/10 dark:bg-[#60A5FA]/10 text-[#2563EB] dark:text-[#60A5FA] flex items-center justify-center mb-4">
+                  <Target className="w-5 h-5" />
+                </div>
+                <h3 className="text-lg font-semibold text-[#111827] dark:text-[#F8FAFC]">
+                  Job Description Matching
+                </h3>
+                <p className="mt-2 text-sm text-[#64748B] dark:text-[#CBD5E1] leading-relaxed">
+                  Compare your resume against a job description to identify relevant skills and potential gaps.
+                </p>
+              </div>
+
+              {/* Feature 3 */}
+              <div className="p-6 rounded-lg border border-[#E5E7EB] dark:border-[#334155] bg-[#F8FAFC] dark:bg-[#172033] transition-colors">
+                <div className="w-9 h-9 rounded-md bg-[#2563EB]/10 dark:bg-[#60A5FA]/10 text-[#2563EB] dark:text-[#60A5FA] flex items-center justify-center mb-4">
+                  <Mail className="w-5 h-5" />
+                </div>
+                <h3 className="text-lg font-semibold text-[#111827] dark:text-[#F8FAFC]">
+                  Cover Letter Generator
+                </h3>
+                <p className="mt-2 text-sm text-[#64748B] dark:text-[#CBD5E1] leading-relaxed">
+                  Create a tailored cover-letter draft using your resume and the role you're applying for.
+                </p>
+              </div>
+
+              {/* Feature 4 */}
+              <div className="p-6 rounded-lg border border-[#E5E7EB] dark:border-[#334155] bg-[#F8FAFC] dark:bg-[#172033] transition-colors">
+                <div className="w-9 h-9 rounded-md bg-[#2563EB]/10 dark:bg-[#60A5FA]/10 text-[#2563EB] dark:text-[#60A5FA] flex items-center justify-center mb-4">
+                  <HelpCircle className="w-5 h-5" />
+                </div>
+                <h3 className="text-lg font-semibold text-[#111827] dark:text-[#F8FAFC]">
+                  Interview Preparation
+                </h3>
+                <p className="mt-2 text-sm text-[#64748B] dark:text-[#CBD5E1] leading-relaxed">
+                  Generate practice questions based on your resume and target role.
+                </p>
+              </div>
+
+              {/* Feature 5 */}
+              <div className="p-6 rounded-lg border border-[#E5E7EB] dark:border-[#334155] bg-[#F8FAFC] dark:bg-[#172033] transition-colors">
+                <div className="w-9 h-9 rounded-md bg-[#2563EB]/10 dark:bg-[#60A5FA]/10 text-[#2563EB] dark:text-[#60A5FA] flex items-center justify-center mb-4">
+                  <Edit3 className="w-5 h-5" />
+                </div>
+                <h3 className="text-lg font-semibold text-[#111827] dark:text-[#F8FAFC]">
+                  Resume Improvement
+                </h3>
+                <p className="mt-2 text-sm text-[#64748B] dark:text-[#CBD5E1] leading-relaxed">
+                  Get suggestions for clearer, more effective descriptions of your experience and projects.
+                </p>
+              </div>
+
+              {/* Feature 6 */}
+              <div className="p-6 rounded-lg border border-[#E5E7EB] dark:border-[#334155] bg-[#F8FAFC] dark:bg-[#172033] transition-colors">
+                <div className="w-9 h-9 rounded-md bg-[#2563EB]/10 dark:bg-[#60A5FA]/10 text-[#2563EB] dark:text-[#60A5FA] flex items-center justify-center mb-4">
+                  <MessageSquare className="w-5 h-5" />
+                </div>
+                <h3 className="text-lg font-semibold text-[#111827] dark:text-[#F8FAFC]">
+                  AI Copilot
+                </h3>
+                <p className="mt-2 text-sm text-[#64748B] dark:text-[#CBD5E1] leading-relaxed">
+                  Ask follow-up questions and explore suggestions about your resume.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── 4. HOW IT WORKS SECTION ── */}
+        <section id="how" className="py-20 sm:py-28 border-b border-[#E5E7EB] dark:border-[#334155] bg-[#F8FAFC] dark:bg-[#172033]/40">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="max-w-2xl">
+              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-[#111827] dark:text-[#F8FAFC]">
+                How Resume Copilot Works
+              </h2>
+              <p className="mt-3 text-base sm:text-lg text-[#64748B] dark:text-[#CBD5E1]">
+                A simple three-step workflow to review and improve your resume.
+              </p>
+            </div>
+
+            <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8">
+              {/* Step 1 */}
+              <div className="p-6 rounded-lg border border-[#E5E7EB] dark:border-[#334155] bg-white dark:bg-[#0F172A]">
+                <span className="text-xs font-mono font-bold text-[#2563EB] dark:text-[#60A5FA] tracking-wider uppercase">
+                  Step 01
+                </span>
+                <h3 className="mt-3 text-lg font-semibold text-[#111827] dark:text-[#F8FAFC]">
+                  Upload Your Resume
+                </h3>
+                <p className="mt-2 text-sm text-[#64748B] dark:text-[#CBD5E1] leading-relaxed">
+                  Upload your resume in PDF or DOCX format.
+                </p>
+              </div>
+
+              {/* Step 2 */}
+              <div className="p-6 rounded-lg border border-[#E5E7EB] dark:border-[#334155] bg-white dark:bg-[#0F172A]">
+                <span className="text-xs font-mono font-bold text-[#2563EB] dark:text-[#60A5FA] tracking-wider uppercase">
+                  Step 02
+                </span>
+                <h3 className="mt-3 text-lg font-semibold text-[#111827] dark:text-[#F8FAFC]">
+                  Choose a Tool
+                </h3>
+                <p className="mt-2 text-sm text-[#64748B] dark:text-[#CBD5E1] leading-relaxed">
+                  Select resume analysis, job matching, cover-letter drafting, or another available feature.
+                </p>
+              </div>
+
+              {/* Step 3 */}
+              <div className="p-6 rounded-lg border border-[#E5E7EB] dark:border-[#334155] bg-white dark:bg-[#0F172A]">
+                <span className="text-xs font-mono font-bold text-[#2563EB] dark:text-[#60A5FA] tracking-wider uppercase">
+                  Step 03
+                </span>
+                <h3 className="mt-3 text-lg font-semibold text-[#111827] dark:text-[#F8FAFC]">
+                  Review Your Results
+                </h3>
+                <p className="mt-2 text-sm text-[#64748B] dark:text-[#CBD5E1] leading-relaxed">
+                  Read the generated feedback and decide which improvements to apply.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── 5. WHAT TO EXPECT / PRACTICAL LIMITATIONS ── */}
+        <section className="py-20 sm:py-28 border-b border-[#E5E7EB] dark:border-[#334155]">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="max-w-3xl">
+              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#111827] dark:text-[#F8FAFC]">
+                Useful Feedback, With You in Control
+              </h2>
+              <div className="mt-6 space-y-4 text-base text-[#64748B] dark:text-[#CBD5E1] leading-relaxed">
+                <p>
+                  Resume Copilot provides AI-generated suggestions to help you review your applications.
+                </p>
+                <p>
+                  You can use the feedback as a starting point, make your own decisions, and confirm the accuracy of any changes before submitting your resume.
+                </p>
+              </div>
+
+              <div className="mt-8 p-4 rounded-md border border-[#E5E7EB] dark:border-[#334155] bg-[#F8FAFC] dark:bg-[#172033] text-sm text-[#64748B] dark:text-[#CBD5E1]">
+                <strong className="font-semibold text-[#111827] dark:text-[#F8FAFC]">Please note: </strong>
+                AI-generated scores and suggestions are estimates, not guarantees of hiring outcomes.
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── 6. FINAL CALL TO ACTION ── */}
+        <section className="py-20 sm:py-28 bg-[#F8FAFC] dark:bg-[#172033]/60">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
+            <div className="max-w-2xl mx-auto">
+              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-[#111827] dark:text-[#F8FAFC]">
+                Ready to Review Your Resume?
+              </h2>
+              <p className="mt-4 text-base sm:text-lg text-[#64748B] dark:text-[#CBD5E1]">
+                Get started with Resume Copilot and explore the available tools.
+              </p>
+              <div className="mt-8">
+                <Link
+                  to={ctaLink}
+                  className="inline-flex items-center justify-center h-12 px-8 rounded-md bg-[#2563EB] hover:bg-[#1D4ED8] dark:bg-[#2563EB] dark:hover:bg-[#1D4ED8] text-white text-base font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                >
+                  Get Started
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
       </main>
-      <Footer />
+
+      <PublicFooter />
     </div>
   );
 }

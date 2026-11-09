@@ -1,8 +1,8 @@
-// ─────────────────────────────────────────────────
 // controllers/bulletEnhancerController.js
-// ─────────────────────────────────────────────────
+// Resume Bullet Enhancement Controller
 
 const { enhanceBullet, enhanceBulkBullets } = require("../services/bulletEnhancerService");
+const { isSafeString, validateArrayOfStrings } = require("../utils/validationHelper");
 
 // POST /api/bullets/enhance
 // Body: { bullet: "helped with login page", jobRole: "Frontend Developer" }
@@ -10,15 +10,24 @@ const enhanceSingle = async (req, res) => {
   try {
     const { bullet, jobRole } = req.body;
 
-    if (!bullet || bullet.trim().length < 5) {
-      return res.status(400).json({ success: false, message: "Please provide a bullet point." });
+    if (!isSafeString(bullet, 5, 1000)) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide a valid bullet point string between 5 and 1000 characters."
+      });
+    }
+
+    if (jobRole !== undefined && typeof jobRole !== 'string') {
+      return res.status(400).json({ success: false, message: "jobRole must be a string." });
     }
 
     const data = await enhanceBullet(bullet, jobRole);
     return res.status(200).json({ success: true, data });
   } catch (error) {
-    console.error("Bullet enhance error:", error.message);
-    return res.status(500).json({ success: false, message: error.message });
+    if (process.env.NODE_ENV !== 'test') {
+      console.error("Bullet enhance error:", error.message);
+    }
+    return res.status(500).json({ success: false, message: error.message || "Failed to enhance bullet." });
   }
 };
 
@@ -28,39 +37,28 @@ const enhanceBulk = async (req, res) => {
   try {
     const { bullets, jobRole } = req.body;
 
-    if (!Array.isArray(bullets) || bullets.length === 0) {
-      return res.status(400).json({ success: false, message: "Provide an array of bullet points." });
+    // Strict batch validation (A22): Bounds bullet count to max 25 and checks length
+    const validation = validateArrayOfStrings(bullets, 1, 25, 5, 1000);
+    if (!validation.valid) {
+      return res.status(400).json({ success: false, message: validation.message });
+    }
+
+    if (jobRole !== undefined && typeof jobRole !== 'string') {
+      return res.status(400).json({ success: false, message: "jobRole must be a string." });
     }
 
     const data = await enhanceBulkBullets(bullets, jobRole);
-    return res.status(200).json({ success: true, data, count: data.length });
+    return res.status(200).json({
+      success: true,
+      data,
+      count: data.length
+    });
   } catch (error) {
-    console.error("Bulk bullet enhance error:", error.message);
-    return res.status(500).json({ success: false, message: error.message });
+    if (process.env.NODE_ENV !== 'test') {
+      console.error("Bulk bullet enhance error:", error.message);
+    }
+    return res.status(500).json({ success: false, message: error.message || "Failed to enhance bulk bullets." });
   }
 };
 
 module.exports = { enhanceSingle, enhanceBulk };
-
-
-// ─────────────────────────────────────────────────
-// routes/bulletEnhancerRoutes.js
-// ─────────────────────────────────────────────────
-// Save the part below in a SEPARATE file: routes/bulletEnhancerRoutes.js
-//
-// Then in app.js add:
-//   const bulletRoutes = require('./routes/bulletEnhancerRoutes');
-//   app.use('/api/bullets', bulletRoutes);
-// ─────────────────────────────────────────────────
-
-/*
-const express = require("express");
-const router = express.Router();
-const { enhanceSingle, enhanceBulk } = require("../controllers/bulletEnhancerController");
-const { protect } = require("../middleware/authMiddleware");
-
-router.post("/enhance", protect, enhanceSingle);
-router.post("/enhance-bulk", protect, enhanceBulk);
-
-module.exports = router;
-*/

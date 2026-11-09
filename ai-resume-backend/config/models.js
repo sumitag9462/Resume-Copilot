@@ -7,59 +7,43 @@ const MODELS = {
   "gemini-2.5-flash-lite": {
     apiName: "gemini-2.5-flash-lite",
     displayName: "Gemini 2.5 Flash Lite",
-    accuracy: 4, // out of 5
+    isAlias: false,
     speed: "Fast",
     cost: "Cheap",
-    reasoning: "Good",
-    practicality: "Good",
-    atsQuality: "Good",
-    recruiterQuality: "Good",
-    confidence: 80, // percentage
     description: "Lightweight, highly optimized for speed and cost-effective operations."
   },
   "gemini-2.5-flash": {
     apiName: "gemini-2.5-flash",
     displayName: "Gemini 2.5 Flash",
-    accuracy: 5,
-    speed: "Very Fast",
-    cost: "Balanced",
-    reasoning: "Very Good",
-    practicality: "Balanced",
-    atsQuality: "Very Good",
-    recruiterQuality: "Very Good",
-    confidence: 90,
-    description: "Our recommended default model. Balanced speed, reasoning, and accuracy."
-  },
-  "gemini-flash-latest": {
-    apiName: "gemini-2.5-flash", // Maps to working flash
-    displayName: "Gemini Flash Latest",
-    accuracy: 4.5,
+    isAlias: false,
     speed: "Fast",
     cost: "Balanced",
-    reasoning: "Good",
-    practicality: "Balanced",
-    atsQuality: "Good",
-    recruiterQuality: "Good",
-    confidence: 85,
-    description: "Alternative flash model offering stable performance."
+    description: "Recommended default model with balanced speed, reasoning, and accuracy."
+  },
+  "gemini-flash-latest": {
+    apiName: "gemini-2.5-flash",
+    displayName: "Gemini Flash Latest (Alias)",
+    isAlias: true,
+    targetModel: "gemini-2.5-flash",
+    speed: "Fast",
+    cost: "Balanced",
+    description: "Compatibility alias mapped to Gemini 2.5 Flash."
   },
   "gemini-pro": {
-    apiName: "gemini-2.5-flash", // Maps to Gemini 2.5 Flash for reliable, high-speed execution
-    displayName: "Gemini Pro",
-    accuracy: 5,
-    speed: "Very Fast",
-    cost: "Optimal",
-    reasoning: "Very Good",
-    practicality: "Deep Analysis",
-    atsQuality: "Excellent",
-    recruiterQuality: "Excellent",
-    confidence: 90,
-    description: "High quality reasoning powered by Gemini 2.5 Flash."
+    apiName: "gemini-2.5-flash",
+    displayName: "Gemini Pro (Alias)",
+    isAlias: true,
+    targetModel: "gemini-2.5-flash",
+    speed: "Fast",
+    cost: "Balanced",
+    description: "Compatibility alias routed to Gemini 2.5 Flash under standard credentials."
   }
 };
 
 module.exports = {
   MODELS,
   DEFAULT_MODEL: "gemini-2.5-flash",
-  ALL_MODELS: Object.keys(MODELS)
+  ALL_MODELS: Object.keys(MODELS),
+  // Distinct physical models for parallel comparison (A06: never compare duplicate underlying models)
+  DISTINCT_ARENA_MODELS: ["gemini-2.5-flash-lite", "gemini-2.5-flash"]
 };

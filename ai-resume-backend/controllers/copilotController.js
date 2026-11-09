@@ -9,8 +9,11 @@
 // to specialized system prompt injections.
 // ============================================================
 
+const crypto = require('crypto');
+const mongoose = require('mongoose');
 const { getGenAIInstance } = require('../services/KeyManager');
 const CopilotSession = require('../models/CopilotSession');
+const { safeTrim } = require('../utils/validationHelper');
 
 // ── Master System Prompt ───────────────────────────────────
 const MASTER_SYSTEM_PROMPT = `You are an elite AI Career Copilot — a world-class expert combining the expertise of:
@@ -141,6 +144,7 @@ Each should feel genuine, not templated.`,
 
 // ── Detect Slash Command ───────────────────────────────────
 const detectSlashCommand = (message) => {
+  if (typeof message !== 'string') return null;
   const trimmed = message.trim().toLowerCase();
   for (const cmd of Object.keys(SLASH_COMMANDS)) {
     if (trimmed.startsWith(cmd)) {
@@ -160,7 +164,7 @@ const buildContextString = ({ resumeText, jobDescription, companyName, targetRol
   return context;
 };
 
-// ── Main Chat Handler (Streaming SSE with Retries) ──────────
+// ── Main Chat Handler (Streaming SSE with Interruption Safety) ──
 const streamChat = async (req, res) => {
   try {
     const {
@@ -169,21 +173,59 @@ const streamChat = async (req, res) => {
       jobDescription = '',
       companyName = '',
       targetRole = '',
+      sessionId = null,
     } = req.body;
 
-    if (!messages || messages.length === 0) {
-      return res.status(400).json({ message: 'No messages provided.' });
+    if (!Array.isArray(messages) || messages.length === 0) {
+      return res.status(400).json({ success: false, message: 'No messages provided.' });
+    }
+
+    if (messages.length > 50) {
+      return res.status(400).json({ success: false, message: 'Conversation exceeds maximum allowed history length (50 messages).' });
+    }
+
+    // Validate and sanitize each message (A34)
+    const sanitizedMessages = [];
+    for (let i = 0; i < messages.length; i++) {
+      const msg = messages[i];
+      if (!msg || typeof msg !== 'object') {
+        return res.status(400).json({ success: false, message: `Invalid message object at index ${i}.` });
+      }
+      const role = msg.role === 'assistant' || msg.role === 'model' ? 'model' : 'user';
+      if (typeof msg.content !== 'string' || msg.content.trim().length === 0) {
+        return res.status(400).json({ success: false, message: `Message at index ${i} must have non-empty text content.` });
+      }
+      if (msg.content.length > 4000) {
+        return res.status(400).json({ success: false, message: `Message at index ${i} exceeds maximum limit of 4000 characters.` });
+      }
+      sanitizedMessages.push({
+        role,
+        content: msg.content.trim(),
+        id: typeof msg.id === 'string' ? msg.id : undefined,
+      });
+    }
+
+    // Verify session ownership if sessionId is passed (A34)
+    let existingSession = null;
+    if (sessionId) {
+      if (!mongoose.Types.ObjectId.isValid(sessionId)) {
+        return res.status(400).json({ success: false, message: 'Invalid sessionId format.' });
+      }
+      existingSession = await CopilotSession.findOne({ _id: sessionId, userId: req.user._id });
+      if (!existingSession) {
+        return res.status(404).json({ success: false, message: 'Session not found or access denied.' });
+      }
     }
 
     // Set SSE headers
     res.setHeader('Content-Type', 'text/event-stream');
-    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Cache-Control', 'no-cache, no-transform');
     res.setHeader('Connection', 'keep-alive');
     res.setHeader('X-Accel-Buffering', 'no');
     res.flushHeaders();
 
-    // Check for slash commands in the latest message
-    const latestMessage = messages[messages.length - 1];
+    // Check for slash commands in latest message
+    const latestMessage = sanitizedMessages[sanitizedMessages.length - 1];
     let userContent = latestMessage.content;
     const slashDetected = detectSlashCommand(userContent);
 
@@ -191,26 +233,42 @@ const streamChat = async (req, res) => {
       userContent = `[MODE: ${slashDetected.command}]\n${SLASH_COMMANDS[slashDetected.command]}\n\nUser request: ${slashDetected.rest || 'Please begin.'}`;
     }
 
-    // Build chat history
-    const history = messages.slice(0, -1).map((msg) => ({
-      role: msg.role === 'user' ? 'user' : 'model',
+    // Build chat history for Gemini
+    const history = sanitizedMessages.slice(0, -1).map((msg) => ({
+      role: msg.role === 'model' ? 'model' : 'user',
       parts: [{ text: msg.content }],
     }));
 
-    const systemInstruction = MASTER_SYSTEM_PROMPT + buildContextString({ resumeText, jobDescription, companyName, targetRole });
+    const safeResumeText = typeof resumeText === 'string' ? resumeText.slice(0, 30000) : '';
+    const safeJD = typeof jobDescription === 'string' ? jobDescription.slice(0, 15000) : '';
+    const safeCompany = typeof companyName === 'string' ? companyName.slice(0, 200) : '';
+    const safeRole = typeof targetRole === 'string' ? targetRole.slice(0, 200) : '';
 
-    // Retry Logic for Rate Limits (429) and Auth (401)
-    const MODELS_TO_TRY = ['gemini-2.5-flash', 'gemini-2.5-flash-lite'];
+    const systemInstruction = MASTER_SYSTEM_PROMPT + buildContextString({
+      resumeText: safeResumeText,
+      jobDescription: safeJD,
+      companyName: safeCompany,
+      targetRole: safeRole
+    });
+
+    // Abort upstream work if client disconnects (A15)
+    let clientDisconnected = false;
+    req.on('close', () => {
+      clientDisconnected = true;
+    });
+
+    let chunksSent = 0;
+    let accumulatedResponse = '';
     let success = false;
+    const MODELS_TO_TRY = ['gemini-2.5-flash', 'gemini-2.5-flash-lite'];
 
     for (const modelName of MODELS_TO_TRY) {
-      if (success) break;
+      if (success || clientDisconnected) break;
       let attempt = 1;
       const maxRetries = 3;
 
-      while (attempt <= maxRetries && !success) {
+      while (attempt <= maxRetries && !success && !clientDisconnected) {
         try {
-          // getGenAIInstance() rotates to a new key internally on each call!
           const model = getGenAIInstance().getGenerativeModel({
             model: modelName,
             systemInstruction
@@ -219,42 +277,77 @@ const streamChat = async (req, res) => {
           const chat = model.startChat({ history });
           const result = await chat.sendMessageStream(userContent);
 
-          // Stream chunks to client
           for await (const chunk of result.stream) {
+            if (clientDisconnected) break;
             const text = chunk.text();
             if (text) {
+              chunksSent++;
+              accumulatedResponse += text;
               res.write(`data: ${JSON.stringify({ text })}\n\n`);
             }
           }
-          success = true; // Stream completed successfully
+          if (!clientDisconnected) {
+            success = true;
+          }
         } catch (error) {
+          if (clientDisconnected) break;
+
+          // A15: If any chunk has already reached the client, NEVER transparently retry and duplicate chunks!
+          if (chunksSent > 0) {
+            res.write(`data: ${JSON.stringify({ error: 'Stream interrupted. Please retry.', interrupted: true })}\n\n`);
+            res.end();
+            return;
+          }
+
           const isTemporary = error.message?.includes('429') || error.message?.includes('401') || error.message?.includes('503') || error.message?.includes('Quota');
-          console.warn(`[Copilot] Model ${modelName} failed on attempt ${attempt}. Error: ${error.message}`);
-          
+          if (process.env.NODE_ENV !== 'test') {
+            console.warn(`[Copilot] Model ${modelName} failed on attempt ${attempt}. Error: ${error.message}`);
+          }
+
           if (isTemporary && attempt < maxRetries) {
             attempt++;
-            // We just loop again; getGenAIInstance() will fetch a new key automatically.
           } else {
-            break; // Break the while loop to try the next model (e.g. flash-lite)
+            break;
           }
         }
       }
     }
 
+    if (clientDisconnected) {
+      res.end();
+      return;
+    }
+
     if (!success) {
-      // If all models and all keys failed
       res.write(`data: ${JSON.stringify({ error: 'Our AI models are currently experiencing extremely high demand. Please wait a moment and try again.' })}\n\n`);
     } else {
       res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
+
+      // Atomically append new interaction to user session if session exists (A34)
+      if (existingSession && accumulatedResponse) {
+        const userMsg = {
+          role: 'user',
+          content: latestMessage.content,
+          id: latestMessage.id || crypto.randomUUID()
+        };
+        const assistantMsg = {
+          role: 'assistant',
+          content: accumulatedResponse,
+          id: crypto.randomUUID()
+        };
+        await CopilotSession.updateOne(
+          { _id: existingSession._id, userId: req.user._id },
+          { $push: { messages: { $each: [userMsg, assistantMsg] } } }
+        ).catch(() => {});
+      }
     }
-    
+
     res.end();
   } catch (error) {
-    console.error('Copilot Fatal Stream Error:', error);
     if (!res.headersSent) {
-      res.status(500).json({ message: 'AI stream failed. Please try again.' });
+      res.status(500).json({ success: false, message: 'AI stream failed. Please try again.' });
     } else {
-      res.write(`data: ${JSON.stringify({ error: 'Stream interrupted. Please retry.' })}\n\n`);
+      res.write(`data: ${JSON.stringify({ error: 'Stream interrupted. Please retry.', interrupted: true })}\n\n`);
       res.end();
     }
   }
@@ -264,14 +357,17 @@ const streamChat = async (req, res) => {
 const generateTitle = async (req, res) => {
   try {
     const { firstMessage } = req.body;
-    if (!firstMessage) return res.json({ title: 'New Conversation' });
+    if (!firstMessage || typeof firstMessage !== 'string') return res.json({ title: 'New Conversation' });
+
+    const safeMessage = firstMessage.trim().slice(0, 500);
+    if (!safeMessage) return res.json({ title: 'New Conversation' });
 
     const model = getGenAIInstance().getGenerativeModel({ model: 'gemini-2.5-flash' });
     const result = await model.generateContent(
-      `Generate a short, 4-6 word title for a career coaching conversation that starts with: "${firstMessage}". Return ONLY the title, no quotes, no punctuation at end.`
+      `Generate a short, 4-6 word title for a career coaching conversation that starts with: "${safeMessage.replace(/"/g, '\\"')}". Return ONLY the title, no quotes, no punctuation at end.`
     );
     const title = result.response.text().trim().slice(0, 60);
-    res.json({ title });
+    res.json({ title: title || 'New Conversation' });
   } catch {
     res.json({ title: 'New Conversation' });
   }
@@ -333,16 +429,39 @@ const createSession = async (req, res) => {
 // @access  Private
 const updateSession = async (req, res) => {
   try {
-    const { title, messages } = req.body;
+    const { title, messages, newMessage } = req.body;
     
-    const updateData = {};
-    if (title) updateData.title = title;
-    if (messages) updateData.messages = messages;
+    const updateOps = {};
+    if (typeof title === 'string' && title.trim()) {
+      updateOps.$set = { title: title.trim().slice(0, 100) };
+    }
+
+    // Atomic message append to prevent lost updates under concurrency (A34)
+    if (newMessage && typeof newMessage === 'object') {
+      const role = newMessage.role === 'assistant' ? 'assistant' : 'user';
+      const content = typeof newMessage.content === 'string' ? newMessage.content.trim().slice(0, 4000) : '';
+      if (content) {
+        updateOps.$push = {
+          messages: {
+            role,
+            content,
+            id: newMessage.id || crypto.randomUUID()
+          }
+        };
+      }
+    } else if (Array.isArray(messages)) {
+      const validated = messages.slice(-50).map(m => ({
+        role: m.role === 'assistant' ? 'assistant' : 'user',
+        content: typeof m.content === 'string' ? m.content.trim().slice(0, 4000) : '',
+        id: m.id || crypto.randomUUID()
+      })).filter(m => m.content.length > 0);
+      updateOps.$set = { ...(updateOps.$set || {}), messages: validated };
+    }
 
     const session = await CopilotSession.findOneAndUpdate(
       { _id: req.params.id, userId: req.user._id },
-      { $set: updateData },
-      { new: true } // Return updated document
+      updateOps,
+      { returnDocument: 'after' }
     );
     
     if (!session) {

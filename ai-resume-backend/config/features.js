@@ -1,19 +1,19 @@
 // config/features.js — CENTRAL FEATURE CONFIGURATION
 //
 // Defines prompts, expected JSON response formats, auto-routing targets,
-// and custom scoring criteria for each of the 16 features.
+// and custom scoring criteria for each of the 17 authoritative features (A42).
 
 const FEATURES = {
   // 1. ATS Analysis
   "ats_analysis": {
     displayName: "ATS Analysis",
-    autoModel: "gemini-pro", // Rebuilding/detailed analysis uses Pro
+    autoModel: "gemini-pro",
     buildPrompt: (inputs) => {
       const { resumeText } = inputs;
-      return `You are an extremely strict, enterprise-grade Applicant Tracking System (ATS) parser and a top-tier Silicon Valley technical recruiter. Your standards are exceptionally high.
+      return `You are an enterprise-grade Applicant Tracking System (ATS) text parser and an experienced technical recruiter.
 
 Your task is to analyze the following resume and produce TWO distinct scores:
-- atsScore: Machine parsability — can ATS software correctly parse every section? Are section headings standard? Is the format clean (no tables, columns, graphics that break parsers)? Are keywords present and properly placed?
+- atsScore: Machine parsability — evaluated on extracted text structure, standard heading detection (Contact Info, Summary, Experience, Education, Skills), clear chronological sequence, and keyword alignment. (Note: Evaluation assesses linear text stream parse order and standard section conventions).
 - overallScore: Human quality — would a recruiter be impressed? Are bullet points impactful with metrics? Is the tone professional? Is the content substantive?
 
 Most resumes should score between 40-60. Only the top 1% of flawless resumes should score 80+.
@@ -23,7 +23,7 @@ SCORING RULES (each rule states which score it affects):
 2. [overallScore] PENALIZE HEAVILY for lack of quantifiable metrics (numbers, percentages, dollar amounts) in achievements.
 3. [atsScore] DEDUCT points for missing standard sections (ContactInfo, Summary, Experience, Education, Skills) or non-standard section headings.
 4. [overallScore] DEDUCT points for fluff, buzzwords, or lack of clear impact.
-5. [atsScore] DEDUCT points for formatting that breaks ATS parsers (tables, columns, graphics, headers/footers with critical info).
+5. [atsScore] DEDUCT points for disordered chronological entries, missing headings, or layout patterns that cause garbled text stream extraction.
 6. Be brutally honest in your feedback. Do not flatter the candidate.
 
 Resume:
@@ -49,7 +49,7 @@ Return ONLY a valid JSON object matching this schema:
   },
   "strengths": ["exactly 3 key strengths"],
   "weaknesses": ["exactly 3 key weaknesses"],
-  "formattingAnalysis": "brief formatting critique"
+  "formattingAnalysis": "Structural and section ordering critique based on text stream parsing."
 }`;
     }
   },
@@ -95,14 +95,19 @@ Return ONLY a valid JSON object matching this schema:
     buildPrompt: (inputs) => {
       const { bulletText, targetRole } = inputs;
       return `You are a professional resume writer. Improve this single bullet point for the target role: "${targetRole || 'Software Engineer'}".
-Quantify impact, use strong action verbs, and keep it truthful.
+
+CRITICAL FACTUALITY RULES (A18):
+1. Ground all achievements strictly in the user's provided bullet text.
+2. Under no circumstances may you invent numbers, percentages, dollar figures, revenue amounts, team sizes, project scopes, certifications, degrees, company names, or employment dates not provided by the candidate.
+3. If an achievement lacks metrics, enhance the action verbs and clarity, but use bracketed placeholders such as [X%] or [$Y] for the candidate to insert their true numbers.
+4. Keep the bullet truthful, professional, and impactful.
 
 Original Bullet: "${bulletText}"
 
 Return ONLY a valid JSON object matching this schema:
 {
   "original": "original bullet",
-  "enhanced": "improved bullet with metrics/quantifiable impact",
+  "enhanced": "improved bullet with strong action verbs and metrics/placeholders",
   "actionVerbsUsed": ["verb1", "verb2"],
   "grammarScore": 0-100,
   "atsKeywordsAdded": ["keyword1", "keyword2"],
@@ -115,11 +120,16 @@ Return ONLY a valid JSON object matching this schema:
   // 4. Resume Rebuilder
   "resume_rebuilder": {
     displayName: "Resume Rebuilder",
-    autoModel: "gemini-pro", // Deep rebuilding/long doc uses Pro
+    autoModel: "gemini-pro",
     buildPrompt: (inputs) => {
       const { resumeText, targetRole, jobDescription } = inputs;
       return `You are an ATS Resume Editor. Rebuild this resume into a highly optimized, professional version for the role "${targetRole || 'Software Engineer'}" (Job Description: "${jobDescription || 'Not specified'}").
-Preserve all factual information (names, dates, companies, degree, GPA). DO NOT hallucinate any skills, achievements, or employment histories.
+
+CRITICAL GROUNDING AND FACTUALITY INVARIANTS (A18):
+1. Preserve all factual information (names, dates, companies, degree, GPA, technical stack).
+2. DO NOT invent new employers, job titles, certifications, degrees, or years of experience.
+3. DO NOT fabricate statistical claims, revenue figures, or user quantities.
+4. Use bracketed placeholders like [X%] where metrics could be quantified by the candidate.
 
 Original Resume Text:
 """
@@ -447,8 +457,8 @@ Return ONLY a valid JSON object matching this schema:
     autoModel: "gemini-2.5-flash", // Flash model
     buildPrompt: (inputs) => {
       const { resumeText, targetRole } = inputs;
-      return `You are a career statistician. Based on the resume and target role "${targetRole}", predict the candidate's hiring probability at Amazon, Google, Microsoft, Adobe, and Uber.
-Use metrics, skills, and experience to assess odds.
+      return `You are a career development coach. Based on the candidate's resume and target role "${targetRole}", provide an illustrative estimation of hiring alignment at top companies (e.g. Google, Amazon, Microsoft, Adobe, Uber).
+NOTE (A19): These estimates are illustrative guidance based on resume heuristics, not a statistically calibrated or guaranteed placement prediction.
 
 Resume:
 """
@@ -457,12 +467,14 @@ ${resumeText}
 
 Return ONLY a valid JSON object matching this schema:
 {
+  "isIllustrativeGuidance": true,
+  "disclaimer": "Illustrative estimate based on heuristic AI modeling; not a statistically calibrated or guaranteed placement prediction.",
   "predictions": [
     {
       "company": "Google | Amazon | Microsoft | Adobe | Uber",
       "probability": 0-100,
       "confidence": 0-100,
-      "explanation": "Why this probability was calculated"
+      "explanation": "Why this illustrative alignment was estimated"
     }
   ]
 }`;
@@ -475,7 +487,8 @@ Return ONLY a valid JSON object matching this schema:
     autoModel: "gemini-2.5-flash-lite", // Fast estimates use Flash Lite
     buildPrompt: (inputs) => {
       const { resumeText, targetRole, location } = inputs;
-      return `You are a salary negotiator and recruiter. Based on this resume, target role "${targetRole}", and location "${location || 'United States'}", estimate the market salary range.
+      return `You are a salary negotiator and recruiter. Based on this resume, target role "${targetRole}", and location "${location || 'United States'}", provide an illustrative market compensation estimate.
+NOTE (A19): This output is an unverified illustrative estimate for general guidance, not verified compensation or financial advice.
 
 Resume:
 """
@@ -484,6 +497,8 @@ ${resumeText}
 
 Return ONLY a valid JSON object matching this schema:
 {
+  "isIllustrativeGuidance": true,
+  "disclaimer": "Illustrative market estimate generated by AI; not verified compensation or financial advice.",
   "salaryRange": {
     "min": 0,
     "median": 0,
@@ -520,4 +535,7 @@ Return ONLY a valid JSON object matching this schema:
   }
 };
 
-module.exports = { FEATURES };
+module.exports = {
+  FEATURES,
+  FEATURE_COUNT: Object.keys(FEATURES).length
+};

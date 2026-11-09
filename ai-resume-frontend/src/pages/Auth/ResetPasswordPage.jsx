@@ -1,85 +1,132 @@
 import React, { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { Lock, Sparkles, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { useNavigate, useParams, Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import apiClient from '../../api/axiosConfig';
-import { motion, AnimatePresence } from 'framer-motion';
-import { FloatingInput, PrimaryButton, AuthLayout, PasswordStrengthIndicator, ErrorMessage } from './AuthComponents';
+import AuthLayout from '../../components/auth/AuthLayout';
+import PasswordField from '../../components/auth/PasswordField';
+import ErrorMessage from '../../components/auth/ErrorMessage';
 
-const ResetPasswordPage = () => {
+export default function ResetPasswordPage() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+
   const { token } = useParams();
   const navigate = useNavigate();
 
-  const handleResetPassword = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
-    if (password !== confirmPassword) {
-      setError("Passwords do not match.");
+    if (!token) {
+      setError('Missing or invalid password reset token. Please request a new recovery link.');
       return;
     }
-    
+    if (!password || password.length < 8) {
+      setError('Password must be at least 8 characters long.');
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError('Passwords do not match. Please re-enter your confirm password.');
+      return;
+    }
+
     setIsLoading(true);
     try {
-      await apiClient.post('/auth/reset-password', { token, password });
-      setIsSuccess(true);
-      setTimeout(() => navigate('/login'), 3000);
+      const res = await apiClient.post('/auth/reset-password', {
+        token,
+        password
+      });
+
+      if (res.data.success) {
+        setIsSuccess(true);
+        toast.success('Password updated successfully!');
+        setTimeout(() => navigate('/login'), 2000);
+      } else {
+        setError(res.data.message || 'Failed to reset password. The link may have expired.');
+      }
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to reset password. Link may be expired.');
+      setError(err?.response?.data?.message || 'Failed to reset password. This link may have expired or already been used.');
     } finally {
       setIsLoading(false);
     }
   };
-  
-  return (
-    <AuthLayout>
-      <div className="mb-8 flex flex-col items-center text-center">
-        <h2 className="font-display text-3xl font-bold text-white tracking-tight mb-2">Create New Password</h2>
-        <p className="text-[14px] text-slate-400">Choose a secure password for your workspace.</p>
-      </div>
 
+  return (
+    <AuthLayout
+      title="Set a New Password"
+      subtitle="Choose a new password for your account."
+    >
       <ErrorMessage message={error} />
 
-      <AnimatePresence mode="wait">
-        {!isSuccess ? (
-          <motion.form key="form" onSubmit={handleResetPassword} className="space-y-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, scale: 0.95 }}>
-            <div className="space-y-4">
-              <div>
-                <FloatingInput label="New Password" type="password" value={password} onChange={e => {setPassword(e.target.value); setError('');}} required minLength="8" />
-                <PasswordStrengthIndicator password={password} />
-              </div>
-              <FloatingInput label="Confirm New Password" type="password" value={confirmPassword} onChange={e => {setConfirmPassword(e.target.value); setError('');}} required minLength="8" />
-            </div>
+      {isSuccess ? (
+        <div className="py-4 text-center space-y-4">
+          <div className="w-12 h-12 mx-auto rounded-full bg-emerald-100 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-xl">
+            ✓
+          </div>
+          <p className="text-base font-semibold text-[#111827] dark:text-[#F8FAFC]">
+            Password Updated
+          </p>
+          <p className="text-sm text-[#64748B] dark:text-[#CBD5E1]">
+            Your password has been changed. Redirecting to login...
+          </p>
+          <Link
+            to="/login"
+            className="inline-flex items-center justify-center h-10 px-4 rounded-md bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-sm font-medium mt-2"
+          >
+            Go to Login
+          </Link>
+        </div>
+      ) : (
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <PasswordField
+            label="New Password"
+            id="reset-password"
+            autoComplete="new-password"
+            value={password}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              if (error) setError('');
+            }}
+            placeholder="At least 8 characters"
+            required
+            disabled={isLoading}
+          />
 
-            {password !== confirmPassword && confirmPassword && (
-              <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-3 text-center">
-                <p className="text-[11px] uppercase tracking-widest font-semibold text-amber-400">Passwords do not match</p>
-              </div>
-            )}
+          <PasswordField
+            label="Confirm New Password"
+            id="reset-confirm-password"
+            autoComplete="new-password"
+            value={confirmPassword}
+            onChange={(e) => {
+              setConfirmPassword(e.target.value);
+              if (error) setError('');
+            }}
+            placeholder="Repeat your new password"
+            required
+            disabled={isLoading}
+          />
 
-            <div className="pt-2">
-              <PrimaryButton type="submit" isLoading={isLoading} disabled={password !== confirmPassword || password.length < 8} loadingText="Securing Account...">
-                Update Password <ArrowRight className="h-4 w-4" />
-              </PrimaryButton>
-            </div>
-          </motion.form>
-        ) : (
-          <motion.div key="success" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center justify-center py-8">
-            <div className="w-20 h-20 bg-emerald-500/10 rounded-full flex items-center justify-center mb-6 relative">
-              <div className="absolute inset-0 border-2 border-emerald-500 rounded-full animate-ping opacity-20" />
-              <CheckCircle2 className="w-10 h-10 text-emerald-500" />
-            </div>
-            <h3 className="text-2xl font-bold text-white mb-2">Password Updated</h3>
-            <p className="text-sm text-slate-400">Redirecting you to login...</p>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full h-11 inline-flex items-center justify-center rounded-md bg-[#2563EB] hover:bg-[#1D4ED8] dark:bg-[#2563EB] dark:hover:bg-[#1D4ED8] text-white text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed mt-2"
+          >
+            {isLoading ? 'Updating Password...' : 'Set New Password'}
+          </button>
+
+          <p className="mt-6 text-center text-sm text-[#64748B] dark:text-[#CBD5E1]">
+            <Link
+              to="/login"
+              className="font-medium text-[#2563EB] dark:text-[#60A5FA] hover:underline"
+            >
+              &larr; Back to Log In
+            </Link>
+          </p>
+        </form>
+      )}
     </AuthLayout>
   );
-};
-
-export default ResetPasswordPage;
+}

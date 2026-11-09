@@ -7,6 +7,28 @@
    Inspired by: Vercel · Linear · Stripe · Framer
    ═══════════════════════════════════════════════════════════════ */
 
+:root {
+  --rc-bg: #FFFFFF;
+  --rc-surface: #F8FAFC;
+  --rc-text-primary: #111827;
+  --rc-text-secondary: #64748B;
+  --rc-border: #E5E7EB;
+  --rc-accent: #2563EB;
+  --rc-accent-hover: #1D4ED8;
+  --rc-input-bg: #FFFFFF;
+}
+
+html.dark {
+  --rc-bg: #0F172A;
+  --rc-surface: #172033;
+  --rc-text-primary: #F8FAFC;
+  --rc-text-secondary: #CBD5E1;
+  --rc-border: #334155;
+  --rc-accent: #60A5FA;
+  --rc-accent-hover: #3B82F6;
+  --rc-input-bg: #0F172A;
+}
+
 @layer base {
   * {
     -webkit-font-smoothing: antialiased;
@@ -20,20 +42,20 @@
 
   body {
     font-family: 'Inter', sans-serif;
-    background-color: #050505; /* Deepest black */
-    color: #FAFAFA;
+    background-color: var(--rc-bg);
+    color: var(--rc-text-primary);
   }
 
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Plus Jakarta Sans', sans-serif;
-    letter-spacing: -0.03em;
+    letter-spacing: -0.02em;
   }
 
   /* Accessible focus for keyboard navigation */
   :focus-visible {
-    outline: 2px solid rgba(124, 111, 247, 0.6);
+    outline: 2px solid #2563EB;
     outline-offset: 2px;
-    border-radius: 8px;
+    border-radius: 6px;
   }
 }
 

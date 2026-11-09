@@ -14,85 +14,63 @@
 const scoreOutput = (feature, output, executionTime) => {
   if (!output || typeof output !== "object") {
     return {
-      grammar: 50,
-      readability: 50,
-      keywordDensity: 50,
-      ats: 50,
-      professionalism: 50,
-      completeness: 50,
-      practicality: 50,
-      overall: 50
+      grammar: 0,
+      readability: 0,
+      keywordDensity: 0,
+      ats: 0,
+      professionalism: 0,
+      completeness: 0,
+      practicality: 0,
+      overall: 0,
+      modelReportedScore: null
     };
   }
 
-  // Helper: flatten object to scan text content
-  const allText = JSON.stringify(output).toLowerCase();
-
   // 1. Grammar Score
-  let grammar = 85;
+  let grammar = 100;
   if (Array.isArray(output.grammarIssues)) {
-    grammar = Math.max(30, 100 - (output.grammarIssues.length * 15));
+    grammar = Math.max(20, 100 - (output.grammarIssues.length * 15));
   } else if (typeof output.grammarScore === "number") {
-    grammar = output.grammarScore;
-  } else if (allText.includes("typo") || allText.includes("misspelling")) {
-    grammar = 70;
+    grammar = Math.min(100, Math.max(0, output.grammarScore));
   }
 
   // 2. Readability Score
-  // Read the explicit score from the AI prompt output.
-  // IMPORTANT: Do NOT count bullets/headers from allText — that's the AI's
-  // JSON commentary, not the candidate's actual resume formatting.
-  let readability = 70;
+  let readability = null;
   if (typeof output.readabilityScore === "number") {
-    readability = output.readabilityScore;
+    readability = Math.min(100, Math.max(0, output.readabilityScore));
   } else if (typeof output.readability === "number") {
-    readability = output.readability;
+    readability = Math.min(100, Math.max(0, output.readability));
   }
 
   // 3. Keyword Density / Match
-  let keywordDensity = 75;
+  let keywordDensity = null;
   if (typeof output.keywordCoverage === "number") {
-    keywordDensity = output.keywordCoverage;
-  } else if (typeof output.keywordMatch === "number") {
-    keywordDensity = output.keywordMatch;
-  } else if (Array.isArray(output.missingKeywords)) {
-    // analyzeResume returns missingKeywords — penalize proportionally
-    keywordDensity = Math.max(20, 100 - (output.missingKeywords.length * 8));
+    keywordDensity = Math.min(100, Math.max(0, output.keywordCoverage));
+  } else if (typeof output.matchScore === "number") {
+    keywordDensity = Math.min(100, Math.max(0, output.matchScore));
   } else if (Array.isArray(output.matchedSkills) && Array.isArray(output.missingSkills)) {
     const total = output.matchedSkills.length + output.missingSkills.length;
-    keywordDensity = total > 0 ? Math.round((output.matchedSkills.length / total) * 100) : 75;
-  } else if (output.keywordReport && Array.isArray(output.keywordReport.added)) {
-    keywordDensity = Math.min(100, 60 + (output.keywordReport.added.length * 8));
+    keywordDensity = total > 0 ? Math.round((output.matchedSkills.length / total) * 100) : 50;
+  } else if (Array.isArray(output.missingKeywords)) {
+    keywordDensity = Math.max(20, 100 - (output.missingKeywords.length * 8));
   }
 
   // 4. ATS Optimization
-  let ats = 70;
+  let ats = null;
   if (typeof output.atsScore === "number") {
-    ats = output.atsScore;
+    ats = Math.min(100, Math.max(0, output.atsScore));
   } else if (typeof output.improvedATS === "number") {
-    ats = output.improvedATS;
+    ats = Math.min(100, Math.max(0, output.improvedATS));
   } else if (typeof output.matchScore === "number") {
-    ats = output.matchScore;
+    ats = Math.min(100, Math.max(0, output.matchScore));
   } else if (typeof output.hiringFitScore === "number") {
-    ats = output.hiringFitScore;
-  } else {
-    // If output includes standard professional keywords
-    const keywords = ["scale", "optimize", "lead", "architect", "improve", "implement"];
-    let matchCount = 0;
-    keywords.forEach(kw => {
-      if (allText.includes(kw)) matchCount++;
-    });
-    ats = Math.min(100, 65 + (matchCount * 5));
+    ats = Math.min(100, Math.max(0, output.hiringFitScore));
   }
 
   // 5. Professional Tone & Recruiter Score
-  // Read the explicit score from the AI prompt output.
-  // IMPORTANT: Do NOT sniff action verbs from allText — that's the AI's
-  // commentary, not the resume. A model that criticizes the resume with
-  // "bullets don't use verbs like 'engineered'" would falsely inflate its score.
-  let professionalism = 70;
+  let professionalism = null;
   if (typeof output.professionalismScore === "number") {
-    professionalism = output.professionalismScore;
+    professionalism = Math.min(100, Math.max(0, output.professionalismScore));
   }
 
   // 6. Completeness
@@ -130,26 +108,34 @@ const scoreOutput = (feature, output, executionTime) => {
   });
   const practicality = Math.min(100, 60 + (suggestionsCount * 8));
 
-  // Overall Score (Weighted Average)
-  const overall = Math.round(
-    (grammar * 0.15) +
-    (readability * 0.15) +
-    (keywordDensity * 0.15) +
-    (ats * 0.20) +
-    (professionalism * 0.15) +
-    (completeness * 0.10) +
-    (practicality * 0.10)
-  );
+  const scoreAts = ats ?? 0;
+  const scoreReadability = readability ?? 0;
+  const scoreKeywords = keywordDensity ?? 0;
+  const scoreProfessionalism = professionalism ?? 0;
+
+  // Overall Score (Prefer model's explicit score; otherwise weighted average of measurements)
+  const overall = typeof output.overallScore === 'number'
+    ? output.overallScore
+    : Math.round(
+        (grammar * 0.15) +
+        (scoreReadability * 0.15) +
+        (scoreKeywords * 0.15) +
+        (scoreAts * 0.20) +
+        (scoreProfessionalism * 0.15) +
+        (completeness * 0.10) +
+        (practicality * 0.10)
+      );
 
   return {
     grammar,
-    readability,
-    keywordDensity,
-    ats,
-    professionalism,
+    readability: scoreReadability,
+    keywordDensity: scoreKeywords,
+    ats: scoreAts,
+    professionalism: scoreProfessionalism,
     completeness,
     practicality,
-    overall
+    overall,
+    modelReportedScore: output.atsScore ?? output.matchScore ?? output.overallScore ?? null
   };
 };
 

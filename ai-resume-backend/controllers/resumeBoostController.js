@@ -7,7 +7,7 @@ const enhanceSingle = async (req, res) => {
   try {
     const { bullet, role } = req.body;
 
-    if (!bullet || bullet.trim().length < 5) {
+    if (!bullet || typeof bullet !== 'string' || bullet.trim().length < 5) {
       return res.status(400).json({ success: false, message: "Please provide a valid bullet point." });
     }
 
@@ -31,7 +31,7 @@ const scanWeakLanguage = async (req, res) => {
   try {
     const { text } = req.body;
 
-    if (!text || text.trim().length < 10) {
+    if (!text || typeof text !== 'string' || text.trim().length < 10) {
       return res.status(400).json({ success: false, message: "Please provide valid resume text." });
     }
 

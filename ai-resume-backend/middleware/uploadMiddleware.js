@@ -1,46 +1,34 @@
 // ============================================================
-// middleware/uploadMiddleware.js — FILE UPLOAD CONFIG (MULTER)
+// middleware/uploadMiddleware.js — SECURE FILE UPLOAD CONFIG (MULTER)
 //
-// Multer is a Node.js middleware for handling multipart/form-data,
-// which is the encoding type used when a form uploads files.
-//
-// We configure three things:
-//   1. storage   → where to save files and what to name them
-//   2. fileFilter → reject anything that isn't PDF or DOCX
-//   3. limits    → max file size (5MB)
-//
-// multer.diskStorage vs multer.memoryStorage:
-//   - diskStorage: saves file to disk → we get a file path
-//   - memoryStorage: keeps file in RAM as Buffer → good for Cloudinary
-//   We use diskStorage since we're saving locally.
-//
-// After upload, Multer adds a `req.file` object containing:
-//   { originalname, filename, path, size, mimetype }
+// 1. Unpredictable cryptographically secure random names (UUID)
+// 2. Strict file size limit (5MB)
+// 3. Allowed MIME types (PDF and DOCX)
+// 4. Absolute storage path containment
 // ============================================================
 
 const multer = require('multer');
 const path   = require('path');
 const fs     = require('fs');
+const crypto = require('crypto');
 
-// Create the uploads directory if it doesn't exist yet
-const uploadDir = 'uploads/resumes';
+// Absolute path to upload directory
+const uploadDir = path.resolve(__dirname, '../uploads/resumes');
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
 // ── STORAGE CONFIG ──────────────────────────────────────────
 const storage = multer.diskStorage({
-  // Where to save the file
   destination: function (req, file, cb) {
     cb(null, uploadDir);
   },
-  // What to name the file on disk
-  // We use userId + timestamp to guarantee a unique name
   filename: function (req, file, cb) {
-    const ext        = path.extname(file.originalname); // ".pdf" or ".docx"
-    const uniqueName = `${req.user._id}-${Date.now()}${ext}`;
+    const ext = path.extname(file.originalname).toLowerCase();
+    const safeExt = ext === '.docx' ? '.docx' : '.pdf';
+    // Use cryptographically secure UUID to prevent filename collision or predictable enumeration
+    const uniqueName = `${crypto.randomUUID()}${safeExt}`;
     cb(null, uniqueName);
-    // Example result: "64abc123-1704067200000.pdf"
   }
 });
 
@@ -52,19 +40,17 @@ const fileFilter = (req, file, cb) => {
   ];
 
   if (allowedMimeTypes.includes(file.mimetype)) {
-    cb(null, true);  // Accept the file
+    cb(null, true);
   } else {
-    // Reject with an error (will be caught by errorHandler)
     cb(new Error('Invalid file type. Only PDF and DOCX are allowed.'), false);
   }
 };
 
-// ── ASSEMBLE MULTER INSTANCE ────────────────────────────────
 const upload = multer({
   storage,
   fileFilter,
   limits: {
-    fileSize: 5 * 1024 * 1024  // 5MB in bytes
+    fileSize: 5 * 1024 * 1024  // 5MB limit
   }
 });
 

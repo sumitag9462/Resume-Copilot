@@ -9,10 +9,23 @@ const rebuildResume = async (req, res) => {
   try {
     const { resumeText, resumeId, role, jobDescription } = req.body;
 
+    if (resumeText !== undefined && typeof resumeText !== 'string') {
+      return res.status(400).json({ success: false, message: "Invalid resumeText format. Must be a string." });
+    }
+    if (jobDescription !== undefined && typeof jobDescription !== 'string') {
+      return res.status(400).json({ success: false, message: "Invalid jobDescription format. Must be a string." });
+    }
+    if (role !== undefined && typeof role !== 'string') {
+      return res.status(400).json({ success: false, message: "Invalid role format. Must be a string." });
+    }
+
     let originalText = resumeText;
 
     // Resolve resumeId if provided
     if (resumeId) {
+      if (typeof resumeId !== 'string') {
+        return res.status(400).json({ success: false, message: "Invalid resumeId format." });
+      }
       const found = await Resume.findById(resumeId);
       if (!found) {
         return res.status(404).json({ success: false, message: "Selected resume not found." });
@@ -23,7 +36,7 @@ const rebuildResume = async (req, res) => {
       originalText = found.extractedText;
     }
 
-    if (!originalText || originalText.trim().length < 50) {
+    if (!originalText || typeof originalText !== 'string' || originalText.trim().length < 50) {
       return res.status(400).json({ success: false, message: "Please provide valid resume text or select an uploaded resume." });
     }
 
@@ -61,11 +74,23 @@ const rebuildResume = async (req, res) => {
 // @access  Private
 const getRebuildHistory = async (req, res) => {
   try {
+    const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit, 10) || 20));
+    const skip = (page - 1) * limit;
+
+    const total = await ResumeBoostHistory.countDocuments({ userId: req.user._id });
     const history = await ResumeBoostHistory.find({ userId: req.user._id })
-      .sort({ createdAt: -1 });
+      .select('-originalResume')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
 
     return res.status(200).json({
       success: true,
+      count: history.length,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
       history
     });
   } catch (error) {

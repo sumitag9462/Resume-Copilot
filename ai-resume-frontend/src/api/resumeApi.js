@@ -40,3 +40,12 @@ export const deleteResume = async (resumeId) => {
   const response = await api.delete(`/resume/${resumeId}`)
   return response.data
 }
+
+// GET /api/resume/:id/file
+// Returns a private authenticated blob stream of the resume file
+export const getResumeFile = async (resumeId, download = false) => {
+  const response = await api.get(`/resume/${resumeId}/file${download ? '?download=true' : ''}`, {
+    responseType: 'blob'
+  })
+  return response.data
+}

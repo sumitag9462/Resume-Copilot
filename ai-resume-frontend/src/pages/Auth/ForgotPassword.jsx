@@ -1,119 +1,159 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, ArrowRight, ArrowLeft } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import apiClient from '../../api/axiosConfig';
-import { FloatingInput, PrimaryButton, OtpInput, AuthLayout, CountdownTimer, ErrorMessage } from './AuthComponents';
+import AuthLayout from '../../components/auth/AuthLayout';
+import AuthInput from '../../components/auth/AuthInput';
+import ErrorMessage from '../../components/auth/ErrorMessage';
 
-const ForgotPasswordPage = () => {
+export default function ForgotPasswordPage() {
   const [step, setStep] = useState(1);
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [loadingText, setLoadingText] = useState('');
   const navigate = useNavigate();
 
-  const requestOtp = async () => {
-    setIsLoading(true);
+  const handleRequestOtp = async (e) => {
+    e.preventDefault();
     setError('');
-    setLoadingText("Sending Recovery Code...");
+
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail) {
+      setError('Please enter your email address.');
+      return;
+    }
+
+    setIsLoading(true);
     try {
-      await apiClient.post('/auth/request-password-reset-otp', { email });
-      setStep(2);
+      const res = await apiClient.post('/auth/request-password-reset-otp', {
+        email: trimmedEmail
+      });
+
+      if (res.data.success) {
+        toast.success('Password reset code sent to your email.');
+        setStep(2);
+      } else {
+        setError(res.data.message || 'Unable to request reset code. Please try again.');
+      }
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to send OTP. Please verify your email.');
+      setError(err?.response?.data?.message || 'Unable to send reset code. Please verify your email.');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleRequestOtp = (e) => {
-    e.preventDefault();
-    requestOtp();
-  };
-
   const handleVerifyOtp = async (e) => {
     e.preventDefault();
-    if (otp.length < 6) {
-      setError('Please enter a complete 6-digit code.');
+    setError('');
+
+    const trimmedOtp = otp.trim();
+    if (trimmedOtp.length < 6) {
+      setError('Please enter the 6-digit recovery code.');
       return;
     }
+
     setIsLoading(true);
-    setError('');
-    setLoadingText("Verifying Identity...");
     try {
-      const res = await apiClient.post('/auth/verify-password-reset-otp', { email, otp });
-      if (res.data.success) {
+      const res = await apiClient.post('/auth/verify-password-reset-otp', {
+        email: email.trim(),
+        otp: trimmedOtp
+      });
+
+      if (res.data.success && res.data.resetToken) {
+        toast.success('Code verified successfully.');
         navigate(`/reset-password/${res.data.resetToken}`);
+      } else {
+        setError(res.data.message || 'Invalid or expired recovery code.');
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Invalid or expired code.');
+      setError(err?.response?.data?.message || 'Invalid or expired recovery code. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <AuthLayout>
-      <div className="mb-6 flex flex-col items-center text-center">
-        <h2 className="text-3xl font-display font-bold text-white tracking-tight mb-2">Recover Access</h2>
-        <p className="text-[14px] text-slate-400">
-          {step === 1 ? "Enter your email to receive a recovery code." : "Verify code to restore your workspace."}
-        </p>
-      </div>
-
+    <AuthLayout
+      title="Forgot Your Password?"
+      subtitle={
+        step === 1
+          ? "Enter your email address and we'll send you instructions to reset your password."
+          : `Enter the 6-digit recovery code sent to ${email}.`
+      }
+    >
       <ErrorMessage message={error} />
 
-      <AnimatePresence mode="wait">
-        {step === 1 && (
-          <motion.form key="step1" onSubmit={handleRequestOtp} className="space-y-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <FloatingInput label="Registered Email" type="email" value={email} onChange={e => {setEmail(e.target.value); setError('');}} icon={Mail} required />
-            
-            <div className="pt-2">
-              <PrimaryButton type="submit" isLoading={isLoading} loadingText={loadingText}>
-                Send Recovery Code <ArrowRight className="h-4 w-4" />
-              </PrimaryButton>
-            </div>
-            
-            <Link to="/login" className="flex w-full items-center justify-center gap-2 text-[13px] font-medium text-slate-400 transition-colors hover:text-white">
-              <ArrowLeft className="h-3.5 w-3.5" /> Back to login
-            </Link>
-          </motion.form>
-        )}
+      {step === 1 ? (
+        <form onSubmit={handleRequestOtp} className="space-y-4">
+          <AuthInput
+            label="Email Address"
+            id="forgot-email"
+            type="email"
+            autoComplete="email"
+            value={email}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              if (error) setError('');
+            }}
+            placeholder="name@example.com"
+            required
+            disabled={isLoading}
+          />
 
-        {step === 2 && (
-          <motion.form key="step2" onSubmit={handleVerifyOtp} className="space-y-6" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-            <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-6 text-center">
-              <div className="w-12 h-12 bg-accent-teal/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Mail className="h-6 w-6 text-accent-teal" />
-              </div>
-              <p className="text-[13px] text-slate-300">
-                We've sent a 6-digit recovery code to<br />
-                <strong className="text-white mt-1 inline-block text-sm">{email}</strong>
-              </p>
-            </div>
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full h-11 inline-flex items-center justify-center rounded-md bg-[#2563EB] hover:bg-[#1D4ED8] dark:bg-[#2563EB] dark:hover:bg-[#1D4ED8] text-white text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isLoading ? 'Sending Code...' : 'Send Reset Code'}
+          </button>
+        </form>
+      ) : (
+        <form onSubmit={handleVerifyOtp} className="space-y-4">
+          <AuthInput
+            label="6-Digit Recovery Code"
+            id="forgot-otp"
+            type="text"
+            inputMode="numeric"
+            maxLength={6}
+            value={otp}
+            onChange={(e) => {
+              setOtp(e.target.value.replace(/\D/g, ''));
+              if (error) setError('');
+            }}
+            placeholder="123456"
+            required
+            disabled={isLoading}
+          />
 
-            <div className="flex justify-center py-2">
-              <OtpInput length={6} value={otp} onChange={setOtp} />
-            </div>
-            
-            <div className="pt-2">
-              <PrimaryButton type="submit" isLoading={isLoading} loadingText={loadingText}>
-                Verify Code <ArrowRight className="h-4 w-4" />
-              </PrimaryButton>
-            </div>
+          <button
+            type="submit"
+            disabled={isLoading || otp.length < 6}
+            className="w-full h-11 inline-flex items-center justify-center rounded-md bg-[#2563EB] hover:bg-[#1D4ED8] dark:bg-[#2563EB] dark:hover:bg-[#1D4ED8] text-white text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isLoading ? 'Verifying Code...' : 'Continue to Reset Password'}
+          </button>
 
-            <CountdownTimer initialSeconds={60} onResend={requestOtp} />
+          <button
+            type="button"
+            onClick={() => setStep(1)}
+            disabled={isLoading}
+            className="w-full text-center text-xs text-[#64748B] dark:text-[#CBD5E1] hover:underline pt-1"
+          >
+            Change email address
+          </button>
+        </form>
+      )}
 
-            <button type="button" onClick={() => { setStep(1); setOtp(''); }} className="mt-4 flex w-full items-center justify-center gap-2 text-[13px] font-medium text-slate-400 transition-colors hover:text-white">
-              <ArrowLeft className="h-3.5 w-3.5" /> Change email address
-            </button>
-          </motion.form>
-        )}
-      </AnimatePresence>
+      <p className="mt-6 text-center text-sm text-[#64748B] dark:text-[#CBD5E1]">
+        <Link
+          to="/login"
+          className="font-medium text-[#2563EB] dark:text-[#60A5FA] hover:underline"
+        >
+          &larr; Back to Log In
+        </Link>
+      </p>
     </AuthLayout>
   );
-};
-
-export default ForgotPasswordPage;
+}

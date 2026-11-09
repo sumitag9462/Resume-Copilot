@@ -1,9 +1,19 @@
 const { generateContentWithFallback } = require("./aiHelper");
+const { isSafeString } = require("../utils/validationHelper");
 
+/**
+ * Enhances a single resume bullet point using Gemini AI.
+ *
+ * @param {string} bulletText The raw bullet text
+ * @param {string} jobRole The target job role
+ * @returns {Promise<object>} The enhanced bullet structure
+ */
 const enhanceBullet = async (bulletText, jobRole = "") => {
-  if (!bulletText || bulletText.trim().length < 5) {
-    throw new Error("Please provide a bullet point to enhance.");
+  if (!isSafeString(bulletText, 5, 1000)) {
+    throw new Error("Please provide a valid bullet point between 5 and 1000 characters.");
   }
+
+  const safeJobRole = typeof jobRole === 'string' ? jobRole.trim().slice(0, 100) : "Software Engineer";
 
   const prompt = `You are an expert resume writer.
 
@@ -15,10 +25,10 @@ Rules:
 * Quantify impact if possible
 * Add technical keywords
 * Under 30 words
-* Target role: ${jobRole || "Software Engineer"}
+* Target role: ${safeJobRole || "Software Engineer"}
 
 Bullet:
-"${bulletText.trim()}"
+"${bulletText.trim().replace(/"/g, '\\"')}"
 
 Return ONLY a JSON object with this exact structure (no markdown, no backticks, no explanation):
 {
@@ -47,18 +57,41 @@ Return ONLY a JSON object with this exact structure (no markdown, no backticks, 
   return parsed;
 };
 
+/**
+ * Enhances multiple bullets concurrently with graceful per-item failure handling (A22).
+ * Preserves user input order and returns explicit partial results.
+ *
+ * @param {Array<string>} bullets Array of bullet strings (max 25)
+ * @param {string} jobRole Target job role
+ * @returns {Promise<Array<object>>} Array of per-bullet results
+ */
 const enhanceBulkBullets = async (bullets, jobRole = "") => {
   if (!Array.isArray(bullets) || bullets.length === 0) {
     throw new Error("Provide an array of bullet points.");
   }
 
-  // Process bullets concurrently up to 10
-  const limitedBullets = bullets.slice(0, 10);
-  const enhancedList = await Promise.all(
-    limitedBullets.map(b => enhanceBullet(b, jobRole))
+  const results = await Promise.allSettled(
+    bullets.map(b => enhanceBullet(b, jobRole))
   );
 
-  return enhancedList;
+  return results.map((res, idx) => {
+    if (res.status === 'fulfilled') {
+      return {
+        success: true,
+        original: bullets[idx],
+        enhanced: res.value.enhanced,
+        status: 'enhanced'
+      };
+    } else {
+      return {
+        success: false,
+        original: bullets[idx],
+        enhanced: null,
+        error: res.reason?.message || 'Failed to enhance bullet',
+        status: 'failed'
+      };
+    }
+  });
 };
 
 module.exports = { enhanceBullet, enhanceBulkBullets };

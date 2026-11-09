@@ -1,14 +1,9 @@
 // ============================================================
 // server.js — ENTRY POINT
-// This is the first file Node.js runs. It:
-//   1. Loads all environment variables from .env
-//   2. Connects to MongoDB
-//   3. Creates the Express app
-//   4. Registers all middleware and routes
-//   5. Starts listening on a port
 // ============================================================
 
 const dotenv = require('dotenv');
+const mongoose = require('mongoose');
 
 dotenv.config();
 
@@ -31,9 +26,55 @@ if (!process.env.BREVO_API_KEY) {
 const connectDB = require('./config/db');
 const app       = require('./app');
 
-connectDB();
-
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
-});
+
+let server;
+
+// A36: Await database readiness before announcing/serving API readiness
+const startServer = async () => {
+  try {
+    await connectDB();
+    server = app.listen(PORT, () => {
+      console.log(`🚀 Server running on http://localhost:${PORT}`);
+    });
+
+    const handleShutdown = async (signal) => {
+      console.log(`\nReceived ${signal}. Gracefully shutting down...`);
+      if (server) {
+        server.close(async () => {
+          console.log('HTTP server closed.');
+          try {
+            await mongoose.connection.close();
+            console.log('MongoDB connection closed.');
+            process.exit(0);
+          } catch (err) {
+            console.error('Error closing MongoDB connection:', err);
+            process.exit(1);
+          }
+        });
+
+        // Force shutdown after 10s if graceful close hangs
+        setTimeout(() => {
+          console.error('Forced exit after timeout.');
+          process.exit(1);
+        }, 10000).unref();
+      } else {
+        process.exit(0);
+      }
+    };
+
+    process.on('SIGTERM', () => handleShutdown('SIGTERM'));
+    process.on('SIGINT', () => handleShutdown('SIGINT'));
+
+    return server;
+  } catch (err) {
+    console.error('Server startup failed:', err.message);
+    process.exit(1);
+  }
+};
+
+if (process.env.NODE_ENV !== 'test') {
+  startServer();
+}
+
+module.exports = { startServer };

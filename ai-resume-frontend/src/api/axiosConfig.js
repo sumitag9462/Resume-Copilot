@@ -11,9 +11,24 @@
 
 import axios from 'axios'
 
+const AI_ROUTES = [
+  '/arena/run',
+  '/analysis/ats',
+  '/analysis/match',
+  '/analysis/cover-letter',
+  '/resume/enhance',
+  '/resume/rebuild',
+  '/resume/scan',
+  '/bullets/enhance',
+  '/bullets/enhance-bulk',
+  '/interview/generate',
+  '/interview/regenerate',
+  '/outreach/generate',
+]
+
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || '/api',
-  timeout: 20000,
+  timeout: 15000, // Default 15s for fast conventional REST endpoints (A12)
   headers: {
     'Content-Type': 'application/json',
   },
@@ -22,12 +37,19 @@ const api = axios.create({
 // ── REQUEST INTERCEPTOR ─────────────────────────────────────
 // Runs before every request. Reads the token from localStorage
 // and adds it as the Authorization header.
+// A12: Separates short conventional REST timeouts (15s) from long AI operations (90s).
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
+
+    const isAiRoute = AI_ROUTES.some((route) => config.url && config.url.includes(route))
+    if (isAiRoute) {
+      config.timeout = 90000 // 90s for deep AI generation pipelines
+    }
+
     return config
   },
   (error) => Promise.reject(error)

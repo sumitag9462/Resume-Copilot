@@ -23,11 +23,11 @@ const generateQuestions = async (req, res) => {
       resumeText = foundResume.extractedText;
     }
 
-    if (!resumeText || resumeText.trim().length < 50) {
+    if (!resumeText || typeof resumeText !== 'string' || resumeText.trim().length < 50) {
       return res.status(400).json({ success: false, message: "Please provide valid resume text or select an uploaded resume." });
     }
 
-    if (!role || role.trim() === "") {
+    if (!role || typeof role !== 'string' || role.trim() === "") {
       return res.status(400).json({ success: false, message: "Target role is required." });
     }
 
@@ -111,13 +111,23 @@ const regenerateQuestions = async (req, res) => {
 // @access  Private
 const getHistory = async (req, res) => {
   try {
-    // Select all fields except the large 'resume' text field to optimize payload size
+    const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit, 10) || 20));
+    const skip = (page - 1) * limit;
+
+    const total = await InterviewHistory.countDocuments({ userId: req.user._id });
     const historyList = await InterviewHistory.find({ userId: req.user._id })
       .select("-resume")
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
 
     return res.status(200).json({
       success: true,
+      count: historyList.length,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
       history: historyList
     });
   } catch (error) {

@@ -14,9 +14,28 @@
 // writing try-catch for each one in every controller.
 // ============================================================
 
+const redactSensitiveData = (str) => {
+  if (typeof str !== 'string') return str;
+  return str
+    .replace(/(password|token|otp|secret|jwt)\s*[:=]\s*["']?[^"'\s,]+["']?/gi, '$1: [REDACTED]')
+    .replace(/bearer\s+[A-Za-z0-9\-._~+/]+=*/gi, 'Bearer [REDACTED]');
+};
+
 const errorHandler = (err, req, res, next) => {
-  let statusCode = err.statusCode || 500;
+  let statusCode = err.statusCode || err.status || 500;
   let message    = err.message    || 'Internal Server Error';
+
+  // ── BODY-PARSER: Payload too large (413) ───────────────────
+  if (err.type === 'entity.too.large' || err.status === 413 || statusCode === 413) {
+    statusCode = 413;
+    message = 'Payload too large. Request body exceeds maximum allowed size.';
+  }
+
+  // ── CORS: Policy rejection ──────────────────────────────
+  if (err.message && err.message.includes('CORS')) {
+    statusCode = 403;
+    message = err.message;
+  }
 
   // ── MONGOOSE: Duplicate key (e.g., email already exists) ──
   // Error code 11000 = MongoDB duplicate key violation
@@ -55,13 +74,11 @@ const errorHandler = (err, req, res, next) => {
     statusCode = 400;
   }
 
-  // Log error to a file for debugging
-  try {
-    require('fs').appendFileSync(
-      require('path').join(__dirname, '../error.log'),
-      `[${new Date().toISOString()}] ${req.method} ${req.originalUrl} - Status: ${statusCode} - ${message}\n${err.stack}\n\n`
-    );
-  } catch (e) {}
+  // A16: Log safely without blocking sync I/O and without leaking sensitive PII
+  if (process.env.NODE_ENV !== 'test') {
+    const safeMsg = redactSensitiveData(message);
+    console.error(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl} - Status: ${statusCode} - ${safeMsg}`);
+  }
 
   // Send consistent error response
   res.status(statusCode).json({

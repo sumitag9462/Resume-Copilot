@@ -29,4 +29,6 @@ const copilotSessionSchema = new mongoose.Schema({
   messages: [messageSchema]
 }, { timestamps: true });
 
+copilotSessionSchema.index({ userId: 1, createdAt: -1 });
+
 module.exports = mongoose.model('CopilotSession', copilotSessionSchema);

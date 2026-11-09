@@ -3,6 +3,7 @@
 //
 // React 18 uses createRoot() instead of the old ReactDOM.render().
 // We wrap the entire app in:
+//   - <ThemeProvider> → light/dark theme context
 //   - <AuthProvider>  → makes auth state available everywhere
 //   - <BrowserRouter> → enables React Router
 //   - <Toaster>       → react-hot-toast notification container
@@ -12,6 +13,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
+import { ThemeProvider } from './context/ThemeContext'
 import { AuthProvider } from './context/AuthContext'
 import { ModelProvider } from './context/ModelContext'
 import { ArenaProvider } from './context/ArenaContext'
@@ -23,39 +25,40 @@ import './index.css'
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID || 'YOUR_GOOGLE_CLIENT_ID'}>
-      <BrowserRouter>
-        <AuthProvider>
-        <ModelProvider>
-          <ArenaProvider>
-            <GlobalErrorBoundary>
-              <App />
-            </GlobalErrorBoundary>
-          </ArenaProvider>
-        </ModelProvider>
-        <Toaster
-          position="top-right"
-          toastOptions={{
-            duration: 4000,
-            style: {
-              fontFamily: "'DM Sans', sans-serif",
-              fontSize: '14px',
-              fontWeight: '500',
-              borderRadius: '12px',
-              border: '1px solid #e2e8f0',
-              boxShadow: '0 10px 40px -10px rgba(0,0,0,0.12)',
-              color: '#1e293b',
-              padding: '12px 16px',
-            },
-            success: {
-              iconTheme: { primary: '#10b981', secondary: '#fff' },
-            },
-            error: {
-              iconTheme: { primary: '#ef4444', secondary: '#fff' },
-            },
-          }}
-        />
-      </AuthProvider>
-      </BrowserRouter>
+      <ThemeProvider>
+        <BrowserRouter>
+          <AuthProvider>
+            <ModelProvider>
+              <ArenaProvider>
+                <GlobalErrorBoundary>
+                  <App />
+                </GlobalErrorBoundary>
+              </ArenaProvider>
+            </ModelProvider>
+            <Toaster
+              position="top-right"
+              toastOptions={{
+                duration: 4000,
+                style: {
+                  fontFamily: "'Inter', sans-serif",
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  borderRadius: '8px',
+                  border: '1px solid #e2e8f0',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                  padding: '12px 16px',
+                },
+                success: {
+                  iconTheme: { primary: '#10b981', secondary: '#fff' },
+                },
+                error: {
+                  iconTheme: { primary: '#ef4444', secondary: '#fff' },
+                },
+              }}
+            />
+          </AuthProvider>
+        </BrowserRouter>
+      </ThemeProvider>
     </GoogleOAuthProvider>
   </React.StrictMode>
-)// trigger reload
+)

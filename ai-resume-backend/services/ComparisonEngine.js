@@ -108,16 +108,31 @@ const runModelQuery = async (feature, inputs, modelKey, prompt) => {
       const cleanedText = extractAndCleanJSON(responseText);
       parsedJSON = JSON.parse(cleanedText);
     } catch (parseError) {
-      console.error(`[Arena Engine] JSON parsing failed for model ${modelKey}. Raw:`, responseText);
+      if (process.env.NODE_ENV !== 'test') {
+        console.error(`[Arena Engine] JSON parsing failed for model ${modelKey}.`);
+      }
       throw new Error("Model returned invalid JSON formatting.");
     }
+
+    // Semantic output schema validation (A10)
+    const { validateFeatureOutput } = require('./OutputValidator');
+    const validation = validateFeatureOutput(feature, parsedJSON, inputs);
+    if (!validation.valid) {
+      throw new Error(`Output schema validation failed: ${validation.error}`);
+    }
+    const validatedOutput = validation.sanitizedOutput;
 
     const duration = Date.now() - startTime;
     const usage = result.response.usageMetadata || {};
 
     return {
-      model: actualModelUsed,
-      output: parsedJSON,
+      provider: "Google Gemini",
+      requestedModel: modelKey,
+      model: modelKey,
+      actualModelUsed: actualModelUsed,
+      apiModelName: modelConfig.apiName,
+      isAliased: Boolean(modelConfig.isAlias || modelConfig.apiName !== modelKey),
+      output: validatedOutput,
       executionTime: duration,
       error: null,
       tokenUsage: {
@@ -128,7 +143,9 @@ const runModelQuery = async (feature, inputs, modelKey, prompt) => {
     };
   } catch (error) {
     const duration = Date.now() - startTime;
-    console.error(`[Arena Engine] Error running model ${modelKey}:`, error.message);
+    if (process.env.NODE_ENV !== 'test') {
+      console.error(`[Arena Engine] Error running model ${modelKey}:`, error.message);
+    }
     
     let errorMessage = error.message || "Failed execution";
     if (errorMessage.includes("429") || errorMessage.includes("Quota") || errorMessage.includes("Too Many Requests")) {
@@ -138,7 +155,12 @@ const runModelQuery = async (feature, inputs, modelKey, prompt) => {
     }
 
     return {
-      model: actualModelUsed,
+      provider: "Google Gemini",
+      requestedModel: modelKey,
+      model: modelKey,
+      actualModelUsed: actualModelUsed,
+      apiModelName: modelConfig ? modelConfig.apiName : modelKey,
+      isAliased: Boolean(modelConfig?.isAlias || (modelConfig && modelConfig.apiName !== modelKey)),
       output: null,
       executionTime: duration,
       error: errorMessage,
@@ -173,8 +195,9 @@ const executeArenaRun = async (feature, inputs, selectedModel, compareMode) => {
     const resultObj = await runModelQuery(feature, inputs, targetModel, prompt);
     results = [resultObj];
   } else {
-    // Parallel Comparison Mode (Compare Lite, Flash, Pro)
-    const modelsToRun = ["gemini-2.5-flash-lite", "gemini-2.5-flash", "gemini-pro"];
+    // Parallel Comparison Mode (A06: compare distinct models only, never duplicate models)
+    const { DISTINCT_ARENA_MODELS } = require("../config/models");
+    const modelsToRun = DISTINCT_ARENA_MODELS || ["gemini-2.5-flash-lite", "gemini-2.5-flash"];
     
     const parallelPromises = modelsToRun.map(modelKey => 
       runModelQuery(feature, inputs, modelKey, prompt)

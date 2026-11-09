@@ -10,6 +10,23 @@ const arenaResultSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  provider: {
+    type: String,
+    default: "Google Gemini"
+  },
+  requestedModel: {
+    type: String
+  },
+  actualModelUsed: {
+    type: String
+  },
+  apiModelName: {
+    type: String
+  },
+  isAliased: {
+    type: Boolean,
+    default: false
+  },
   output: {
     type: mongoose.Schema.Types.Mixed // JSON objects matching feature schemas
   },
@@ -66,6 +83,11 @@ const arenaHistorySchema = new mongoose.Schema(
       type: String, // Model name that won overall (e.g. 'gemini-pro')
       default: null
     },
+    cacheKey: {
+      type: String,
+      index: true,
+      sparse: true
+    },
     bestResults: {
       bestOverall: { type: String, default: null },
       bestATS: { type: String, default: null },
@@ -81,6 +103,7 @@ const arenaHistorySchema = new mongoose.Schema(
 
 // Compound index for fast lookup of a user's logs filtered by feature or sorted by recency
 arenaHistorySchema.index({ userId: 1, feature: 1, createdAt: -1 });
+arenaHistorySchema.index({ userId: 1, cacheKey: 1, createdAt: -1 });
 arenaHistorySchema.index({ userId: 1, createdAt: -1 });
 
 module.exports = mongoose.models.ArenaHistory || mongoose.model('ArenaHistory', arenaHistorySchema);

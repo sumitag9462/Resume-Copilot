@@ -144,10 +144,10 @@ const matchWithJob = async (req, res, next) => {
   try {
     const { resumeId, jobDescription } = req.body;
 
-    if (!resumeId || !jobDescription) {
+    if (!resumeId || !jobDescription || typeof jobDescription !== 'string') {
       return res.status(400).json({
         success: false,
-        message: 'resumeId and jobDescription are required',
+        message: 'resumeId and a valid string jobDescription are required',
       });
     }
 
@@ -226,7 +226,7 @@ const createCoverLetter = async (req, res, next) => {
       style = 'professional',
     } = req.body;
 
-    if (!resumeId || !companyName || !jobDescription) {
+    if (!resumeId || typeof companyName !== 'string' || typeof jobDescription !== 'string') {
       return res.status(400).json({
         success: false,
         message: 'resumeId, companyName, and jobDescription are required',
@@ -311,17 +311,27 @@ const getHistory = async (req, res, next) => {
     // Confirm the resume belongs to this user before returning history
     await getOwnedResume(resumeId, req.user._id);
 
+    const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit, 10) || 20));
+    const skip = (page - 1) * limit;
+
+    const total = await Analysis.countDocuments({ resume: resumeId, user: req.user._id });
     const analyses = await Analysis.find({
       resume: resumeId,
       user:   req.user._id,
     })
-      // Exclude the large coverLetterContent and jobDescription from list view
+      // Exclude the large coverLetterContent and jobDescription from list view (A28)
       .select('-coverLetterContent -jobDescription')
-      .sort({ createdAt: -1 });  // Newest first
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
 
     res.status(200).json({
       success:  true,
       count:    analyses.length,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
       analyses,
     });
 
@@ -368,7 +378,7 @@ const getDashboardStats = async (req, res, next) => {
 
     const totalResumes = await Resume.countDocuments({ user: userId });
 
-    // Find highest ATS score from ArenaHistory
+    // Find highest ATS score from ArenaHistory AND legacy Analysis records (A30)
     const atsRuns = await ArenaHistory.find({ userId, feature: 'ats_analysis' });
     let maxScore = 0;
     atsRuns.forEach(run => {
@@ -379,12 +389,22 @@ const getDashboardStats = async (req, res, next) => {
       });
     });
 
+    const legacyAtsRuns = await Analysis.find({ user: userId, type: 'ats_analysis' });
+    legacyAtsRuns.forEach(run => {
+      const score = run.atsScore || run.overallScore || 0;
+      if (score > maxScore) {
+        maxScore = score;
+      }
+    });
+
     // Calculate a dynamic Profile Strength based on max ATS score + resume count
     const profileStrength = totalResumes > 0 
       ? Math.min(100, Math.round((maxScore * 0.8) + (totalResumes * 5)))
       : 0;
 
-    const totalCoverLetters = await ArenaHistory.countDocuments({ userId, feature: 'cover_letter' });
+    const arenaCoverLetters = await ArenaHistory.countDocuments({ userId, feature: 'cover_letter' });
+    const legacyCoverLetters = await Analysis.countDocuments({ user: userId, type: 'cover_letter' });
+    const totalCoverLetters = arenaCoverLetters + legacyCoverLetters;
 
     // Fetch the 5 most recent activities from ArenaHistory
     const recentActivityRaw = await ArenaHistory.find({ userId })
@@ -439,14 +459,27 @@ const getDashboardStats = async (req, res, next) => {
       };
     });
 
-    // Score Trend Graph (last 5 scores from ArenaHistory)
-    const recentScores = await ArenaHistory.find({ userId, feature: 'ats_analysis' })
-      .sort({ createdAt: 1 })
+    // Score Trend Graph: Fetch the newest 5 scores and reverse for chronological display (A30)
+    const recentScoresRaw = await ArenaHistory.find({ userId, feature: 'ats_analysis' })
+      .sort({ createdAt: -1 })
       .limit(5);
 
-    const scoreTrend = recentScores.map((run, index) => {
+    let chronologicalScores = recentScoresRaw.reverse();
+
+    // Fallback to legacy Analysis records if ArenaHistory has fewer records
+    if (chronologicalScores.length === 0 && legacyAtsRuns.length > 0) {
+      const legacyRecent = legacyAtsRuns
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        .slice(0, 5)
+        .reverse();
+      chronologicalScores = legacyRecent.map(r => ({
+        results: [{ scores: { ats: r.atsScore || r.overallScore || 0 } }]
+      }));
+    }
+
+    const scoreTrend = chronologicalScores.map((run, index) => {
       const winnerModel = run.winner || run.results[0]?.model;
-      const winnerResult = run.results.find(r => r.model === winnerModel) || run.results[0];
+      const winnerResult = run.results?.find(r => r.model === winnerModel) || run.results?.[0];
       return {
         label: `Scan ${index + 1}`,
         score: winnerResult?.scores?.ats || 0
